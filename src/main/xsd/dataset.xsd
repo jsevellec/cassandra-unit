@@ -55,6 +55,7 @@
 			<enumeration value="TimeUUIDType" />
 			<enumeration value="UTF8Type" />
 			<enumeration value="UUIDType" />
+			<enumeration value="CounterColumnType" />
 		</restriction>
 	</simpleType>
 

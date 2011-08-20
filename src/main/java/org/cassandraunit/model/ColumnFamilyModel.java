@@ -76,5 +76,9 @@ public class ColumnFamilyModel {
 	public ComparatorType getDefaultColumnValueType() {
 		return defaultColumnValueType;
 	}
+	
+	public boolean isCounter() {
+	  return defaultColumnValueType.equals(ComparatorType.COUNTERTYPE);
+	}
 
 }

@@ -76,5 +76,22 @@
 			<comparatorType>UTF8Type</comparatorType>
 			<defaultColumnValueType>UTF8Type</defaultColumnValueType>
 		</columnFamily>
+		<columnFamily>
+			<name>counterColumnFamilyName</name>
+			<keyType>LongType</keyType>
+			<comparatorType>UTF8Type</comparatorType>
+			<defaultColumnValueType>CounterColumnType</defaultColumnValueType>
+			<row>
+				<key>10</key>
+				<column>
+					<name>counter11</name>
+					<value>11</value>
+				</column>
+				<column>
+					<name>counter12</name>
+					<value>12</value>
+				</column>
+			</row>
+		</columnFamily>		
 	</columnFamilies>
 </keyspace>

@@ -3,9 +3,11 @@ package org.cassandraunit;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.prettyprint.cassandra.serializers.LongSerializer;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.beans.HColumn;
+import me.prettyprint.hector.api.beans.HCounterColumn;
 import me.prettyprint.hector.api.beans.HSuperColumn;
 import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
 import me.prettyprint.hector.api.ddl.ColumnType;
@@ -82,13 +84,19 @@ public class DataLoader {
 		for (RowModel row : columnFamily.getRows()) {
 			switch (columnFamily.getType()) {
 			case STANDARD:
-				for (HColumn<GenericType, GenericType> hColumn : createHColumnList(row.getColumns())) {
-					mutator.addInsertion(row.getKey(), columnFamily.getName(), hColumn);
-				}
-
+			  if ( columnFamily.isCounter() ) {
+			    for (HCounterColumn<GenericType> hColumn : createHCounterColumnList(row.getColumns())) {
+            mutator.addCounter(row.getKey(), columnFamily.getName(), hColumn);
+          }
+			  } else {
+			    for (HColumn<GenericType, GenericType> hColumn : createHColumnList(row.getColumns())) {
+            mutator.addInsertion(row.getKey(), columnFamily.getName(), hColumn);
+          }
+			  }
 				break;
 			case SUPER:
-				for (SuperColumnModel superColumnModel : row.getSuperColumns()) {
+			  // TODO deduce supercf counter or not
+				for (SuperColumnModel superColumnModel : row.getSuperColumns()) {				  
 					HSuperColumn<GenericType, GenericType, GenericType> column = HFactory.createSuperColumn(
 							superColumnModel.getName(), createHColumnList(superColumnModel.getColumns()),
 							GenericTypeSerializer.get(), GenericTypeSerializer.get(), GenericTypeSerializer.get());
@@ -113,6 +121,16 @@ public class DataLoader {
 		}
 		return hColumns;
 	}
+	
+	 private List<HCounterColumn<GenericType>> createHCounterColumnList(List<ColumnModel> columnsModel) {
+	    List<HCounterColumn<GenericType>> hColumns = new ArrayList<HCounterColumn<GenericType>>();
+	    for (ColumnModel columnModel : columnsModel) {
+	      HCounterColumn<GenericType> column = HFactory.createCounterColumn(columnModel.getName(),
+	          LongSerializer.get().fromByteBuffer(GenericTypeSerializer.get().toByteBuffer(columnModel.getValue())), GenericTypeSerializer.get());
+	      hColumns.add(column);
+	    }
+	    return hColumns;
+	  }
 
 	private List<ColumnFamilyDefinition> createColumnFamilyDefinitions(DataSet dataSet, KeyspaceModel dataSetKeyspace) {
 		List<ColumnFamilyDefinition> columnFamilyDefinitions = new ArrayList<ColumnFamilyDefinition>();
@@ -123,6 +141,9 @@ public class DataLoader {
 
 			cfDef.setKeyValidationClass(columnFamily.getKeyType().getClassName());
 			cfDef.setComparatorType(ComparatorType.getByClassName(columnFamily.getComparatorType().getClassName()));
+			if ( columnFamily.isCounter() ) {
+			  cfDef.setDefaultValidationClass(columnFamily.getDefaultColumnValueType().getClassName());
+			}
 			if (columnFamily.getType().equals(ColumnType.SUPER) && columnFamily.getSubComparatorType() != null) {
 				cfDef.setSubComparatorType(columnFamily.getSubComparatorType());
 			}

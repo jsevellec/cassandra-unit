@@ -62,6 +62,9 @@ public class GenericTypeSerializer extends AbstractSerializer<GenericType> {
 			case UUID_TYPE:
 				byteBuffer = UUIDSerializer.get().toByteBuffer(UUID.fromString(genericType.getValue()));
 				break;
+			case COUNTER_TYPE:
+			  byteBuffer = LongSerializer.get().toByteBuffer(Long.parseLong(genericType.getValue()));
+			  break;
 			default:
 				byteBuffer = BytesArraySerializer.get().toByteBuffer(genericType.getValue().getBytes());
 				break;

@@ -92,6 +92,6 @@
 					<value>long(19652258)</value>
 				</column>
 			</row>
-		</columnFamily>
+		</columnFamily>		
 	</columnFamilies>
 </keyspace>

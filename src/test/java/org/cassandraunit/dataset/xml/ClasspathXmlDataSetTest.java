@@ -125,6 +125,15 @@ public class ClasspathXmlDataSetTest {
 				is(ComparatorType.UTF8TYPE.getClassName()));
 		assertThat(dataSet.getColumnFamilies().get(1).getComparatorType().getClassName(),
 				is(ComparatorType.UTF8TYPE.getClassName()));
+		
+    assertThat(dataSet.getColumnFamilies().get(2).getName(), is("counterColumnFamilyName"));
+    assertThat(dataSet.getColumnFamilies().get(2).getType(), is(ColumnType.STANDARD));
+    assertThat(dataSet.getColumnFamilies().get(2).getKeyType().getClassName(),
+        is(ComparatorType.LONGTYPE.getClassName()));
+    assertThat(dataSet.getColumnFamilies().get(2).getComparatorType().getClassName(),
+        is(ComparatorType.UTF8TYPE.getClassName()));
+    assertThat(dataSet.getColumnFamilies().get(2).getDefaultColumnValueType().getClassName(),
+        is(ComparatorType.COUNTERTYPE.getClassName()));
 	}
 
 	@Test
