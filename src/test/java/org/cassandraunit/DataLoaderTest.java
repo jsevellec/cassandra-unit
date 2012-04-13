@@ -186,7 +186,7 @@ public class DataLoaderTest {
 
 		assertThat(cluster.describeKeyspace(keyspaceName).getCfDefs().get(1).getColumnMetadata().get(1), notNullValue());
 		assertThat(cluster.describeKeyspace(keyspaceName).getCfDefs().get(1).getColumnMetadata().get(1).getIndexName(),
-				is("columnWithSecondaryIndexAndValidationClassAsUTF8Type"));
+				is("columnWithSecondaryIndexHaveIndexNameAndValidationClassAsUTF8Type"));
 		assertThat(cluster.describeKeyspace(keyspaceName).getCfDefs().get(1).getColumnMetadata().get(1).getName(),
 				is(ByteBuffer.wrap("columnWithSecondaryIndexAndValidationClassAsUTF8Type".getBytes(Charsets.UTF_8))));
 		assertThat(cluster.describeKeyspace(keyspaceName).getCfDefs().get(1).getColumnMetadata().get(1).getIndexType(),

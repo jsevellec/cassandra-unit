@@ -5,6 +5,7 @@ public class ParsedColumnMetadata {
 	private String name;
 	private ParsedDataType validationClass;
 	private ParsedIndexType indexType;
+	private String indexName;
 
 	public String getName() {
 		return name;
@@ -28,6 +29,14 @@ public class ParsedColumnMetadata {
 
 	public void setIndexType(ParsedIndexType indexType) {
 		this.indexType = indexType;
+	}
+
+	public String getIndexName() {
+		return indexName;
+	}
+
+	public void setIndexName(String indexName) {
+		this.indexName = indexName;
 	}
 
 }

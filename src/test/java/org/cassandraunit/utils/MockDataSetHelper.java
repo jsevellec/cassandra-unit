@@ -153,11 +153,12 @@ public class MockDataSetHelper {
 		columnFamilyWithSecondaryIndex.setComparatorType(ComparatorType.UTF8TYPE);
 		columnFamilyWithSecondaryIndex.setDefaultColumnValueType(ComparatorType.UTF8TYPE);
 		columnFamilyWithSecondaryIndex.addColumnMetadata(new ColumnMetadata(
-				"columnWithSecondaryIndexAndValidationClassAsLongType", ComparatorType.LONGTYPE, ColumnIndexType.KEYS));
+				"columnWithSecondaryIndexAndValidationClassAsLongType", ComparatorType.LONGTYPE, ColumnIndexType.KEYS, null));
 		columnFamilyWithSecondaryIndex.addColumnMetadata(new ColumnMetadata(
-				"columnWithSecondaryIndexAndValidationClassAsUTF8Type", ComparatorType.UTF8TYPE, ColumnIndexType.KEYS));
+				"columnWithSecondaryIndexAndValidationClassAsUTF8Type", ComparatorType.UTF8TYPE, ColumnIndexType.KEYS, 
+				"columnWithSecondaryIndexHaveIndexNameAndValidationClassAsUTF8Type"));
 		columnFamilyWithSecondaryIndex.addColumnMetadata(new ColumnMetadata("columnWithValidationClassAsUTF8Type",
-				ComparatorType.UTF8TYPE, null));
+				ComparatorType.UTF8TYPE, null, null));
 
 		columnFamilies.add(columnFamilyWithSecondaryIndex);
 

@@ -15,16 +15,18 @@ public class ColumnMetadata {
 	private String columnName = null;
 	private ComparatorType validationClass = null;
 	private ColumnIndexType columnIndexType = null;
+	private String indexName = null;
 
 	public ColumnMetadata() {
 		super();
 	}
 
-	public ColumnMetadata(String columnName, ComparatorType validationClass, ColumnIndexType columnIndexType) {
+	public ColumnMetadata(String columnName, ComparatorType validationClass, ColumnIndexType columnIndexType, String indexName) {
 		super();
 		this.columnName = columnName;
 		this.validationClass = validationClass;
 		this.setColumnIndexType(columnIndexType);
+		this.indexName = indexName;
 	}
 
 	public String getColumnName() {
@@ -49,6 +51,14 @@ public class ColumnMetadata {
 
 	public void setColumnIndexType(ColumnIndexType columnIndexType) {
 		this.columnIndexType = columnIndexType;
+	}
+
+	public String getIndexName() {
+		return indexName;
+	}
+
+	public void setIndexName(String indexName) {
+		this.indexName = indexName;
 	}
 
 }

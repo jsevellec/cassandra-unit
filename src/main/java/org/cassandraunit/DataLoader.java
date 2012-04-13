@@ -222,7 +222,8 @@ public class DataLoader {
 			columnDefinition.setName(ByteBuffer.wrap(columnName.getBytes(Charsets.UTF_8)));
 
 			if (columnMetadata.getColumnIndexType() != null) {
-				columnDefinition.setIndexName(columnName);
+				String indexName = columnMetadata.getIndexName();
+				columnDefinition.setIndexName((indexName == null) ? columnName : indexName);
 				columnDefinition.setIndexType(columnMetadata.getColumnIndexType());
 			}
 
