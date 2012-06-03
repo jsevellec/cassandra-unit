@@ -1,14 +1,16 @@
 package org.cassandraunit.utils;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
@@ -31,23 +33,23 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class EmbeddedCassandraServerHelper {
-
-	private static final String INTERNAL_CASSANDRA_KEYSPACE = "system";
-
+	
 	private static Logger log = LoggerFactory.getLogger(EmbeddedCassandraServerHelper.class);
 
-	private static final String TMP = "target/embeddedCassandra";
+	public static final String DEFAULT_TMP_DIR = "target/embeddedCassandra";
+	public static final String DEFAULT_CASSANDRA_YML_FILE = "cu-cassandra.yaml";
+	private static final String INTERNAL_CASSANDRA_KEYSPACE = "system";
 
 	private static CassandraDaemon cassandraDaemon = null;
 	static ExecutorService executor = Executors.newSingleThreadExecutor();
 
-	public EmbeddedCassandraServerHelper() {
-
-	}
-
 	public static void startEmbeddedCassandra() throws TTransportException, IOException, InterruptedException,
 			ConfigurationException {
-		startEmbeddedCassandra("cu-cassandra.yaml");
+		startEmbeddedCassandra(DEFAULT_CASSANDRA_YML_FILE);
+	}
+	
+	public static void startEmbeddedCassandra(String yamlFile) throws TTransportException, IOException, ConfigurationException {
+		startEmbeddedCassandra(yamlFile, DEFAULT_TMP_DIR);
 	}
 
 	/**
@@ -57,8 +59,7 @@ public class EmbeddedCassandraServerHelper {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static void startEmbeddedCassandra(String yamlFile) throws TTransportException, IOException,
-			InterruptedException, ConfigurationException {
+	public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
 
 		if (!StringUtils.startsWith(yamlFile, "/")) {
 			yamlFile = "/" + yamlFile;
@@ -67,26 +68,28 @@ public class EmbeddedCassandraServerHelper {
 		if (cassandraDaemon == null) {
 			log.debug("Starting cassandra...");
 			log.debug("Initialization needed");
-			rmdir(TMP);
-			copy("/log4j-embedded-cassandra.properties", TMP);
-			copy(yamlFile, TMP);
+			rmdir(tmpDir);
+			copy("/log4j-embedded-cassandra.properties", tmpDir);
+			copy(yamlFile, tmpDir);
 
-			System.setProperty("cassandra.config", "file:" + TMP + yamlFile);
-			System.setProperty("log4j.configuration", "file:" + TMP + "/log4j-embedded-cassandra.properties");
+			System.setProperty("cassandra.config", "file:" + tmpDir + yamlFile);
+			System.setProperty("log4j.configuration", "file:" + tmpDir + "/log4j-embedded-cassandra.properties");
 			System.setProperty("cassandra-foreground", "true");
 
 			cleanupAndLeaveDirs();
+			final CountDownLatch startupLatch = new CountDownLatch(1);
 			executor.execute(new Runnable() {
-
 				@Override
 				public void run() {
 					cassandraDaemon = new CassandraDaemon();
 					cassandraDaemon.activate();
+					startupLatch.countDown();
 				}
 			});
 			try {
-				TimeUnit.SECONDS.sleep(2);
+				startupLatch.await(10, SECONDS);
 			} catch (InterruptedException e) {
+				log.error("Interrupted waiting for Cassandra daemon to start:", e);
 				throw new AssertionError(e);
 			}
 		} else {
