@@ -37,7 +37,8 @@ public class EmbeddedCassandraServerHelper {
 	private static Logger log = LoggerFactory.getLogger(EmbeddedCassandraServerHelper.class);
 
 	public static final String DEFAULT_TMP_DIR = "target/embeddedCassandra";
-	public static final String DEFAULT_CASSANDRA_YML_FILE = "cu-cassandra.yaml";
+    public static final String DEFAULT_CASSANDRA_YML_FILE = "cu-cassandra.yaml";
+    public static final String DEFAULT_LOG4J_CONFIG_FILE = "/log4j-embedded-cassandra.properties";
 	private static final String INTERNAL_CASSANDRA_KEYSPACE = "system";
 
 	private static CassandraDaemon cassandraDaemon = null;
@@ -61,20 +62,24 @@ public class EmbeddedCassandraServerHelper {
 	 */
 	public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
 
-		if (!StringUtils.startsWith(yamlFile, "/")) {
-			yamlFile = "/" + yamlFile;
-		}
+        if (!StringUtils.startsWith(yamlFile, "/")) {
+            yamlFile = "/" + yamlFile;
+        }
 
-		if (cassandraDaemon == null) {
+        if (cassandraDaemon == null) {
 			log.debug("Starting cassandra...");
 			log.debug("Initialization needed");
 			rmdir(tmpDir);
-			copy("/log4j-embedded-cassandra.properties", tmpDir);
 			copy(yamlFile, tmpDir);
 
 			System.setProperty("cassandra.config", "file:" + tmpDir + yamlFile);
-			System.setProperty("log4j.configuration", "file:" + tmpDir + "/log4j-embedded-cassandra.properties");
 			System.setProperty("cassandra-foreground", "true");
+
+            // If there is no log4j config set already, set the default config
+            if(System.getProperty("log4j.configuration") == null) {
+                copy(DEFAULT_LOG4J_CONFIG_FILE, tmpDir);
+                System.setProperty("log4j.configuration", "file:" + tmpDir + DEFAULT_LOG4J_CONFIG_FILE);
+            }
 
 			cleanupAndLeaveDirs();
 			final CountDownLatch startupLatch = new CountDownLatch(1);
