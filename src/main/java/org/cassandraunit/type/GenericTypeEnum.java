@@ -7,10 +7,11 @@ package org.cassandraunit.type;
  */
 public enum GenericTypeEnum {
 
-	BYTES_TYPE("BytesType"), INTEGER_TYPE("IntegerType"), LEXICAL_UUID_TYPE("LexicalUUIDType"), LONG_TYPE("LongType"), TIME_UUID_TYPE(
-			"TimeUUIDType"), UTF_8_TYPE("UTF8Type"), UUID_TYPE("UUIDType"), COUNTER_TYPE("CounterColumnType"), COMPOSITE_TYPE(
-			"CompositeType");
-
+	ASCII_TYPE("AsciiType"), BOOLEAN_TYPE("BooleanType"), BYTES_TYPE("BytesType"), COUNTER_TYPE("CounterColumnType"),
+	DATE_TYPE("DateType"), DOUBLE_TYPE("DoubleType"), FLOAT_TYPE("FloatType"), INTEGER_TYPE("IntegerType"), 
+	LEXICAL_UUID_TYPE("LexicalUUIDType"), LONG_TYPE("LongType"), TIME_UUID_TYPE("TimeUUIDType"), 
+	UTF_8_TYPE("UTF8Type"), UUID_TYPE("UUIDType"), COMPOSITE_TYPE("CompositeType");
+	
 	private final String value;
 
 	GenericTypeEnum(String v) {

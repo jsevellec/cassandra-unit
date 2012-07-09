@@ -17,7 +17,7 @@ public class TypeExtractor {
 	private static String endTypeFunction = ")";
 	private static String startTypeFunction = "(";
 	private static String[] availableTypeFunctionArray = new String[] { "bytes(", "integer(", "lexicaluuid(", "long(",
-			"utf8(", "timeuuid(", "uuid(" };
+			"utf8(", "timeuuid(", "uuid(", "ascii(", "boolean(", "date(", "double(", "float(", "countercolumn("};
 
 	public static GenericType extract(String valueToExtract, ComparatorType defaultValueType) {
 		String extractedValue = null;

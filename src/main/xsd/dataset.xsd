@@ -70,14 +70,19 @@
 
 	<simpleType name="DataType">
 		<restriction base="string">
+			<enumeration value="AsciiType" />
+			<enumeration value="BooleanType" />
 			<enumeration value="BytesType" />
+			<enumeration value="CounterColumnType" />
+			<enumeration value="DateType" />
+			<enumeration value="DoubleType" />
+			<enumeration value="FloatType" />
 			<enumeration value="IntegerType" />
 			<enumeration value="LexicalUUIDType" />
 			<enumeration value="LongType" />
 			<enumeration value="TimeUUIDType" />
 			<enumeration value="UTF8Type" />
-			<enumeration value="UUIDType" />
-			<enumeration value="CounterColumnType" />
+			<enumeration value="UUIDType" />			
 		</restriction>
 	</simpleType>
 

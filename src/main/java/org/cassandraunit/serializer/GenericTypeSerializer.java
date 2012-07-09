@@ -1,12 +1,19 @@
 package org.cassandraunit.serializer;
 
 import java.nio.ByteBuffer;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.UUID;
 
 import me.prettyprint.cassandra.serializers.AbstractSerializer;
+import me.prettyprint.cassandra.serializers.BooleanSerializer;
 import me.prettyprint.cassandra.serializers.ByteBufferSerializer;
 import me.prettyprint.cassandra.serializers.BytesArraySerializer;
 import me.prettyprint.cassandra.serializers.CompositeSerializer;
+import me.prettyprint.cassandra.serializers.DateSerializer;
+import me.prettyprint.cassandra.serializers.DoubleSerializer;
+import me.prettyprint.cassandra.serializers.FloatSerializer;
 import me.prettyprint.cassandra.serializers.IntegerSerializer;
 import me.prettyprint.cassandra.serializers.LongSerializer;
 import me.prettyprint.cassandra.serializers.StringSerializer;
@@ -28,6 +35,8 @@ public class GenericTypeSerializer extends AbstractSerializer<GenericType> {
 
 	private static final GenericTypeSerializer instance = new GenericTypeSerializer();
 
+	public static final DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd HHmmss");
+	
 	public static GenericTypeSerializer get() {
 		return instance;
 	}
@@ -51,44 +60,63 @@ public class GenericTypeSerializer extends AbstractSerializer<GenericType> {
 		if (currentType == null) {
 
 		} else {
-
+			String genericValue = genericType.getValue();
+			
 			switch (genericType.getType()) {
 
+			case BOOLEAN_TYPE:
+				byteBuffer = BooleanSerializer.get().toByteBuffer(Boolean.parseBoolean(genericValue));
+				break;
 			case BYTES_TYPE:
 				byte[] hexDecodedBytes;
 				try {
-					hexDecodedBytes = Hex.decodeHex(genericType.getValue().toCharArray());
+					hexDecodedBytes = Hex.decodeHex(genericValue.toCharArray());
 					byteBuffer = ByteBufferSerializer.get().fromBytes(hexDecodedBytes);
 				} catch (DecoderException e) {
-					throw new CassandraUnitException("cannot parse \"" + genericType.getValue() + "\" as hex bytes", e);
+					throw new CassandraUnitException("cannot parse \"" + genericValue + "\" as hex bytes", e);
 				}
 				break;
-			case INTEGER_TYPE:
-				byteBuffer = IntegerSerializer.get().toByteBuffer(Integer.parseInt(genericType.getValue()));
+			case DATE_TYPE:				
+				try {
+					byteBuffer = DateSerializer.get().toByteBuffer(dateFormat.parse(genericValue));
+				} catch (ParseException e) {
+					throw new CassandraUnitException("cannot parse \"" + genericValue + "\" as date", e);
+				}
 				break;
+			case DOUBLE_TYPE:
+				byteBuffer = DoubleSerializer.get().toByteBuffer(Double.parseDouble(genericValue));
+				break;
+			case FLOAT_TYPE:
+				byteBuffer = FloatSerializer.get().toByteBuffer(Float.parseFloat(genericValue));
+				break;
+			case INTEGER_TYPE:
+				int val = Integer.parseInt(genericValue);
+				byteBuffer = IntegerSerializer.get().toByteBuffer(val);
+				break;				
 			case LEXICAL_UUID_TYPE:
-				byteBuffer = UUIDSerializer.get().toByteBuffer(UUID.fromString(genericType.getValue()));
+				byteBuffer = UUIDSerializer.get().toByteBuffer(UUID.fromString(genericValue));
 				break;
 			case LONG_TYPE:
-				byteBuffer = LongSerializer.get().toByteBuffer(Long.parseLong(genericType.getValue()));
+				byteBuffer = LongSerializer.get().toByteBuffer(Long.parseLong(genericValue));
 				break;
 			case TIME_UUID_TYPE:
-				byteBuffer = UUIDSerializer.get().toByteBuffer(UUID.fromString(genericType.getValue()));
+				byteBuffer = UUIDSerializer.get().toByteBuffer(UUID.fromString(genericValue));
 				break;
+			case ASCII_TYPE:
 			case UTF_8_TYPE:
-				byteBuffer = StringSerializer.get().toByteBuffer(genericType.getValue());
+				byteBuffer = StringSerializer.get().toByteBuffer(genericValue);
 				break;
 			case UUID_TYPE:
-				byteBuffer = UUIDSerializer.get().toByteBuffer(UUID.fromString(genericType.getValue()));
+				byteBuffer = UUIDSerializer.get().toByteBuffer(UUID.fromString(genericValue));
 				break;
 			case COUNTER_TYPE:
-				byteBuffer = LongSerializer.get().toByteBuffer(Long.parseLong(genericType.getValue()));
+				byteBuffer = LongSerializer.get().toByteBuffer(Long.parseLong(genericValue));
 				break;
 			case COMPOSITE_TYPE:
 				byteBuffer = new CompositeSerializer().toByteBuffer(createComposite(genericType));
 				break;
 			default:
-				byteBuffer = BytesArraySerializer.get().toByteBuffer(genericType.getValue().getBytes());
+				byteBuffer = BytesArraySerializer.get().toByteBuffer(genericValue.getBytes());
 				break;
 			}
 		}
