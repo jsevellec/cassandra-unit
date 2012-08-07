@@ -49,6 +49,22 @@ public class EmbeddedCassandraServerHelper {
 		startEmbeddedCassandra(yamlFile, DEFAULT_TMP_DIR);
 	}
 
+	public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
+		if (cassandraDaemon != null) {
+			/* nothing to do Cassandra is already started */
+			return;
+		}
+
+		if (!StringUtils.startsWith(yamlFile, "/")) {
+			yamlFile = "/" + yamlFile;
+		}
+
+		rmdir(tmpDir);
+		copy(yamlFile, tmpDir);
+		File file = new File(tmpDir + yamlFile);
+		startEmbeddedCassandra(file, tmpDir);
+	}
+
 	/**
 	 * Set embedded cassandra up and spawn it in a new thread.
 	 * 
@@ -56,49 +72,42 @@ public class EmbeddedCassandraServerHelper {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
-
-        if (!StringUtils.startsWith(yamlFile, "/")) {
-            yamlFile = "/" + yamlFile;
-        }
-
-
-		if (cassandraDaemon == null) {
-            checkConfigNameForRestart(yamlFile);
-
-			log.debug("Starting cassandra...");
-			log.debug("Initialization needed");
-			rmdir(tmpDir);
-			copy(yamlFile, tmpDir);
-
-			System.setProperty("cassandra.config", "file:" + tmpDir + yamlFile);
-			System.setProperty("cassandra-foreground", "true");
-
-            // If there is no log4j config set already, set the default config
-            if(System.getProperty("log4j.configuration") == null) {
-                copy(DEFAULT_LOG4J_CONFIG_FILE, tmpDir);
-                System.setProperty("log4j.configuration", "file:" + tmpDir + DEFAULT_LOG4J_CONFIG_FILE);
-            }
-
-			cleanupAndLeaveDirs();
-			final CountDownLatch startupLatch = new CountDownLatch(1);
-            executor = Executors.newSingleThreadExecutor();
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					cassandraDaemon = new CassandraDaemon();
-					cassandraDaemon.activate();
-					startupLatch.countDown();
-				}
-			});
-			try {
-				startupLatch.await(10, SECONDS);
-			} catch (InterruptedException e) {
-				log.error("Interrupted waiting for Cassandra daemon to start:", e);
-				throw new AssertionError(e);
-			}
-		} else {
+	public static void startEmbeddedCassandra(File file, String tmpDir) throws TTransportException, IOException, ConfigurationException {
+		if (cassandraDaemon != null) {
 			/* nothing to do Cassandra is already started */
+			return;
+		}
+
+		checkConfigNameForRestart(file.getAbsolutePath());
+
+		log.debug("Starting cassandra...");
+		log.debug("Initialization needed");
+
+		System.setProperty("cassandra.config", "file:" + file.getAbsolutePath());
+		System.setProperty("cassandra-foreground", "true");
+
+		// If there is no log4j config set already, set the default config
+		if (System.getProperty("log4j.configuration") == null) {
+			copy(DEFAULT_LOG4J_CONFIG_FILE, tmpDir);
+			System.setProperty("log4j.configuration", "file:" + tmpDir + DEFAULT_LOG4J_CONFIG_FILE);
+		}
+
+		cleanupAndLeaveDirs();
+		final CountDownLatch startupLatch = new CountDownLatch(1);
+		executor = Executors.newSingleThreadExecutor();
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				cassandraDaemon = new CassandraDaemon();
+				cassandraDaemon.activate();
+				startupLatch.countDown();
+			}
+		});
+		try {
+			startupLatch.await(10, SECONDS);
+		} catch (InterruptedException e) {
+			log.error("Interrupted waiting for Cassandra daemon to start:", e);
+			throw new AssertionError(e);
 		}
 	}
 
