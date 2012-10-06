@@ -328,7 +328,7 @@ public class ClasspathYamlDataSetTest {
 
     @Test
     public void shouldGetAColumnFamilyWithNullColumnValue() {
-        DataSet dataSet = new ClassPathYamlDataSet("yaml/datasetWithNullColumnValue.yaml");
+        DataSet dataSet = new ClassPathYamlDataSet("yaml/dataSetWithNullColumnValue.yaml");
         ColumnFamilyModel columnFamilyModel = dataSet.getColumnFamilies().get(0);
         assertThat(columnFamilyModel.getName(), is("columnFamilyWithNullColumnValue"));
         ColumnModel columnModel = columnFamilyModel.getRows().get(0).getColumns().get(0);
