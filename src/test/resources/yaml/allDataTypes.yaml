@@ -32,4 +32,4 @@ columnFamilies:
     - {name: long, value: 987654321}
     - {name: timeUUID, value: a4a70900-24e1-11df-8924-001ff3591711}
     - {name: utf8, value: Utf8String}
-    - {name: uuid, value: c0178282-5c68-4fd3-9d9b-cae4f95fcd69}
+    - {name: uuid, value: c0178282-5c68-4fd3-9d9b-cae4f95fcd69, timestamp: 20239023}

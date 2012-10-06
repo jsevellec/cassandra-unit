@@ -9,6 +9,7 @@ public class ColumnModel {
 
     private GenericType name;
     private GenericType value;
+    private Long timestamp;
 
     public GenericType getName() {
         return name;
@@ -26,4 +27,11 @@ public class ColumnModel {
         this.value = value;
     }
 
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
 }
