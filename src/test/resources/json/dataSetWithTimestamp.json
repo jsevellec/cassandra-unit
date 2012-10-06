@@ -1,0 +1,13 @@
+{
+    "name" : "keyspaceWithTimestampedColumn",
+    "columnFamilies" : [{
+        "name" : "columnFamilyWithTimestampedColumn",
+        "rows" : [{
+            "key" : "rowWithTimestampedColumn",
+            "columns" : [{
+                "name" : "columnWithTimestamp",
+                "timestamp" : 2020
+            }]
+        }]
+    }]
+}

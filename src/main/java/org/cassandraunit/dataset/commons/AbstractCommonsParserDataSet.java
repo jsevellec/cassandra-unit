@@ -300,6 +300,14 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
             columnValue = TypeExtractor.extract(parsedColumn.getValue(), defaultColumnValueType);
         }
         columnModel.setValue(columnValue);
+
+        String timestamp = parsedColumn.getTimestamp();
+        if(timestamp != null) {
+            columnModel.setTimestamp(Long.valueOf(timestamp));
+        } else {
+            columnModel.setTimestamp(null);
+        }
+
         return columnModel;
     }
 

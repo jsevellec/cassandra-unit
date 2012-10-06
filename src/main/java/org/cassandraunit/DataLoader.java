@@ -157,11 +157,15 @@ public class DataLoader {
         List<HColumn<GenericType, GenericType>> hColumns = new ArrayList<HColumn<GenericType, GenericType>>();
         for (ColumnModel columnModel : columnsModel) {
             GenericType columnValue = columnModel.getValue();
+            Long timestamp = columnModel.getTimestamp();
+            if(timestamp == null) {
+                timestamp = System.currentTimeMillis();
+            }
             if (columnValue == null) {
                 columnValue = new GenericType("", GenericTypeEnum.BYTES_TYPE);
             }
             HColumn<GenericType, GenericType> column = HFactory.createColumn(columnModel.getName(),
-                    columnValue, GenericTypeSerializer.get(), GenericTypeSerializer.get());
+                    columnValue, timestamp, GenericTypeSerializer.get(), GenericTypeSerializer.get());
             hColumns.add(column);
         }
         return hColumns;

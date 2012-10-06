@@ -7,6 +7,7 @@ public class ParsedColumn {
 
     private String name;
     private String value;
+    private String timestamp;
 
     public void setName(String name) {
         this.name = name;
@@ -22,6 +23,14 @@ public class ParsedColumn {
 
     public String getValue() {
         return value;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
     }
 
 }

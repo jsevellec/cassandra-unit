@@ -429,4 +429,14 @@ public class ClasspathXmlDataSetTest {
         assertThat(columnModel.getName().getValue(), is("columnWithNullColumnValue"));
         assertThat(columnModel.getValue().getValue(), nullValue());
     }
+
+    @Test
+    public void shouldGetAColumnFamilyWithTimestampedColumn() {
+        DataSet dataSet = new ClassPathXmlDataSet("xml/datasetWithTimestamp.xml");
+        ColumnFamilyModel columnFamilyModel = dataSet.getColumnFamilies().get(0);
+        assertThat(columnFamilyModel.getName(), is("columnFamilyWithTimestampedColumn"));
+        ColumnModel columnModel = columnFamilyModel.getRows().get(0).getColumns().get(0);
+        assertThat(columnModel.getName().getValue(), is("columnWithTimestamp"));
+        assertThat(columnModel.getTimestamp(), is(2020L));
+    }
 }
