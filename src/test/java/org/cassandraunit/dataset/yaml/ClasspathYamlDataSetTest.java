@@ -12,7 +12,9 @@ import me.prettyprint.hector.api.ddl.ComparatorType;
 
 import org.cassandraunit.dataset.DataSet;
 import org.cassandraunit.dataset.ParseException;
+import org.cassandraunit.dataset.xml.ClassPathXmlDataSet;
 import org.cassandraunit.model.ColumnFamilyModel;
+import org.cassandraunit.model.ColumnModel;
 import org.cassandraunit.model.StrategyModel;
 import org.cassandraunit.type.GenericTypeEnum;
 import org.junit.Test;
@@ -323,4 +325,14 @@ public class ClasspathYamlDataSetTest {
 		DataSet dataSet = new ClassPathYamlDataSet("yaml/dataSetWithBadCompositeType.yaml");
 		dataSet.getKeyspace();
 	}
+
+    @Test
+    public void shouldGetAColumnFamilyWithNullColumnValue() {
+        DataSet dataSet = new ClassPathYamlDataSet("yaml/datasetWithNullColumnValue.yaml");
+        ColumnFamilyModel columnFamilyModel = dataSet.getColumnFamilies().get(0);
+        assertThat(columnFamilyModel.getName(), is("columnFamilyWithNullColumnValue"));
+        ColumnModel columnModel = columnFamilyModel.getRows().get(0).getColumns().get(0);
+        assertThat(columnModel.getName().getValue(), is("columnWithNullColumnValue"));
+        assertThat(columnModel.getValue().getValue(), nullValue());
+    }
 }

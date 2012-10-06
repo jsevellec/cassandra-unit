@@ -8,18 +8,18 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.rules.ExternalResource;
 
 public class CassandraUnit extends ExternalResource {
-	public Cluster cluster;
-	public Keyspace keyspace;
+    public Cluster cluster;
+    public Keyspace keyspace;
 
-	private DataSet dataSet;
+    private DataSet dataSet;
 
-	public static String clusterName = "TestCluster";
-	public static String host = "localhost:9171";
+    public static String clusterName = "TestCluster";
+    public static String host = "localhost:9171";
     private String configurationFileName;
 
     public CassandraUnit(DataSet dataSet) {
-		this.dataSet = dataSet;
-	}
+        this.dataSet = dataSet;
+    }
 
     public CassandraUnit(DataSet dataSet, String configurationFileName, String host) {
         this(dataSet);
@@ -28,21 +28,21 @@ public class CassandraUnit extends ExternalResource {
     }
 
     @Override
-	protected void before() throws Exception {
-		/* start an embedded Cassandra */
+    protected void before() throws Exception {
+        /* start an embedded Cassandra */
         if (configurationFileName != null) {
-		    EmbeddedCassandraServerHelper.startEmbeddedCassandra(configurationFileName);
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra(configurationFileName);
         } else {
             EmbeddedCassandraServerHelper.startEmbeddedCassandra();
         }
 
-		/* create structure and load data */
-		DataLoader dataLoader = new DataLoader(clusterName, host);
-		dataLoader.load(dataSet);
+        /* create structure and load data */
+        DataLoader dataLoader = new DataLoader(clusterName, host);
+        dataLoader.load(dataSet);
 
-		/* get hector client object to query data in your test */
-		cluster = HFactory.getOrCreateCluster(clusterName, host);
-		keyspace = HFactory.createKeyspace(dataSet.getKeyspace().getName(), cluster);
-	}
+        /* get hector client object to query data in your test */
+        cluster = HFactory.getOrCreateCluster(clusterName, host);
+        keyspace = HFactory.createKeyspace(dataSet.getKeyspace().getName(), cluster);
+    }
 
 }

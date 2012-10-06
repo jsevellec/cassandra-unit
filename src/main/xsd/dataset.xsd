@@ -119,7 +119,7 @@
 	<complexType name="Column">
 		<sequence>
 			<element name="name" type="string" minOccurs="1" maxOccurs="1" />
-			<element name="value" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="value" type="string" minOccurs="0" maxOccurs="1" />
 		</sequence>
 	</complexType>
 </schema>

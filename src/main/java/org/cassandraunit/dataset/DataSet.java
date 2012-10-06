@@ -1,19 +1,17 @@
 package org.cassandraunit.dataset;
 
-import java.util.List;
-
 import org.cassandraunit.model.ColumnFamilyModel;
 import org.cassandraunit.model.KeyspaceModel;
 
+import java.util.List;
+
 /**
- * 
  * @author Jeremy Sevellec
- * 
  */
 public interface DataSet {
 
-	KeyspaceModel getKeyspace();
+    KeyspaceModel getKeyspace();
 
-	List<ColumnFamilyModel> getColumnFamilies();
+    List<ColumnFamilyModel> getColumnFamilies();
 
 }

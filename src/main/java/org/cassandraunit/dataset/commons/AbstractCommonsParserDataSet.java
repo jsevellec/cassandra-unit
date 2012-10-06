@@ -1,12 +1,8 @@
 package org.cassandraunit.dataset.commons;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import me.prettyprint.hector.api.ddl.ColumnIndexType;
 import me.prettyprint.hector.api.ddl.ColumnType;
 import me.prettyprint.hector.api.ddl.ComparatorType;
-
 import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.dataset.DataSet;
 import org.cassandraunit.dataset.ParseException;
@@ -16,83 +12,84 @@ import org.cassandraunit.type.GenericTypeEnum;
 import org.cassandraunit.utils.ComparatorTypeHelper;
 import org.cassandraunit.utils.TypeExtractor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 
  * @author Jeremy Sevellec
- * 
  */
 public abstract class AbstractCommonsParserDataSet implements DataSet {
 
-	protected KeyspaceModel keyspace = null;
+    protected KeyspaceModel keyspace = null;
 
-	protected abstract ParsedKeyspace getParsedKeyspace();
+    protected abstract ParsedKeyspace getParsedKeyspace();
 
-	@Override
-	public KeyspaceModel getKeyspace() {
-		if (keyspace == null) {
-			mapParsedKeyspaceToModel(getParsedKeyspace());
-		}
-		return keyspace;
-	}
+    @Override
+    public KeyspaceModel getKeyspace() {
+        if (keyspace == null) {
+            mapParsedKeyspaceToModel(getParsedKeyspace());
+        }
+        return keyspace;
+    }
 
-	@Override
-	public List<ColumnFamilyModel> getColumnFamilies() {
-		if (keyspace == null) {
-			mapParsedKeyspaceToModel(getParsedKeyspace());
-		}
-		return keyspace.getColumnFamilies();
-	}
+    @Override
+    public List<ColumnFamilyModel> getColumnFamilies() {
+        if (keyspace == null) {
+            mapParsedKeyspaceToModel(getParsedKeyspace());
+        }
+        return keyspace.getColumnFamilies();
+    }
 
-	protected void mapParsedKeyspaceToModel(ParsedKeyspace parsedKeyspace) {
-		if (parsedKeyspace == null) {
-			throw new ParseException("dataSet is empty");
-		}
-		/* keyspace */
-		keyspace = new KeyspaceModel();
-		if (parsedKeyspace.getName() == null) {
-			throw new ParseException("Keyspace name is mandatory");
-		}
-		keyspace.setName(parsedKeyspace.getName());
+    protected void mapParsedKeyspaceToModel(ParsedKeyspace parsedKeyspace) {
+        if (parsedKeyspace == null) {
+            throw new ParseException("dataSet is empty");
+        }
+        /* keyspace */
+        keyspace = new KeyspaceModel();
+        if (parsedKeyspace.getName() == null) {
+            throw new ParseException("Keyspace name is mandatory");
+        }
+        keyspace.setName(parsedKeyspace.getName());
 
-		/* optional conf */
-		if (parsedKeyspace.getReplicationFactor() != 0) {
-			keyspace.setReplicationFactor(parsedKeyspace.getReplicationFactor());
-		}
+        /* optional conf */
+        if (parsedKeyspace.getReplicationFactor() != 0) {
+            keyspace.setReplicationFactor(parsedKeyspace.getReplicationFactor());
+        }
 
-		if (parsedKeyspace.getStrategy() != null) {
-			try {
-				keyspace.setStrategy(StrategyModel.fromValue(parsedKeyspace.getStrategy()));
-			} catch (IllegalArgumentException e) {
-				throw new ParseException("Invalid keyspace Strategy");
-			}
-		}
+        if (parsedKeyspace.getStrategy() != null) {
+            try {
+                keyspace.setStrategy(StrategyModel.fromValue(parsedKeyspace.getStrategy()));
+            } catch (IllegalArgumentException e) {
+                throw new ParseException("Invalid keyspace Strategy");
+            }
+        }
 
-		mapsParsedColumnFamiliesToColumnFamiliesModel(parsedKeyspace);
+        mapsParsedColumnFamiliesToColumnFamiliesModel(parsedKeyspace);
 
-	}
+    }
 
-	private void mapsParsedColumnFamiliesToColumnFamiliesModel(ParsedKeyspace parsedKeyspace) {
-		if (parsedKeyspace.getColumnFamilies() != null) {
-			/* there is column families to integrate */
-			for (ParsedColumnFamily parsedColumnFamily : parsedKeyspace.getColumnFamilies()) {
-				keyspace.getColumnFamilies().add(mapParsedColumnFamilyToColumnFamilyModel(parsedColumnFamily));
-			}
-		}
+    private void mapsParsedColumnFamiliesToColumnFamiliesModel(ParsedKeyspace parsedKeyspace) {
+        if (parsedKeyspace.getColumnFamilies() != null) {
+            /* there is column families to integrate */
+            for (ParsedColumnFamily parsedColumnFamily : parsedKeyspace.getColumnFamilies()) {
+                keyspace.getColumnFamilies().add(mapParsedColumnFamilyToColumnFamilyModel(parsedColumnFamily));
+            }
+        }
 
-	}
+    }
 
-	private ColumnFamilyModel mapParsedColumnFamilyToColumnFamilyModel(ParsedColumnFamily parsedColumnFamily) {
+    private ColumnFamilyModel mapParsedColumnFamilyToColumnFamilyModel(ParsedColumnFamily parsedColumnFamily) {
 
-		ColumnFamilyModel columnFamily = new ColumnFamilyModel();
+        ColumnFamilyModel columnFamily = new ColumnFamilyModel();
 
-		/* structure information */
-		if (parsedColumnFamily == null || parsedColumnFamily.getName() == null) {
-			throw new ParseException("Column Family Name is missing");
-		}
-		columnFamily.setName(parsedColumnFamily.getName());
-		if (parsedColumnFamily.getType() != null) {
-			columnFamily.setType(ColumnType.valueOf(parsedColumnFamily.getType().toString()));
-		}
+        /* structure information */
+        if (parsedColumnFamily == null || parsedColumnFamily.getName() == null) {
+            throw new ParseException("Column Family Name is missing");
+        }
+        columnFamily.setName(parsedColumnFamily.getName());
+        if (parsedColumnFamily.getType() != null) {
+            columnFamily.setType(ColumnType.valueOf(parsedColumnFamily.getType().toString()));
+        }
 
         columnFamily.setComment(parsedColumnFamily.getComment());
 
@@ -103,7 +100,7 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
         if (parsedColumnFamily.getCompactionStrategyOptions() != null && !parsedColumnFamily.getCompactionStrategyOptions().isEmpty()) {
             List<CompactionStrategyOptionModel> compactionStrategyOptionModels = new ArrayList<CompactionStrategyOptionModel>();
             for (ParsedCompactionStrategyOption parsedCompactionStrategyOption : parsedColumnFamily.getCompactionStrategyOptions()) {
-                 compactionStrategyOptionModels.add(new CompactionStrategyOptionModel(parsedCompactionStrategyOption.getName(),parsedCompactionStrategyOption.getValue()));
+                compactionStrategyOptionModels.add(new CompactionStrategyOptionModel(parsedCompactionStrategyOption.getName(), parsedCompactionStrategyOption.getValue()));
             }
             columnFamily.setCompactionStrategyOptions(compactionStrategyOptionModels);
         }
@@ -128,182 +125,182 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
             columnFamily.setReplicationOnWrite(parsedColumnFamily.getReplicationOnWrite());
         }
 
-		/* keyType */
-		GenericTypeEnum[] typesBelongingCompositeTypeForKeyType = null;
-		if (parsedColumnFamily.getKeyType() != null) {
-			ComparatorType keyType = ComparatorTypeHelper.verifyAndExtract(parsedColumnFamily.getKeyType());
-			columnFamily.setKeyType(keyType);
-			if (ComparatorType.COMPOSITETYPE.getTypeName().equals(keyType.getTypeName())) {
-				String keyTypeAlias = StringUtils.removeStart(parsedColumnFamily.getKeyType(),
-						ComparatorType.COMPOSITETYPE.getTypeName());
-				columnFamily.setKeyTypeAlias(keyTypeAlias);
-				typesBelongingCompositeTypeForKeyType = ComparatorTypeHelper
-						.extractGenericTypesFromTypeAlias(keyTypeAlias);
-			}
-		}
+        /* keyType */
+        GenericTypeEnum[] typesBelongingCompositeTypeForKeyType = null;
+        if (parsedColumnFamily.getKeyType() != null) {
+            ComparatorType keyType = ComparatorTypeHelper.verifyAndExtract(parsedColumnFamily.getKeyType());
+            columnFamily.setKeyType(keyType);
+            if (ComparatorType.COMPOSITETYPE.getTypeName().equals(keyType.getTypeName())) {
+                String keyTypeAlias = StringUtils.removeStart(parsedColumnFamily.getKeyType(),
+                        ComparatorType.COMPOSITETYPE.getTypeName());
+                columnFamily.setKeyTypeAlias(keyTypeAlias);
+                typesBelongingCompositeTypeForKeyType = ComparatorTypeHelper
+                        .extractGenericTypesFromTypeAlias(keyTypeAlias);
+            }
+        }
 
-		/* comparatorType */
-		GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType = null;
-		if (parsedColumnFamily.getComparatorType() != null) {
-			ComparatorType comparatorType = ComparatorTypeHelper.verifyAndExtract(parsedColumnFamily
-					.getComparatorType());
-			columnFamily.setComparatorType(comparatorType);
-			if (ComparatorType.COMPOSITETYPE.getTypeName().equals(comparatorType.getTypeName())) {
-				String comparatorTypeAlias = StringUtils.removeStart(parsedColumnFamily.getComparatorType(),
-						ComparatorType.COMPOSITETYPE.getTypeName());
-				columnFamily.setComparatorTypeAlias(comparatorTypeAlias);
-				typesBelongingCompositeTypeForComparatorType = ComparatorTypeHelper
-						.extractGenericTypesFromTypeAlias(comparatorTypeAlias);
-			}
-		}
+        /* comparatorType */
+        GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType = null;
+        if (parsedColumnFamily.getComparatorType() != null) {
+            ComparatorType comparatorType = ComparatorTypeHelper.verifyAndExtract(parsedColumnFamily
+                    .getComparatorType());
+            columnFamily.setComparatorType(comparatorType);
+            if (ComparatorType.COMPOSITETYPE.getTypeName().equals(comparatorType.getTypeName())) {
+                String comparatorTypeAlias = StringUtils.removeStart(parsedColumnFamily.getComparatorType(),
+                        ComparatorType.COMPOSITETYPE.getTypeName());
+                columnFamily.setComparatorTypeAlias(comparatorTypeAlias);
+                typesBelongingCompositeTypeForComparatorType = ComparatorTypeHelper
+                        .extractGenericTypesFromTypeAlias(comparatorTypeAlias);
+            }
+        }
 
-		/* subComparatorType */
-		if (parsedColumnFamily.getSubComparatorType() != null) {
-			columnFamily.setSubComparatorType(ComparatorType.getByClassName(parsedColumnFamily.getSubComparatorType()
-					.name()));
-		}
+        /* subComparatorType */
+        if (parsedColumnFamily.getSubComparatorType() != null) {
+            columnFamily.setSubComparatorType(ComparatorType.getByClassName(parsedColumnFamily.getSubComparatorType()
+                    .name()));
+        }
 
-		if (parsedColumnFamily.getDefaultColumnValueType() != null) {
-			columnFamily.setDefaultColumnValueType(ComparatorType.getByClassName(parsedColumnFamily
-					.getDefaultColumnValueType().name()));
-		}
+        if (parsedColumnFamily.getDefaultColumnValueType() != null) {
+            columnFamily.setDefaultColumnValueType(ComparatorType.getByClassName(parsedColumnFamily
+                    .getDefaultColumnValueType().name()));
+        }
 
-		columnFamily.setColumnsMetadata(mapParsedColumsMetadataToColumnsMetadata(parsedColumnFamily
-				.getColumnsMetadata()));
+        columnFamily.setColumnsMetadata(mapParsedColumsMetadataToColumnsMetadata(parsedColumnFamily
+                .getColumnsMetadata()));
 
-		/* data information */
-		columnFamily.setRows(mapParsedRowsToRowsModel(parsedColumnFamily, columnFamily.getKeyType(),
-				typesBelongingCompositeTypeForKeyType, columnFamily.getComparatorType(),
-				typesBelongingCompositeTypeForComparatorType, columnFamily.getSubComparatorType(),
-				columnFamily.getDefaultColumnValueType()));
+        /* data information */
+        columnFamily.setRows(mapParsedRowsToRowsModel(parsedColumnFamily, columnFamily.getKeyType(),
+                typesBelongingCompositeTypeForKeyType, columnFamily.getComparatorType(),
+                typesBelongingCompositeTypeForComparatorType, columnFamily.getSubComparatorType(),
+                columnFamily.getDefaultColumnValueType()));
 
-		return columnFamily;
-	}
+        return columnFamily;
+    }
 
-	private List<ColumnMetadataModel> mapParsedColumsMetadataToColumnsMetadata(
-			List<ParsedColumnMetadata> parsedColumnsMetadata) {
-		List<ColumnMetadataModel> columnMetadatas = new ArrayList<ColumnMetadataModel>();
-		for (ParsedColumnMetadata parsedColumnMetadata : parsedColumnsMetadata) {
-			columnMetadatas.add(mapParsedColumMetadataToColumnMetadata(parsedColumnMetadata));
-		}
-		return columnMetadatas;
-	}
+    private List<ColumnMetadataModel> mapParsedColumsMetadataToColumnsMetadata(
+            List<ParsedColumnMetadata> parsedColumnsMetadata) {
+        List<ColumnMetadataModel> columnMetadatas = new ArrayList<ColumnMetadataModel>();
+        for (ParsedColumnMetadata parsedColumnMetadata : parsedColumnsMetadata) {
+            columnMetadatas.add(mapParsedColumMetadataToColumnMetadata(parsedColumnMetadata));
+        }
+        return columnMetadatas;
+    }
 
-	private ColumnMetadataModel mapParsedColumMetadataToColumnMetadata(ParsedColumnMetadata parsedColumnMetadata) {
-		if (parsedColumnMetadata.getName() == null) {
-			throw new ParseException("column metadata name can't be empty");
-		}
+    private ColumnMetadataModel mapParsedColumMetadataToColumnMetadata(ParsedColumnMetadata parsedColumnMetadata) {
+        if (parsedColumnMetadata.getName() == null) {
+            throw new ParseException("column metadata name can't be empty");
+        }
 
-		if (parsedColumnMetadata.getValidationClass() == null) {
-			throw new ParseException("column metadata validation class can't be empty");
-		}
+        if (parsedColumnMetadata.getValidationClass() == null) {
+            throw new ParseException("column metadata validation class can't be empty");
+        }
 
-		ColumnMetadataModel columnMetadata = new ColumnMetadataModel();
-		columnMetadata.setColumnName(parsedColumnMetadata.getName());
-		columnMetadata.setValidationClass(ComparatorType.getByClassName(parsedColumnMetadata.getValidationClass()
-				.name()));
-		if (parsedColumnMetadata.getIndexType() != null) {
-			columnMetadata.setColumnIndexType(ColumnIndexType.valueOf(parsedColumnMetadata.getIndexType().name()));
-		}
+        ColumnMetadataModel columnMetadata = new ColumnMetadataModel();
+        columnMetadata.setColumnName(parsedColumnMetadata.getName());
+        columnMetadata.setValidationClass(ComparatorType.getByClassName(parsedColumnMetadata.getValidationClass()
+                .name()));
+        if (parsedColumnMetadata.getIndexType() != null) {
+            columnMetadata.setColumnIndexType(ColumnIndexType.valueOf(parsedColumnMetadata.getIndexType().name()));
+        }
 
         if (parsedColumnMetadata.getIndexName() != null) {
             columnMetadata.setIndexName(parsedColumnMetadata.getIndexName());
         }
 
-		return columnMetadata;
-	}
+        return columnMetadata;
+    }
 
-	private List<RowModel> mapParsedRowsToRowsModel(ParsedColumnFamily parsedColumnFamily, ComparatorType keyType,
-			GenericTypeEnum[] typesBelongingCompositeTypeForKeyType, ComparatorType comparatorType,
-			GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType, ComparatorType subComparatorType,
-			ComparatorType defaultColumnValueType) {
-		List<RowModel> rowsModel = new ArrayList<RowModel>();
-		for (ParsedRow jsonRow : parsedColumnFamily.getRows()) {
-			rowsModel.add(mapsParsedRowToRowModel(parsedColumnFamily.getColumnsMetadata(), jsonRow, keyType, typesBelongingCompositeTypeForKeyType,
-					comparatorType, typesBelongingCompositeTypeForComparatorType, subComparatorType,
-					defaultColumnValueType));
-		}
-		return rowsModel;
-	}
+    private List<RowModel> mapParsedRowsToRowsModel(ParsedColumnFamily parsedColumnFamily, ComparatorType keyType,
+                                                    GenericTypeEnum[] typesBelongingCompositeTypeForKeyType, ComparatorType comparatorType,
+                                                    GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType, ComparatorType subComparatorType,
+                                                    ComparatorType defaultColumnValueType) {
+        List<RowModel> rowsModel = new ArrayList<RowModel>();
+        for (ParsedRow jsonRow : parsedColumnFamily.getRows()) {
+            rowsModel.add(mapsParsedRowToRowModel(parsedColumnFamily.getColumnsMetadata(), jsonRow, keyType, typesBelongingCompositeTypeForKeyType,
+                    comparatorType, typesBelongingCompositeTypeForComparatorType, subComparatorType,
+                    defaultColumnValueType));
+        }
+        return rowsModel;
+    }
 
-	private RowModel mapsParsedRowToRowModel(List<ParsedColumnMetadata> metaData, ParsedRow parsedRow, ComparatorType keyType,
-			GenericTypeEnum[] typesBelongingCompositeTypeForKeyType, ComparatorType comparatorType,
-			GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType, ComparatorType subComparatorType,
-			ComparatorType defaultColumnValueType) {
-		RowModel row = new RowModel();
+    private RowModel mapsParsedRowToRowModel(List<ParsedColumnMetadata> metaData, ParsedRow parsedRow, ComparatorType keyType,
+                                             GenericTypeEnum[] typesBelongingCompositeTypeForKeyType, ComparatorType comparatorType,
+                                             GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType, ComparatorType subComparatorType,
+                                             ComparatorType defaultColumnValueType) {
+        RowModel row = new RowModel();
 
-		row.setKey(TypeExtractor.constructGenericType(parsedRow.getKey(), keyType,
-				typesBelongingCompositeTypeForKeyType));
+        row.setKey(TypeExtractor.constructGenericType(parsedRow.getKey(), keyType,
+                typesBelongingCompositeTypeForKeyType));
 
-		row.setColumns(mapParsedColumnsToColumnsModel(metaData, parsedRow.getColumns(), comparatorType,
-				typesBelongingCompositeTypeForComparatorType, defaultColumnValueType));
-		row.setSuperColumns(mapParsedSuperColumnsToSuperColumnsModel(metaData, parsedRow.getSuperColumns(), comparatorType,
-				subComparatorType, defaultColumnValueType));
-		return row;
-	}
+        row.setColumns(mapParsedColumnsToColumnsModel(metaData, parsedRow.getColumns(), comparatorType,
+                typesBelongingCompositeTypeForComparatorType, defaultColumnValueType));
+        row.setSuperColumns(mapParsedSuperColumnsToSuperColumnsModel(metaData, parsedRow.getSuperColumns(), comparatorType,
+                subComparatorType, defaultColumnValueType));
+        return row;
+    }
 
-	private List<SuperColumnModel> mapParsedSuperColumnsToSuperColumnsModel(List<ParsedColumnMetadata> metaData, List<ParsedSuperColumn> parsedSuperColumns,
-			ComparatorType comparatorType, ComparatorType subComparatorType, ComparatorType defaultColumnValueType) {
-		List<SuperColumnModel> columnsModel = new ArrayList<SuperColumnModel>();
-		for (ParsedSuperColumn parsedSuperColumn : parsedSuperColumns) {
-			columnsModel.add(mapParsedSuperColumnToSuperColumnModel(metaData, parsedSuperColumn, comparatorType,
-					subComparatorType, defaultColumnValueType));
-		}
+    private List<SuperColumnModel> mapParsedSuperColumnsToSuperColumnsModel(List<ParsedColumnMetadata> metaData, List<ParsedSuperColumn> parsedSuperColumns,
+                                                                            ComparatorType comparatorType, ComparatorType subComparatorType, ComparatorType defaultColumnValueType) {
+        List<SuperColumnModel> columnsModel = new ArrayList<SuperColumnModel>();
+        for (ParsedSuperColumn parsedSuperColumn : parsedSuperColumns) {
+            columnsModel.add(mapParsedSuperColumnToSuperColumnModel(metaData, parsedSuperColumn, comparatorType,
+                    subComparatorType, defaultColumnValueType));
+        }
 
-		return columnsModel;
-	}
+        return columnsModel;
+    }
 
-	private SuperColumnModel mapParsedSuperColumnToSuperColumnModel(List<ParsedColumnMetadata> metaData, ParsedSuperColumn parsedSuperColumn,
-			ComparatorType comparatorType, ComparatorType subComparatorType, ComparatorType defaultColumnValueType) {
-		SuperColumnModel superColumnModel = new SuperColumnModel();
+    private SuperColumnModel mapParsedSuperColumnToSuperColumnModel(List<ParsedColumnMetadata> metaData, ParsedSuperColumn parsedSuperColumn,
+                                                                    ComparatorType comparatorType, ComparatorType subComparatorType, ComparatorType defaultColumnValueType) {
+        SuperColumnModel superColumnModel = new SuperColumnModel();
 
-		superColumnModel.setName(new GenericType(parsedSuperColumn.getName(), GenericTypeEnum.fromValue(comparatorType
-				.getTypeName())));
+        superColumnModel.setName(new GenericType(parsedSuperColumn.getName(), GenericTypeEnum.fromValue(comparatorType
+                .getTypeName())));
 
-		superColumnModel.setColumns(mapParsedColumnsToColumnsModel(metaData, parsedSuperColumn.getColumns(), subComparatorType,
-				null, defaultColumnValueType));
-		return superColumnModel;
-	}
+        superColumnModel.setColumns(mapParsedColumnsToColumnsModel(metaData, parsedSuperColumn.getColumns(), subComparatorType,
+                null, defaultColumnValueType));
+        return superColumnModel;
+    }
 
-	private List<ColumnModel> mapParsedColumnsToColumnsModel(List<ParsedColumnMetadata> metaData, List<ParsedColumn> parsedColumns,
-			ComparatorType comparatorType, GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType,
-			ComparatorType defaultColumnValueType) {
-		List<ColumnModel> columnsModel = new ArrayList<ColumnModel>();
-		for (ParsedColumn jsonColumn : parsedColumns) {
-			ParsedColumnMetadata columnMetaData = null;
-			for (ParsedColumnMetadata tmpMetaData : metaData) {
-				if (tmpMetaData.getName().equals(jsonColumn.getName())) {
-					columnMetaData = tmpMetaData;
-					break;
-				}
-			}
-			columnsModel.add(mapParsedColumnToColumnModel(columnMetaData, jsonColumn, comparatorType,
-					typesBelongingCompositeTypeForComparatorType, defaultColumnValueType));
-		}
-		return columnsModel;
-	}
+    private List<ColumnModel> mapParsedColumnsToColumnsModel(List<ParsedColumnMetadata> metaData, List<ParsedColumn> parsedColumns,
+                                                             ComparatorType comparatorType, GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType,
+                                                             ComparatorType defaultColumnValueType) {
+        List<ColumnModel> columnsModel = new ArrayList<ColumnModel>();
+        for (ParsedColumn jsonColumn : parsedColumns) {
+            ParsedColumnMetadata columnMetaData = null;
+            for (ParsedColumnMetadata tmpMetaData : metaData) {
+                if (tmpMetaData.getName().equals(jsonColumn.getName())) {
+                    columnMetaData = tmpMetaData;
+                    break;
+                }
+            }
+            columnsModel.add(mapParsedColumnToColumnModel(columnMetaData, jsonColumn, comparatorType,
+                    typesBelongingCompositeTypeForComparatorType, defaultColumnValueType));
+        }
+        return columnsModel;
+    }
 
-	private ColumnModel mapParsedColumnToColumnModel(ParsedColumnMetadata metaData, ParsedColumn parsedColumn, ComparatorType comparatorType,
-			GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType, ComparatorType defaultColumnValueType) {
-		ColumnModel columnModel = new ColumnModel();
+    private ColumnModel mapParsedColumnToColumnModel(ParsedColumnMetadata metaData, ParsedColumn parsedColumn, ComparatorType comparatorType,
+                                                     GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType, ComparatorType defaultColumnValueType) {
+        ColumnModel columnModel = new ColumnModel();
 
-		columnModel.setName(TypeExtractor.constructGenericType(parsedColumn.getName(), comparatorType,
-				typesBelongingCompositeTypeForComparatorType));
+        columnModel.setName(TypeExtractor.constructGenericType(parsedColumn.getName(), comparatorType,
+                typesBelongingCompositeTypeForComparatorType));
 
-		if (ComparatorType.COUNTERTYPE.getClassName().equals(defaultColumnValueType.getClassName())
-				&& TypeExtractor.containFunctions(parsedColumn.getValue())) {
-			throw new ParseException("Impossible to override Column value into a Counter column family");
-		}
+        if (ComparatorType.COUNTERTYPE.getClassName().equals(defaultColumnValueType.getClassName())
+                && TypeExtractor.containFunctions(parsedColumn.getValue())) {
+            throw new ParseException("Impossible to override Column value into a Counter column family");
+        }
 
-		GenericType columnValue = null;
-		if (metaData != null) {
-			GenericTypeEnum genTypeEnum = GenericTypeEnum.fromValue(metaData.getValidationClass().name());
-			columnValue = new GenericType(parsedColumn.getValue(), genTypeEnum);
-		} else {
-			columnValue = TypeExtractor.extract(parsedColumn.getValue(), defaultColumnValueType);
-		}		
-		columnModel.setValue(columnValue);
-		return columnModel;
-	}
+        GenericType columnValue = null;
+        if (metaData != null) {
+            GenericTypeEnum genTypeEnum = GenericTypeEnum.fromValue(metaData.getValidationClass().name());
+            columnValue = new GenericType(parsedColumn.getValue(), genTypeEnum);
+        } else {
+            columnValue = TypeExtractor.extract(parsedColumn.getValue(), defaultColumnValueType);
+        }
+        columnModel.setValue(columnValue);
+        return columnModel;
+    }
 
 }

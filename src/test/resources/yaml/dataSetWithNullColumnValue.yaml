@@ -1,0 +1,7 @@
+name: keyspaceWithNullColumnValue
+columnFamilies:
+- name: columnFamilyWithNullColumnValue
+  rows:
+  - key: rowWithNullColumnValue
+    columns:
+    - {name: columnWithNullColumnValue}

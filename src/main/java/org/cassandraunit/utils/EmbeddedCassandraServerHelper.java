@@ -23,210 +23,208 @@ import java.util.concurrent.Executors;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * 
  * @author Jeremy Sevellec
- * 
  */
 public class EmbeddedCassandraServerHelper {
-	
-	private static Logger log = LoggerFactory.getLogger(EmbeddedCassandraServerHelper.class);
 
-	public static final String DEFAULT_TMP_DIR = "target/embeddedCassandra";
+    private static Logger log = LoggerFactory.getLogger(EmbeddedCassandraServerHelper.class);
+
+    public static final String DEFAULT_TMP_DIR = "target/embeddedCassandra";
     public static final String DEFAULT_CASSANDRA_YML_FILE = "cu-cassandra.yaml";
     public static final String DEFAULT_LOG4J_CONFIG_FILE = "/log4j-embedded-cassandra.properties";
-	private static final String INTERNAL_CASSANDRA_KEYSPACE = "system";
+    private static final String INTERNAL_CASSANDRA_KEYSPACE = "system";
 
-	private static CassandraDaemon cassandraDaemon = null;
-	static ExecutorService executor;
+    private static CassandraDaemon cassandraDaemon = null;
+    static ExecutorService executor;
     private static String launchedYamlFile;
 
     public static void startEmbeddedCassandra() throws TTransportException, IOException, InterruptedException,
-			ConfigurationException {
-		startEmbeddedCassandra(DEFAULT_CASSANDRA_YML_FILE);
-	}
-	
-	public static void startEmbeddedCassandra(String yamlFile) throws TTransportException, IOException, ConfigurationException {
-		startEmbeddedCassandra(yamlFile, DEFAULT_TMP_DIR);
-	}
+            ConfigurationException {
+        startEmbeddedCassandra(DEFAULT_CASSANDRA_YML_FILE);
+    }
 
-	public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
-		if (cassandraDaemon != null) {
-			/* nothing to do Cassandra is already started */
-			return;
-		}
+    public static void startEmbeddedCassandra(String yamlFile) throws TTransportException, IOException, ConfigurationException {
+        startEmbeddedCassandra(yamlFile, DEFAULT_TMP_DIR);
+    }
 
-		if (!StringUtils.startsWith(yamlFile, "/")) {
-			yamlFile = "/" + yamlFile;
-		}
+    public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
+        if (cassandraDaemon != null) {
+            /* nothing to do Cassandra is already started */
+            return;
+        }
 
-		rmdir(tmpDir);
-		copy(yamlFile, tmpDir);
-		File file = new File(tmpDir + yamlFile);
-		startEmbeddedCassandra(file, tmpDir);
-	}
+        if (!StringUtils.startsWith(yamlFile, "/")) {
+            yamlFile = "/" + yamlFile;
+        }
 
-	/**
-	 * Set embedded cassandra up and spawn it in a new thread.
-	 * 
-	 * @throws TTransportException
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	public static void startEmbeddedCassandra(File file, String tmpDir) throws TTransportException, IOException, ConfigurationException {
-		if (cassandraDaemon != null) {
-			/* nothing to do Cassandra is already started */
-			return;
-		}
+        rmdir(tmpDir);
+        copy(yamlFile, tmpDir);
+        File file = new File(tmpDir + yamlFile);
+        startEmbeddedCassandra(file, tmpDir);
+    }
 
-		checkConfigNameForRestart(file.getAbsolutePath());
+    /**
+     * Set embedded cassandra up and spawn it in a new thread.
+     *
+     * @throws TTransportException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static void startEmbeddedCassandra(File file, String tmpDir) throws TTransportException, IOException, ConfigurationException {
+        if (cassandraDaemon != null) {
+            /* nothing to do Cassandra is already started */
+            return;
+        }
 
-		log.debug("Starting cassandra...");
-		log.debug("Initialization needed");
+        checkConfigNameForRestart(file.getAbsolutePath());
 
-		System.setProperty("cassandra.config", "file:" + file.getAbsolutePath());
-		System.setProperty("cassandra-foreground", "true");
+        log.debug("Starting cassandra...");
+        log.debug("Initialization needed");
 
-		// If there is no log4j config set already, set the default config
-		if (System.getProperty("log4j.configuration") == null) {
-			copy(DEFAULT_LOG4J_CONFIG_FILE, tmpDir);
-			System.setProperty("log4j.configuration", "file:" + tmpDir + DEFAULT_LOG4J_CONFIG_FILE);
-		}
+        System.setProperty("cassandra.config", "file:" + file.getAbsolutePath());
+        System.setProperty("cassandra-foreground", "true");
 
-		cleanupAndLeaveDirs();
-		final CountDownLatch startupLatch = new CountDownLatch(1);
-		executor = Executors.newSingleThreadExecutor();
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				cassandraDaemon = new CassandraDaemon();
-				cassandraDaemon.activate();
-				startupLatch.countDown();
-			}
-		});
-		try {
-			startupLatch.await(10, SECONDS);
-		} catch (InterruptedException e) {
-			log.error("Interrupted waiting for Cassandra daemon to start:", e);
-			throw new AssertionError(e);
-		}
-	}
+        // If there is no log4j config set already, set the default config
+        if (System.getProperty("log4j.configuration") == null) {
+            copy(DEFAULT_LOG4J_CONFIG_FILE, tmpDir);
+            System.setProperty("log4j.configuration", "file:" + tmpDir + DEFAULT_LOG4J_CONFIG_FILE);
+        }
+
+        cleanupAndLeaveDirs();
+        final CountDownLatch startupLatch = new CountDownLatch(1);
+        executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                cassandraDaemon = new CassandraDaemon();
+                cassandraDaemon.activate();
+                startupLatch.countDown();
+            }
+        });
+        try {
+            startupLatch.await(10, SECONDS);
+        } catch (InterruptedException e) {
+            log.error("Interrupted waiting for Cassandra daemon to start:", e);
+            throw new AssertionError(e);
+        }
+    }
 
     private static void checkConfigNameForRestart(String yamlFile) {
         boolean wasPreviouslyLaunched = launchedYamlFile != null;
-        if (wasPreviouslyLaunched && ! launchedYamlFile.equals(yamlFile)) {
+        if (wasPreviouslyLaunched && !launchedYamlFile.equals(yamlFile)) {
             throw new UnsupportedOperationException("We can't launch two Cassandra configurations in the same JVM instance");
         }
         launchedYamlFile = yamlFile;
     }
 
     /**
-	 * stop the embedded cassandra
-	 */
-	public static void stopEmbeddedCassandra() {
-		executor.shutdown();
-		executor.shutdownNow();
+     * stop the embedded cassandra
+     */
+    public static void stopEmbeddedCassandra() {
+        executor.shutdown();
+        executor.shutdownNow();
         cassandraDaemon = null;
-		log.debug("Cassandra is stopped");
-	}
+        log.debug("Cassandra is stopped");
+    }
 
-	/**
-	 * drop all keyspaces (expect system)
-	 */
-	public static void cleanEmbeddedCassandra() {
-		dropKeyspaces();
-	}
+    /**
+     * drop all keyspaces (expect system)
+     */
+    public static void cleanEmbeddedCassandra() {
+        dropKeyspaces();
+    }
 
-	private static void dropKeyspaces() {
-		String host = DatabaseDescriptor.getRpcAddress().getHostName();
-		int port = DatabaseDescriptor.getRpcPort();
-		log.debug("Cleaning cassandra keyspaces on " + host + ":" + port);
-		Cluster cluster = HFactory.getOrCreateCluster("TestCluster", new CassandraHostConfigurator(host + ":" + port));
-		/* get all keyspace */
-		List<KeyspaceDefinition> keyspaces = cluster.describeKeyspaces();
+    private static void dropKeyspaces() {
+        String host = DatabaseDescriptor.getRpcAddress().getHostName();
+        int port = DatabaseDescriptor.getRpcPort();
+        log.debug("Cleaning cassandra keyspaces on " + host + ":" + port);
+        Cluster cluster = HFactory.getOrCreateCluster("TestCluster", new CassandraHostConfigurator(host + ":" + port));
+        /* get all keyspace */
+        List<KeyspaceDefinition> keyspaces = cluster.describeKeyspaces();
 
-		/* drop all keyspace except internal cassandra keyspace */
-		for (KeyspaceDefinition keyspaceDefinition : keyspaces) {
-			String keyspaceName = keyspaceDefinition.getName();
+        /* drop all keyspace except internal cassandra keyspace */
+        for (KeyspaceDefinition keyspaceDefinition : keyspaces) {
+            String keyspaceName = keyspaceDefinition.getName();
 
-			if (!INTERNAL_CASSANDRA_KEYSPACE.equals(keyspaceName)) {
-				cluster.dropKeyspace(keyspaceName);
-			}
-		}
-	}
+            if (!INTERNAL_CASSANDRA_KEYSPACE.equals(keyspaceName)) {
+                cluster.dropKeyspace(keyspaceName);
+            }
+        }
+    }
 
-	private static void rmdir(String dir) throws IOException {
-		File dirFile = new File(dir);
-		if (dirFile.exists()) {
-			FileUtils.deleteRecursive(new File(dir));
-		}
-	}
+    private static void rmdir(String dir) throws IOException {
+        File dirFile = new File(dir);
+        if (dirFile.exists()) {
+            FileUtils.deleteRecursive(new File(dir));
+        }
+    }
 
-	/**
-	 * Copies a resource from within the jar to a directory.
-	 * 
-	 * @param resource
-	 * @param directory
-	 * @throws IOException
-	 */
-	private static void copy(String resource, String directory) throws IOException {
-		mkdir(directory);
-		InputStream is = EmbeddedCassandraServerHelper.class.getResourceAsStream(resource);
-		String fileName = resource.substring(resource.lastIndexOf("/") + 1);
-		File file = new File(directory + System.getProperty("file.separator") + fileName);
-		OutputStream out = new FileOutputStream(file);
-		byte buf[] = new byte[1024];
-		int len;
-		while ((len = is.read(buf)) > 0) {
-			out.write(buf, 0, len);
-		}
-		out.close();
-		is.close();
-	}
+    /**
+     * Copies a resource from within the jar to a directory.
+     *
+     * @param resource
+     * @param directory
+     * @throws IOException
+     */
+    private static void copy(String resource, String directory) throws IOException {
+        mkdir(directory);
+        InputStream is = EmbeddedCassandraServerHelper.class.getResourceAsStream(resource);
+        String fileName = resource.substring(resource.lastIndexOf("/") + 1);
+        File file = new File(directory + System.getProperty("file.separator") + fileName);
+        OutputStream out = new FileOutputStream(file);
+        byte buf[] = new byte[1024];
+        int len;
+        while ((len = is.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+        out.close();
+        is.close();
+    }
 
-	/**
-	 * Creates a directory
-	 * 
-	 * @param dir
-	 * @throws IOException
-	 */
-	private static void mkdir(String dir) throws IOException {
-		FileUtils.createDirectory(dir);
-	}
+    /**
+     * Creates a directory
+     *
+     * @param dir
+     * @throws IOException
+     */
+    private static void mkdir(String dir) throws IOException {
+        FileUtils.createDirectory(dir);
+    }
 
-	private static void cleanupAndLeaveDirs() throws IOException {
-		mkdirs();
-		cleanup();
-		mkdirs();
-		CommitLog.instance.resetUnsafe(); // cleanup screws w/ CommitLog, this
-											// brings it back to safe state
-	}
+    private static void cleanupAndLeaveDirs() throws IOException {
+        mkdirs();
+        cleanup();
+        mkdirs();
+        CommitLog.instance.resetUnsafe(); // cleanup screws w/ CommitLog, this
+        // brings it back to safe state
+    }
 
-	private static void cleanup() throws IOException {
-		// clean up commitlog
-		String[] directoryNames = { DatabaseDescriptor.getCommitLogLocation(), };
-		for (String dirName : directoryNames) {
-			File dir = new File(dirName);
-			if (!dir.exists())
-				throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
-			FileUtils.deleteRecursive(dir);
-		}
+    private static void cleanup() throws IOException {
+        // clean up commitlog
+        String[] directoryNames = {DatabaseDescriptor.getCommitLogLocation(),};
+        for (String dirName : directoryNames) {
+            File dir = new File(dirName);
+            if (!dir.exists())
+                throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
+            FileUtils.deleteRecursive(dir);
+        }
 
-		// clean up data directory which are stored as data directory/table/data
-		// files
-		for (String dirName : DatabaseDescriptor.getAllDataFileLocations()) {
-			File dir = new File(dirName);
-			if (!dir.exists())
-				throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
-			FileUtils.deleteRecursive(dir);
-		}
-	}
+        // clean up data directory which are stored as data directory/table/data
+        // files
+        for (String dirName : DatabaseDescriptor.getAllDataFileLocations()) {
+            File dir = new File(dirName);
+            if (!dir.exists())
+                throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
+            FileUtils.deleteRecursive(dir);
+        }
+    }
 
-	public static void mkdirs() {
-		try {
-			DatabaseDescriptor.createAllDirectories();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public static void mkdirs() {
+        try {
+            DatabaseDescriptor.createAllDirectories();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

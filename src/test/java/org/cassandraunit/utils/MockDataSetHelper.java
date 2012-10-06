@@ -639,4 +639,34 @@ public class MockDataSetHelper {
 
 		return mockDataSet;
 	}
+
+    public static DataSet getMockDataSetWithNullColumnValue() {
+        DataSet mockDataSet = mock(DataSet.class);
+        KeyspaceModel keyspace = new KeyspaceModel();
+        keyspace.setName("keyspaceWithNullColumnValue");
+        keyspace.getColumnFamilies();
+
+        /* column family */
+        ColumnFamilyModel columnFamily = new ColumnFamilyModel();
+        columnFamily.setName("columnFamilyWithNullColumnValue");
+        columnFamily.setKeyType(ComparatorType.UTF8TYPE);
+        columnFamily.setDefaultColumnValueType(ComparatorType.UTF8TYPE);
+
+        /* row1 */
+        RowModel row = new RowModel();
+        row.setKey(new GenericType("rowWithNullColumnValue", GenericTypeEnum.UTF_8_TYPE));
+
+        /* column1 */
+        ColumnModel column1 = new ColumnModel();
+        column1.setName(new GenericType("columnWithNullValue",GenericTypeEnum.UTF_8_TYPE));
+        row.getColumns().add(column1);
+
+        columnFamily.getRows().add(row);
+        keyspace.getColumnFamilies().add(columnFamily);
+
+        when(mockDataSet.getKeyspace()).thenReturn(keyspace);
+        when(mockDataSet.getColumnFamilies()).thenReturn(keyspace.getColumnFamilies());
+
+        return mockDataSet;
+    }
 }
