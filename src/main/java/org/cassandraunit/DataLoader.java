@@ -160,8 +160,12 @@ public class DataLoader {
             if (columnValue == null) {
                 columnValue = new GenericType("", GenericTypeEnum.BYTES_TYPE);
             }
+            Long timestamp = columnModel.getTimestamp();
+            if(timestamp == null) {
+                timestamp = System.currentTimeMillis();
+            }
             HColumn<GenericType, GenericType> column = HFactory.createColumn(columnModel.getName(),
-                    columnValue, GenericTypeSerializer.get(), GenericTypeSerializer.get());
+                    columnValue, timestamp, GenericTypeSerializer.get(), GenericTypeSerializer.get());
             hColumns.add(column);
         }
         return hColumns;

@@ -669,4 +669,36 @@ public class MockDataSetHelper {
 
         return mockDataSet;
     }
+
+    public static DataSet getMockDataSetWithTimestampedColumn() {
+        DataSet mockDataSet = mock(DataSet.class);
+        KeyspaceModel keyspace = new KeyspaceModel();
+        keyspace.setName("keyspaceWithTimestampedColumn");
+        keyspace.getColumnFamilies();
+
+        /* column family */
+        ColumnFamilyModel columnFamily = new ColumnFamilyModel();
+        columnFamily.setName("columnFamilyWithTimestampedColumn");
+        columnFamily.setKeyType(ComparatorType.UTF8TYPE);
+        columnFamily.setDefaultColumnValueType(ComparatorType.UTF8TYPE);
+
+        /* row1 */
+        RowModel row = new RowModel();
+        row.setKey(new GenericType("rowWithTimestampedColumn", GenericTypeEnum.UTF_8_TYPE));
+
+        /* column1 */
+        ColumnModel column1 = new ColumnModel();
+        column1.setName(new GenericType("columnWithTimestamp",GenericTypeEnum.UTF_8_TYPE));
+        column1.setTimestamp(new Long(2020L));
+        row.getColumns().add(column1);
+
+        columnFamily.getRows().add(row);
+        keyspace.getColumnFamilies().add(columnFamily);
+
+        when(mockDataSet.getKeyspace()).thenReturn(keyspace);
+        when(mockDataSet.getColumnFamilies()).thenReturn(keyspace.getColumnFamilies());
+
+        return mockDataSet;
+    }
+
 }
