@@ -144,8 +144,8 @@ public abstract class AbstractXmlDataSet implements DataSet {
             columnFamily.setReadRepairChance(xmlColumnFamily.getReadRepairChance());
         }
 
-        if (xmlColumnFamily.isReplicationOnWrite() != null) {
-            columnFamily.setReplicationOnWrite(xmlColumnFamily.isReplicationOnWrite());
+        if (xmlColumnFamily.getReplicationOnWrite() != null) {
+            columnFamily.setReplicationOnWrite(xmlColumnFamily.getReplicationOnWrite());
         }
 
 
