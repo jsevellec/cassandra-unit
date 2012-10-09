@@ -4,7 +4,6 @@ import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Random;
@@ -21,22 +20,13 @@ import static org.junit.Assert.assertThat;
 public class EmbeddedCassandraServerHelperTest {
 
 	@Test
-    @Ignore
 	public void shouldStartAndCleanAnEmbeddedCassandra() throws Exception {
 		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
 		testIfTheEmbeddedCassandraServerIsUpOnHost("127.0.0.1:9171");
-		EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
 		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
 		testIfTheEmbeddedCassandraServerIsUpOnHost("127.0.0.1:9171");
-		EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-		EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-    @Ignore
-	public void shouldNotStartTheEmbeddedCassandraServerWithAnotherCassandraYamlConf() throws Exception {
-		EmbeddedCassandraServerHelper.startEmbeddedCassandra("another-cassandra.yaml");
-
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
 	}
 
 	private void testIfTheEmbeddedCassandraServerIsUpOnHost(String hostAndPort) {

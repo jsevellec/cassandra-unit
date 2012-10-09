@@ -118,13 +118,13 @@ public class EmbeddedCassandraServerHelper {
     }
 
     /**
-     * stop the embedded cassandra
+     * Now deprecated, previous version was not fully operating.
+     * This is now an empty method, will be pruned in future versions.
      */
+    @Deprecated
     public static void stopEmbeddedCassandra() {
-        executor.shutdown();
-        executor.shutdownNow();
-        cassandraDaemon = null;
-        log.debug("Cassandra is stopped");
+        log.warn("EmbeddedCassandraServerHelper.stopEmbeddedCassandra() is now deprecated, " +
+                "previous version was not fully operating");
     }
 
     /**
