@@ -4,3 +4,6 @@
 /.settings
 /cassandra-unit.iml
 /.idea
+
+.DS_Store
+bin/

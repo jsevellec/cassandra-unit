@@ -1,5 +1,10 @@
 package org.cassandraunit;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import me.prettyprint.cassandra.model.BasicColumnDefinition;
 import me.prettyprint.cassandra.serializers.LongSerializer;
 import me.prettyprint.hector.api.Cluster;
@@ -15,6 +20,8 @@ import me.prettyprint.hector.api.ddl.ComparatorType;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.mutation.Mutator;
+
+import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.dataset.DataSet;
 import org.cassandraunit.model.ColumnFamilyModel;
 import org.cassandraunit.model.ColumnMetadataModel;
@@ -29,249 +36,243 @@ import org.cassandraunit.type.GenericTypeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Jeremy Sevellec
+ * @author Marc Carre
  */
 public class DataLoader {
-    Cluster cluster = null;
+	private static final String REVERSED_QUALIFIER = "reversed=";
 
-    private Logger log = LoggerFactory.getLogger(DataLoader.class);
+	Cluster cluster = null;
 
-    public DataLoader(String clusterName, String host) {
-        super();
-        cluster = HFactory.getOrCreateCluster(clusterName, host);
-    }
+	private final Logger log = LoggerFactory.getLogger(DataLoader.class);
 
-    protected Cluster getCluster() {
-        return cluster;
-    }
+	public DataLoader(String clusterName, String host) {
+		super();
+		cluster = HFactory.getOrCreateCluster(clusterName, host);
+	}
 
-    public void load(DataSet dataSet) {
-        load(dataSet, new LoadingOption());
-    }
+	protected Cluster getCluster() {
+		return cluster;
+	}
 
-    public void load(DataSet dataSet, LoadingOption loadingOption) {
-        KeyspaceModel dataSetKeyspace = dataSet.getKeyspace();
+	public void load(DataSet dataSet) {
+		load(dataSet, new LoadingOption());
+	}
 
-        dropKeyspaceIfExist(dataSetKeyspace.getName());
+	public void load(DataSet dataSet, LoadingOption loadingOption) {
+		KeyspaceModel dataSetKeyspace = dataSet.getKeyspace();
 
-        KeyspaceDefinition keyspaceDefinition = createKeyspaceDefinition(dataSet, loadingOption);
+		dropKeyspaceIfExist(dataSetKeyspace.getName());
 
-        cluster.addKeyspace(keyspaceDefinition, true);
+		KeyspaceDefinition keyspaceDefinition = createKeyspaceDefinition(dataSet, loadingOption);
 
-        log.info("creating keyspace : {}", keyspaceDefinition.getName());
-        Keyspace keyspace = HFactory.createKeyspace(dataSet.getKeyspace().getName(), cluster);
+		cluster.addKeyspace(keyspaceDefinition, true);
 
-        if (!loadingOption.isOnlySchema()) {
-            log.info("loading data into keyspace : {}", keyspaceDefinition.getName());
-            loadData(dataSet, keyspace);
-        }
-    }
+		log.info("creating keyspace : {}", keyspaceDefinition.getName());
+		Keyspace keyspace = HFactory.createKeyspace(dataSet.getKeyspace().getName(), cluster);
 
-    private KeyspaceModel overrideKeyspaceValueIfneeded(KeyspaceModel keyspace, LoadingOption loadingOption) {
-        if (loadingOption.isOverrideReplicationFactor()) {
-            keyspace.setReplicationFactor(loadingOption.getReplicationFactor());
-        }
+		if (!loadingOption.isOnlySchema()) {
+			log.info("loading data into keyspace : {}", keyspaceDefinition.getName());
+			loadData(dataSet, keyspace);
+		}
+	}
 
-        if (loadingOption.isOverrideStrategy()) {
-            keyspace.setStrategy(loadingOption.getStrategy());
-        }
+	private KeyspaceModel overrideKeyspaceValueIfneeded(KeyspaceModel keyspace, LoadingOption loadingOption) {
+		if (loadingOption.isOverrideReplicationFactor()) {
+			keyspace.setReplicationFactor(loadingOption.getReplicationFactor());
+		}
 
-        return keyspace;
-    }
+		if (loadingOption.isOverrideStrategy()) {
+			keyspace.setStrategy(loadingOption.getStrategy());
+		}
 
-    private KeyspaceDefinition createKeyspaceDefinition(DataSet dataSet, LoadingOption loadingOption) {
-        List<ColumnFamilyDefinition> columnFamilyDefinitions = createColumnFamilyDefinitions(dataSet);
+		return keyspace;
+	}
 
-        KeyspaceModel dataSetKeyspace = dataSet.getKeyspace();
+	private KeyspaceDefinition createKeyspaceDefinition(DataSet dataSet, LoadingOption loadingOption) {
+		List<ColumnFamilyDefinition> columnFamilyDefinitions = createColumnFamilyDefinitions(dataSet);
 
-        dataSetKeyspace = overrideKeyspaceValueIfneeded(dataSetKeyspace, loadingOption);
+		KeyspaceModel dataSetKeyspace = dataSet.getKeyspace();
 
-        KeyspaceDefinition keyspaceDefinition = HFactory.createKeyspaceDefinition(dataSetKeyspace.getName(),
-                dataSetKeyspace.getStrategy().value(), dataSetKeyspace.getReplicationFactor(), columnFamilyDefinitions);
-        return keyspaceDefinition;
-    }
+		dataSetKeyspace = overrideKeyspaceValueIfneeded(dataSetKeyspace, loadingOption);
 
-    private void dropKeyspaceIfExist(String keyspaceName) {
-        KeyspaceDefinition existedKeyspace = cluster.describeKeyspace(keyspaceName);
-        if (existedKeyspace != null) {
-            log.info("dropping existing keyspace : {}", existedKeyspace.getName());
-            cluster.dropKeyspace(keyspaceName, true);
-        }
-    }
+		KeyspaceDefinition keyspaceDefinition = HFactory.createKeyspaceDefinition(dataSetKeyspace.getName(), dataSetKeyspace.getStrategy().value(),
+				dataSetKeyspace.getReplicationFactor(), columnFamilyDefinitions);
+		return keyspaceDefinition;
+	}
 
-    private void loadData(DataSet dataSet, Keyspace keyspace) {
-        for (ColumnFamilyModel columnFamily : dataSet.getColumnFamilies()) {
-            loadColumnFamilyData(columnFamily, keyspace);
-        }
+	private void dropKeyspaceIfExist(String keyspaceName) {
+		KeyspaceDefinition existedKeyspace = cluster.describeKeyspace(keyspaceName);
+		if (existedKeyspace != null) {
+			log.info("dropping existing keyspace : {}", existedKeyspace.getName());
+			cluster.dropKeyspace(keyspaceName, true);
+		}
+	}
 
-    }
+	private void loadData(DataSet dataSet, Keyspace keyspace) {
+		for (ColumnFamilyModel columnFamily : dataSet.getColumnFamilies()) {
+			loadColumnFamilyData(columnFamily, keyspace);
+		}
+	}
 
-    private void loadColumnFamilyData(ColumnFamilyModel columnFamily, Keyspace keyspace) {
-        Mutator<GenericType> mutator = HFactory.createMutator(keyspace, GenericTypeSerializer.get());
-        for (RowModel row : columnFamily.getRows()) {
-            switch (columnFamily.getType()) {
-                case STANDARD:
-                    loadStandardColumnFamilyData(columnFamily, mutator, row);
-                    break;
-                case SUPER:
-                    loadSuperColumnFamilyData(columnFamily, mutator, row);
-                    break;
-                default:
-                    break;
-            }
+	private void loadColumnFamilyData(ColumnFamilyModel columnFamily, Keyspace keyspace) {
+		Mutator<GenericType> mutator = HFactory.createMutator(keyspace, GenericTypeSerializer.get());
+		for (RowModel row : columnFamily.getRows()) {
+			switch (columnFamily.getType()) {
+			case STANDARD:
+				loadStandardColumnFamilyData(columnFamily, mutator, row);
+				break;
+			case SUPER:
+				loadSuperColumnFamilyData(columnFamily, mutator, row);
+				break;
+			default:
+				break;
+			}
 
-        }
-        mutator.execute();
+		}
+		mutator.execute();
 
-    }
+	}
 
-    private void loadSuperColumnFamilyData(ColumnFamilyModel columnFamily, Mutator<GenericType> mutator, RowModel row) {
-        if (columnFamily.isCounter()) {
-            for (SuperColumnModel superColumnModel : row.getSuperColumns()) {
-                HCounterSuperColumn<GenericType, GenericType> superCounterColumn = HFactory.createCounterSuperColumn(
-                        superColumnModel.getName(), createHCounterColumnList(superColumnModel.getColumns()),
-                        GenericTypeSerializer.get(), GenericTypeSerializer.get());
-                mutator.addCounter(row.getKey(), columnFamily.getName(), superCounterColumn);
-            }
-        } else {
-            for (SuperColumnModel superColumnModel : row.getSuperColumns()) {
-                HSuperColumn<GenericType, GenericType, GenericType> superColumn = HFactory.createSuperColumn(
-                        superColumnModel.getName(), createHColumnList(superColumnModel.getColumns()),
-                        GenericTypeSerializer.get(), GenericTypeSerializer.get(), GenericTypeSerializer.get());
-                mutator.addInsertion(row.getKey(), columnFamily.getName(), superColumn);
-            }
-        }
-    }
+	private void loadSuperColumnFamilyData(ColumnFamilyModel columnFamily, Mutator<GenericType> mutator, RowModel row) {
+		if (columnFamily.isCounter()) {
+			for (SuperColumnModel superColumnModel : row.getSuperColumns()) {
+				HCounterSuperColumn<GenericType, GenericType> superCounterColumn = HFactory.createCounterSuperColumn(superColumnModel.getName(),
+						createHCounterColumnList(superColumnModel.getColumns()), GenericTypeSerializer.get(), GenericTypeSerializer.get());
+				mutator.addCounter(row.getKey(), columnFamily.getName(), superCounterColumn);
+			}
+		} else {
+			for (SuperColumnModel superColumnModel : row.getSuperColumns()) {
+				HSuperColumn<GenericType, GenericType, GenericType> superColumn = HFactory
+						.createSuperColumn(superColumnModel.getName(), createHColumnList(superColumnModel.getColumns()), GenericTypeSerializer.get(),
+								GenericTypeSerializer.get(), GenericTypeSerializer.get());
+				mutator.addInsertion(row.getKey(), columnFamily.getName(), superColumn);
+			}
+		}
+	}
 
-    private void loadStandardColumnFamilyData(ColumnFamilyModel columnFamily, Mutator<GenericType> mutator, RowModel row) {
-        if (columnFamily.isCounter()) {
-            for (HCounterColumn<GenericType> hCounterColumn : createHCounterColumnList(row.getColumns())) {
-                mutator.addCounter(row.getKey(), columnFamily.getName(), hCounterColumn);
-            }
-        } else {
-            for (HColumn<GenericType, GenericType> hColumn : createHColumnList(row.getColumns())) {
-                mutator.addInsertion(row.getKey(), columnFamily.getName(), hColumn);
-            }
-        }
-    }
+	private void loadStandardColumnFamilyData(ColumnFamilyModel columnFamily, Mutator<GenericType> mutator, RowModel row) {
+		if (columnFamily.isCounter()) {
+			for (HCounterColumn<GenericType> hCounterColumn : createHCounterColumnList(row.getColumns())) {
+				mutator.addCounter(row.getKey(), columnFamily.getName(), hCounterColumn);
+			}
+		} else {
+			for (HColumn<GenericType, GenericType> hColumn : createHColumnList(row.getColumns())) {
+				mutator.addInsertion(row.getKey(), columnFamily.getName(), hColumn);
+			}
+		}
+	}
 
-    private List<HColumn<GenericType, GenericType>> createHColumnList(List<ColumnModel> columnsModel) {
-        List<HColumn<GenericType, GenericType>> hColumns = new ArrayList<HColumn<GenericType, GenericType>>();
-        for (ColumnModel columnModel : columnsModel) {
-            GenericType columnValue = columnModel.getValue();
-            if (columnValue == null) {
-                columnValue = new GenericType("", GenericTypeEnum.BYTES_TYPE);
-            }
-            Long timestamp = columnModel.getTimestamp();
-            if(timestamp == null) {
-                timestamp = System.currentTimeMillis();
-            }
-            HColumn<GenericType, GenericType> column = HFactory.createColumn(columnModel.getName(),
-                    columnValue, timestamp, GenericTypeSerializer.get(), GenericTypeSerializer.get());
-            hColumns.add(column);
-        }
-        return hColumns;
-    }
+	private List<HColumn<GenericType, GenericType>> createHColumnList(List<ColumnModel> columnsModel) {
+		List<HColumn<GenericType, GenericType>> hColumns = new ArrayList<HColumn<GenericType, GenericType>>();
+		for (ColumnModel columnModel : columnsModel) {
+			GenericType columnValue = columnModel.getValue();
+			if (columnValue == null) {
+				columnValue = new GenericType("", GenericTypeEnum.BYTES_TYPE);
+			}
+			Long timestamp = columnModel.getTimestamp();
+			if (timestamp == null) {
+				timestamp = System.currentTimeMillis();
+			}
+			HColumn<GenericType, GenericType> column = HFactory.createColumn(columnModel.getName(), columnValue, timestamp, GenericTypeSerializer.get(),
+					GenericTypeSerializer.get());
+			hColumns.add(column);
+		}
+		return hColumns;
+	}
 
-    private List<HCounterColumn<GenericType>> createHCounterColumnList(List<ColumnModel> columnsModel) {
-        List<HCounterColumn<GenericType>> hColumns = new ArrayList<HCounterColumn<GenericType>>();
-        for (ColumnModel columnModel : columnsModel) {
-            HCounterColumn<GenericType> column = HFactory.createCounterColumn(columnModel.getName(), LongSerializer
-                    .get().fromByteBuffer(GenericTypeSerializer.get().toByteBuffer(columnModel.getValue())),
-                    GenericTypeSerializer.get());
-            hColumns.add(column);
-        }
-        return hColumns;
-    }
+	private List<HCounterColumn<GenericType>> createHCounterColumnList(List<ColumnModel> columnsModel) {
+		List<HCounterColumn<GenericType>> hColumns = new ArrayList<HCounterColumn<GenericType>>();
+		for (ColumnModel columnModel : columnsModel) {
+			HCounterColumn<GenericType> column = HFactory.createCounterColumn(columnModel.getName(),
+					LongSerializer.get().fromByteBuffer(GenericTypeSerializer.get().toByteBuffer(columnModel.getValue())), GenericTypeSerializer.get());
+			hColumns.add(column);
+		}
+		return hColumns;
+	}
 
-    private List<ColumnFamilyDefinition> createColumnFamilyDefinitions(DataSet dataSet) {
-        KeyspaceModel dataSetKeyspace = dataSet.getKeyspace();
-        List<ColumnFamilyDefinition> columnFamilyDefinitions = new ArrayList<ColumnFamilyDefinition>();
-        for (ColumnFamilyModel columnFamily : dataSet.getColumnFamilies()) {
-            ColumnFamilyDefinition cfDef = HFactory.createColumnFamilyDefinition(dataSetKeyspace.getName(),
-                    columnFamily.getName(),
-                    ComparatorType.getByClassName(columnFamily.getComparatorType().getClassName()),
-                    createColumnsDefinition(columnFamily.getColumnsMetadata()));
-            cfDef.setColumnType(columnFamily.getType());
-            cfDef.setComment(columnFamily.getComment());
+	private List<ColumnFamilyDefinition> createColumnFamilyDefinitions(DataSet dataSet) {
+		KeyspaceModel dataSetKeyspace = dataSet.getKeyspace();
+		List<ColumnFamilyDefinition> columnFamilyDefinitions = new ArrayList<ColumnFamilyDefinition>();
+		for (ColumnFamilyModel columnFamily : dataSet.getColumnFamilies()) {
+			ColumnFamilyDefinition cfDef = HFactory.createColumnFamilyDefinition(dataSetKeyspace.getName(), columnFamily.getName(),
+					ComparatorType.getByClassName(columnFamily.getComparatorType().getClassName()), createColumnsDefinition(columnFamily.getColumnsMetadata()));
+			cfDef.setColumnType(columnFamily.getType());
+			cfDef.setComment(columnFamily.getComment());
 
-            if (columnFamily.getCompactionStrategy() != null) {
-                cfDef.setCompactionStrategy(columnFamily.getCompactionStrategy());
-            }
+			if (columnFamily.getCompactionStrategy() != null) {
+				cfDef.setCompactionStrategy(columnFamily.getCompactionStrategy());
+			}
 
-            if (columnFamily.getCompactionStrategyOptions() != null && !columnFamily.getCompactionStrategyOptions().isEmpty()) {
-                Map<String, String> compactionStrategyOptions = new HashMap<String, String>();
-                for (CompactionStrategyOptionModel compactionStrategyOption : columnFamily.getCompactionStrategyOptions()) {
-                    compactionStrategyOptions.put(compactionStrategyOption.getName(), compactionStrategyOption.getValue());
-                }
-                cfDef.setCompactionStrategyOptions(compactionStrategyOptions);
-            }
+			if (columnFamily.getCompactionStrategyOptions() != null && !columnFamily.getCompactionStrategyOptions().isEmpty()) {
+				Map<String, String> compactionStrategyOptions = new HashMap<String, String>();
+				for (CompactionStrategyOptionModel compactionStrategyOption : columnFamily.getCompactionStrategyOptions()) {
+					compactionStrategyOptions.put(compactionStrategyOption.getName(), compactionStrategyOption.getValue());
+				}
+				cfDef.setCompactionStrategyOptions(compactionStrategyOptions);
+			}
 
-            if (columnFamily.getGcGraceSeconds() != null) {
-                cfDef.setGcGraceSeconds(columnFamily.getGcGraceSeconds());
-            }
+			if (columnFamily.getGcGraceSeconds() != null) {
+				cfDef.setGcGraceSeconds(columnFamily.getGcGraceSeconds());
+			}
 
-            if (columnFamily.getMaxCompactionThreshold() != null) {
-                cfDef.setMaxCompactionThreshold(columnFamily.getMaxCompactionThreshold());
-            }
+			if (columnFamily.getMaxCompactionThreshold() != null) {
+				cfDef.setMaxCompactionThreshold(columnFamily.getMaxCompactionThreshold());
+			}
 
-            if (columnFamily.getMinCompactionThreshold() != null) {
-                cfDef.setMinCompactionThreshold(columnFamily.getMinCompactionThreshold());
-            }
+			if (columnFamily.getMinCompactionThreshold() != null) {
+				cfDef.setMinCompactionThreshold(columnFamily.getMinCompactionThreshold());
+			}
 
-            if (columnFamily.getReadRepairChance() != null) {
-                cfDef.setReadRepairChance(columnFamily.getReadRepairChance());
-            }
+			if (columnFamily.getReadRepairChance() != null) {
+				cfDef.setReadRepairChance(columnFamily.getReadRepairChance());
+			}
 
-            if (columnFamily.getReplicationOnWrite() != null) {
-                cfDef.setReplicateOnWrite(columnFamily.getReplicationOnWrite());
-            }
+			if (columnFamily.getReplicationOnWrite() != null) {
+				cfDef.setReplicateOnWrite(columnFamily.getReplicationOnWrite());
+			}
 
-            cfDef.setKeyValidationClass(columnFamily.getKeyType().getTypeName() + columnFamily.getKeyTypeAlias());
+			cfDef.setKeyValidationClass(columnFamily.getKeyType().getTypeName() + columnFamily.getKeyTypeAlias());
 
-            if (columnFamily.getDefaultColumnValueType() != null) {
-                cfDef.setDefaultValidationClass(columnFamily.getDefaultColumnValueType().getClassName());
-            }
+			if (columnFamily.getDefaultColumnValueType() != null) {
+				cfDef.setDefaultValidationClass(columnFamily.getDefaultColumnValueType().getClassName());
+			}
 
-            if (columnFamily.getType().equals(ColumnType.SUPER) && columnFamily.getSubComparatorType() != null) {
-                cfDef.setSubComparatorType(columnFamily.getSubComparatorType());
-            }
+			if (columnFamily.getType().equals(ColumnType.SUPER) && columnFamily.getSubComparatorType() != null) {
+				cfDef.setSubComparatorType(columnFamily.getSubComparatorType());
+			}
 
-            if (ComparatorType.COMPOSITETYPE.equals(columnFamily.getComparatorType())) {
-                cfDef.setComparatorTypeAlias(columnFamily.getComparatorTypeAlias());
-            }
+			if (ComparatorType.COMPOSITETYPE.equals(columnFamily.getComparatorType())
+					|| StringUtils.containsIgnoreCase(columnFamily.getComparatorTypeAlias(), REVERSED_QUALIFIER)) {
+				cfDef.setComparatorTypeAlias(columnFamily.getComparatorTypeAlias());
+			}
 
-            columnFamilyDefinitions.add(cfDef);
-        }
-        return columnFamilyDefinitions;
-    }
+			columnFamilyDefinitions.add(cfDef);
+		}
+		return columnFamilyDefinitions;
+	}
 
-    private List<ColumnDefinition> createColumnsDefinition(List<ColumnMetadataModel> columnsMetadata) {
-        List<ColumnDefinition> columnsDefinition = new ArrayList<ColumnDefinition>();
-        for (ColumnMetadataModel columnMetadata : columnsMetadata) {
-            BasicColumnDefinition columnDefinition = new BasicColumnDefinition();
+	private List<ColumnDefinition> createColumnsDefinition(List<ColumnMetadataModel> columnsMetadata) {
+		List<ColumnDefinition> columnsDefinition = new ArrayList<ColumnDefinition>();
+		for (ColumnMetadataModel columnMetadata : columnsMetadata) {
+			BasicColumnDefinition columnDefinition = new BasicColumnDefinition();
 
-            GenericType columnName = columnMetadata.getColumnName();
-            columnDefinition.setName(GenericTypeSerializer.get().toByteBuffer(columnName));
+			GenericType columnName = columnMetadata.getColumnName();
+			columnDefinition.setName(GenericTypeSerializer.get().toByteBuffer(columnName));
 
-            if (columnMetadata.getColumnIndexType() != null) {
-                String indexName = columnMetadata.getIndexName();
-                columnDefinition.setIndexName((indexName == null) ? columnName.getValue() : indexName);
-                columnDefinition.setIndexType(columnMetadata.getColumnIndexType());
-            }
+			if (columnMetadata.getColumnIndexType() != null) {
+				String indexName = columnMetadata.getIndexName();
+				columnDefinition.setIndexName((indexName == null) ? columnName.getValue() : indexName);
+				columnDefinition.setIndexType(columnMetadata.getColumnIndexType());
+			}
 
-            if (columnMetadata.getValidationClass() != null) {
-                columnDefinition.setValidationClass(columnMetadata.getValidationClass().getClassName());
-            }
-            columnsDefinition.add(columnDefinition);
+			if (columnMetadata.getValidationClass() != null) {
+				columnDefinition.setValidationClass(columnMetadata.getValidationClass().getClassName());
+			}
+			columnsDefinition.add(columnDefinition);
 
-        }
-        return columnsDefinition;
-    }
+		}
+		return columnsDefinition;
+	}
 }

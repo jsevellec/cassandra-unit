@@ -3,6 +3,7 @@ package org.cassandraunit.utils;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import me.prettyprint.hector.api.ddl.ComparatorType;
 
 import org.cassandraunit.dataset.ParseException;
 import org.cassandraunit.type.GenericTypeEnum;
@@ -55,9 +56,25 @@ public class ComparatorTypeHelperTest {
 
 	@Test
 	public void shouldExtractGenericTypesFromTypeAlias() throws Exception {
-		GenericTypeEnum[] genericTypesEnum = ComparatorTypeHelper
-				.extractGenericTypesFromTypeAlias("(LongType,UTF8Type,IntegerType)");
-		assertThat(genericTypesEnum, is(new GenericTypeEnum[] { GenericTypeEnum.LONG_TYPE, GenericTypeEnum.UTF_8_TYPE,
-				GenericTypeEnum.INTEGER_TYPE }));
+		GenericTypeEnum[] genericTypesEnum = ComparatorTypeHelper.extractGenericTypesFromTypeAlias("(LongType,UTF8Type,IntegerType)");
+		assertThat(genericTypesEnum, is(new GenericTypeEnum[] { GenericTypeEnum.LONG_TYPE, GenericTypeEnum.UTF_8_TYPE, GenericTypeEnum.INTEGER_TYPE }));
+	}
+
+	@Test
+	public void shouldExtractReversedType() {
+		ComparatorType typeWithReversedTrue = ComparatorTypeHelper.verifyAndExtract("UTF8Type(reversed=true)");
+		assertThat(typeWithReversedTrue, is(ComparatorType.UTF8TYPE));
+
+		ComparatorType typeWithReversedFalse = ComparatorTypeHelper.verifyAndExtract("UTF8Type(reversed=false)");
+		assertThat(typeWithReversedFalse, is(ComparatorType.UTF8TYPE));
+	}
+
+	@Test
+	public void shouldExtractReversedTrueCompositeType() {
+		ComparatorType typesWithReversedTrue = ComparatorTypeHelper.verifyAndExtract("CompositeType(LongType(reversed=true),UTF8Type)");
+		assertThat(typesWithReversedTrue, is(ComparatorType.COMPOSITETYPE));
+
+		ComparatorType typesWithReversedFalse = ComparatorTypeHelper.verifyAndExtract("CompositeType(LongType(reversed=false),UTF8Type)");
+		assertThat(typesWithReversedFalse, is(ComparatorType.COMPOSITETYPE));
 	}
 }
