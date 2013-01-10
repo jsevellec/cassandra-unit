@@ -14,11 +14,22 @@ public abstract class AbstractCassandraUnit4TestCase {
     private Keyspace keyspace = null;
     private boolean initialized = false;
     private Cluster cluster;
+    
+    public AbstractCassandraUnit4TestCase() {
+    	cassandraUnit = new CassandraUnit(getDataSet());
+    }
+    
+    public AbstractCassandraUnit4TestCase(String configurationFileName) {
+    	cassandraUnit = new CassandraUnit(getDataSet(), configurationFileName);
+    }
 
-    @Before
+    public AbstractCassandraUnit4TestCase(String configurationFileName, String host) {
+    	cassandraUnit = new CassandraUnit(getDataSet(), configurationFileName, host);
+	}
+
+	@Before
     public void before() throws Exception {
         if (!initialized) {
-            cassandraUnit = new CassandraUnit(getDataSet());
             cassandraUnit.before();
 
             cluster = cassandraUnit.cluster;

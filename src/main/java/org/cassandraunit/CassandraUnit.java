@@ -20,14 +20,18 @@ public class CassandraUnit extends ExternalResource {
     public CassandraUnit(DataSet dataSet) {
         this.dataSet = dataSet;
     }
+    public CassandraUnit(DataSet dataSet, String configurationFileName) {
+    	this(dataSet);
+    	this.configurationFileName = configurationFileName;
+    }
 
     public CassandraUnit(DataSet dataSet, String configurationFileName, String host) {
-        this(dataSet);
-        this.configurationFileName = configurationFileName;
+        this(dataSet, configurationFileName);
         this.host = host;
     }
 
-    @Override
+
+	@Override
     protected void before() throws Exception {
         /* start an embedded Cassandra */
         if (configurationFileName != null) {
