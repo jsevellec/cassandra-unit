@@ -6,4 +6,7 @@ public class CassandraUnitException extends RuntimeException {
         super(message, cause);
     }
 
+    public CassandraUnitException(String message) {
+        super(message);
+    }
 }
