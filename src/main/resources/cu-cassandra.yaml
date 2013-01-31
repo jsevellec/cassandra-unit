@@ -27,7 +27,13 @@ hinted_handoff_enabled: true
 # generated.  After it has been dead this long, hints will be dropped.
 max_hint_window_in_ms: 3600000 # one hour
 # Sleep this long after delivering each hint
-hinted_handoff_throttle_delay_in_ms: 1
+# Deprecated !!!!!!
+# hinted_handoff_throttle_delay_in_ms: 1
+hinted_handoff_throttle_in_kb: 1024
+start_native_transport: true
+# port for the CQL native transport to listen for clients on
+native_transport_port: 9042
+
 
 # authentication backend, implementing IAuthenticator; used to identify users
 authenticator: org.apache.cassandra.auth.AllowAllAuthenticator
@@ -388,8 +394,9 @@ compaction_preheat_key_cache: true
 # When unset, the default is 400 Mbps or 50 MB/s.
 # stream_throughput_outbound_megabits_per_sec: 400
 
-# Time to wait for a reply from other nodes before failing the command 
-rpc_timeout_in_ms: 10000
+# Time to wait for a reply from other nodes before failing the command
+# Deprecated 
+# rpc_timeout_in_ms: 10000
 
 # Enable socket timeout for streaming operation.
 # When a timeout occurs during streaming, streaming is retried from the start
