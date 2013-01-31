@@ -1,4 +1,4 @@
-WELCOME to CassandraUnit
+WELCOME to CassandraUnit /Cassandra 1.2/
 ========================
 
 Everything is in the wiki : 

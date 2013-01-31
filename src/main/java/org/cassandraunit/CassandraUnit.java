@@ -3,6 +3,7 @@ package org.cassandraunit;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.factory.HFactory;
+
 import org.cassandraunit.dataset.DataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.rules.ExternalResource;
