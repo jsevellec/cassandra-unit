@@ -8,8 +8,10 @@ import java.util.List;
 
 /**
  * @author Jeremy Sevellec
+ * @author Marc Carre (#27)
  */
 public class ColumnFamilyModel {
+    public static final String REVERSED_QUALIFIER = "(reversed=";
 
     private String name;
     private ColumnType type = ColumnType.STANDARD;

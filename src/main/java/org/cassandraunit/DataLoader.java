@@ -15,6 +15,7 @@ import me.prettyprint.hector.api.ddl.ComparatorType;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.mutation.Mutator;
+import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.dataset.DataSet;
 import org.cassandraunit.model.ColumnFamilyModel;
 import org.cassandraunit.model.ColumnMetadataModel;
@@ -36,11 +37,12 @@ import java.util.Map;
 
 /**
  * @author Jeremy Sevellec
+ * @author Marc Carre (#27)
  */
 public class DataLoader {
     Cluster cluster = null;
 
-    private Logger log = LoggerFactory.getLogger(DataLoader.class);
+    private static final Logger log = LoggerFactory.getLogger(DataLoader.class);
 
     public DataLoader(String clusterName, String host) {
         super();
@@ -243,7 +245,8 @@ public class DataLoader {
                 cfDef.setSubComparatorType(columnFamily.getSubComparatorType());
             }
 
-            if (ComparatorType.COMPOSITETYPE.equals(columnFamily.getComparatorType())) {
+            if (ComparatorType.COMPOSITETYPE.equals(columnFamily.getComparatorType())
+                    || StringUtils.containsIgnoreCase(columnFamily.getComparatorTypeAlias(), ColumnFamilyModel.REVERSED_QUALIFIER)) {
                 cfDef.setComparatorTypeAlias(columnFamily.getComparatorTypeAlias());
             }
 

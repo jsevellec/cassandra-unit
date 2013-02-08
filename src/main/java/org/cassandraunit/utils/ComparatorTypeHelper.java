@@ -1,76 +1,124 @@
 package org.cassandraunit.utils;
 
 import me.prettyprint.hector.api.ddl.ComparatorType;
+
 import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.dataset.ParseException;
 import org.cassandraunit.dataset.commons.ParsedDataType;
 import org.cassandraunit.type.GenericTypeEnum;
 
+/**
+ * @author Jeremy Sevellec
+ * @author Marc Carre (#27)
+ */
 public class ComparatorTypeHelper {
 
-    public static ComparatorType verifyAndExtract(String comparatorType) {
+	private static final String COMPOSITE_TYPE = "CompositeType";
 
-        final String COMPOSITE_TYPE = "CompositeType";
-        if (StringUtils.startsWith(comparatorType, COMPOSITE_TYPE)) {
-            boolean error = false;
-            /* CompositeType is defined */
-            String aliasType = StringUtils.removeStart(comparatorType, COMPOSITE_TYPE);
-            if (notStardOrNotEndWithParenthesis(aliasType)) {
-                error = true;
-            } else {
-                String aliasTypeWithoutParenthesis = StringUtils
-                        .removeStart(StringUtils.removeEnd(aliasType, ")"), "(");
-                String[] types = StringUtils.split(aliasTypeWithoutParenthesis, ",");
-                if (typesNotNullAndNotEmpty(types)) {
-                    error = true;
-                } else {
-                    /* has to be a known type */
-                    try {
-                        for (int i = 0; i < types.length; i++) {
-                            ParsedDataType.valueOf(types[i]);
-                        }
-                    } catch (IllegalArgumentException e) {
-                        error = true;
-                    }
-                }
-            }
+	public static ComparatorType verifyAndExtract(String comparatorType) {
+		if (isCompositeType(comparatorType)) {
+			return parseCompositeComparatorType(comparatorType);
+		} else {
+			return parseSimpleComparatorType(comparatorType);
+		}
+	}
 
-            if (error) {
-                throw new ParseException("CompositeType has to be like that : CompositeType(<type>,...,<type>)");
-            } else {
-                return ComparatorType.COMPOSITETYPE;
-            }
-        } else {
-            /* standard Type */
-            try {
-                ParsedDataType.valueOf(comparatorType);
-                return ComparatorType.getByClassName(comparatorType);
-            } catch (IllegalArgumentException e) {
-                throw new ParseException("ComparatorType value is not allowed");
-            }
-        }
+	private static boolean isCompositeType(String comparatorType) {
+		return StringUtils.startsWith(comparatorType, COMPOSITE_TYPE);
+	}
 
-    }
+	private static ComparatorType parseCompositeComparatorType(String comparatorType) {
+		String compositeType = removePrependingCompositeType(comparatorType);
 
-    private static boolean typesNotNullAndNotEmpty(String[] types) {
-        return (types == null) || (types.length == 0);
-    }
+		if (!hasParenthesisForComponentTypes(compositeType)) {
+			throw new ParseException("[" + comparatorType + "] must contain types wrapped within parenthesis, like: CompositeType(<type>,...,<type>).");
+		}
 
-    private static boolean notStardOrNotEndWithParenthesis(String aliasType) {
-        return !StringUtils.startsWith(aliasType, "(") || !StringUtils.endsWith(aliasType, ")");
-    }
+		String[] types = extractComponentTypes(compositeType);
 
-    public static GenericTypeEnum[] extractGenericTypesFromTypeAlias(String comparatorTypeAlias) {
-        String aliasTypeWithoutParenthesis = StringUtils.removeStart(StringUtils.removeEnd(comparatorTypeAlias, ")"),
-                "(");
-        String[] types = StringUtils.split(aliasTypeWithoutParenthesis, ",");
+		if (areTypesNullOrEmpty(types)) {
+			throw new ParseException("[" + comparatorType + "] must contain non-empty types, like: CompositeType(<type>,...,<type>).");
+		}
 
-        GenericTypeEnum[] genericTypesEnum = new GenericTypeEnum[types.length];
+		for (String type : types) {
+			parseComponentType(comparatorType, type);
+		}
 
-        for (int i = 0; i < types.length; i++) {
-            genericTypesEnum[i] = GenericTypeEnum.fromValue(types[i]);
-        }
+		return ComparatorType.COMPOSITETYPE;
+	}
 
-        return genericTypesEnum;
-    }
+	private static String removePrependingCompositeType(String comparatorType) {
+		return StringUtils.removeStart(comparatorType, COMPOSITE_TYPE);
+	}
+
+	private static boolean hasParenthesisForComponentTypes(String types) {
+		return StringUtils.startsWith(types, "(") && StringUtils.endsWith(types, ")");
+	}
+
+	private static String[] extractComponentTypes(String compositeType) {
+		String compositeTypeWithoutParenthesis = removeWrappingParenthesis(compositeType);
+		return StringUtils.split(compositeTypeWithoutParenthesis, ",");
+	}
+
+	private static String removeWrappingParenthesis(String aliasType) {
+		return StringUtils.removeStart(StringUtils.removeEnd(aliasType, ")"), "(");
+	}
+
+	private static boolean areTypesNullOrEmpty(String[] types) {
+		if (isNullOrEmpty(types))
+			return true;
+
+		for (String type : types)
+			if (isNullOrEmpty(type))
+				return true;
+
+		return false;
+	}
+
+	private static boolean isNullOrEmpty(String[] types) {
+		return (types == null) || (types.length == 0);
+	}
+
+	private static boolean isNullOrEmpty(String type) {
+		return (type == null) || (type.length() == 0);
+	}
+
+	private static void parseComponentType(String comparatorType, String type) {
+		try {
+			// Component types may take values like "IntegerType" or
+			// "TimeUUID(reversed=true)" or even "LongType(reversed=false)".
+			String cleanType = removeReversedQualifierIfPresent(type);
+			ParsedDataType.valueOf(cleanType);
+		} catch (IllegalArgumentException e) {
+			throw new ParseException("[" + comparatorType + "] contains an invalid 'component' type: [" + type + "].");
+		}
+	}
+
+	private static String removeReversedQualifierIfPresent(String type) {
+		return StringUtils.removeEndIgnoreCase(StringUtils.removeEndIgnoreCase(type, "(reversed=true)"), "(reversed=false)");
+	}
+
+	private static ComparatorType parseSimpleComparatorType(String type) {
+		try {
+			// ComparatorTypes may take values like "IntegerType" or
+			// "TimeUUID(reversed=true)" or even "LongType(reversed=false)".
+			String cleanType = removeReversedQualifierIfPresent(type);
+			ParsedDataType.valueOf(cleanType);
+			return ComparatorType.getByClassName(cleanType);
+		} catch (IllegalArgumentException e) {
+			throw new ParseException("ComparatorType [" + type + "] is invalid.");
+		}
+	}
+
+	public static GenericTypeEnum[] extractGenericTypesFromTypeAlias(String comparatorType) {
+		String[] types = extractComponentTypes(comparatorType);
+		GenericTypeEnum[] genericTypesEnum = new GenericTypeEnum[types.length];
+
+		for (int i = 0; i < types.length; i++) {
+			String cleanType = removeReversedQualifierIfPresent(types[i]);
+			genericTypesEnum[i] = GenericTypeEnum.fromValue(cleanType);
+		}
+
+		return genericTypesEnum;
+	}
 }

@@ -24,6 +24,7 @@ import static org.junit.Assert.fail;
 
 /**
  * @author Jeremy Sevellec
+ * @author Marc Carre (#27)
  */
 public class ClasspathXmlDataSetTest {
 
@@ -476,5 +477,71 @@ public class ClasspathXmlDataSetTest {
         assertThat(columnMetadata.getColumnName().getType(), is(GenericTypeEnum.TIME_UUID_TYPE));
     }
 
+    @Test
+    public void shouldGetAColumnFamilyWithColumnsInReverseOrder() {
+        DataSet dataSet = new ClassPathXmlDataSet("xml/dataSetWithReversedComparatorOnSimpleType.xml");
 
+        ColumnFamilyModel columnFamilyModel = dataSet.getColumnFamilies().get(0);
+        assertThat(columnFamilyModel.getName(), is("columnFamilyWithReversedComparatorOnSimpleType"));
+        assertThat(columnFamilyModel.getComparatorType().getTypeName(), is(ComparatorType.UTF8TYPE.getTypeName()));
+        assertThat(columnFamilyModel.getComparatorTypeAlias(), is("(reversed=true)"));
+
+        List<ColumnModel> columns = columnFamilyModel.getRows().get(0).getColumns();
+
+        ColumnModel column1 = columns.get(0);
+        assertThat(column1.getName().getValue(), is("c"));
+        assertThat(column1.getValue().getValue(), is("c"));
+
+        ColumnModel column2 = columns.get(1);
+        assertThat(column2.getName().getValue(), is("b"));
+        assertThat(column2.getValue().getValue(), is("b"));
+
+        ColumnModel column3 = columns.get(2);
+        assertThat(column3.getName().getValue(), is("a"));
+        assertThat(column3.getValue().getValue(), is("a"));
+    }
+
+    @Test
+    public void shouldGetAColumnFamilyWithCompositeColumnsInReverseOrder() {
+        DataSet dataSet = new ClassPathXmlDataSet("xml/dataSetWithReversedComparatorOnCompositeTypes.xml");
+
+        ColumnFamilyModel columnFamilyModel = dataSet.getColumnFamilies().get(0);
+        assertThat(columnFamilyModel.getName(), is("columnFamilyWithReversedComparatorOnCompositeTypes"));
+        assertThat(columnFamilyModel.getComparatorType().getTypeName(), is(ComparatorType.COMPOSITETYPE.getTypeName()));
+        assertThat(columnFamilyModel.getComparatorTypeAlias(), is("(LongType(reversed=true),UTF8Type,IntegerType(reversed=true))"));
+
+        GenericTypeEnum[] expecTedTypesBelongingCompositeType = new GenericTypeEnum[] { GenericTypeEnum.LONG_TYPE, GenericTypeEnum.UTF_8_TYPE,
+                GenericTypeEnum.INTEGER_TYPE };
+        List<ColumnModel> columns = columnFamilyModel.getRows().get(0).getColumns();
+
+        assertThat(columns.get(0).getName().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+        assertThat(columns.get(0).getName().getCompositeValues(), is(new String[] { "12", "aa", "11" }));
+        assertThat(columns.get(0).getName().getTypesBelongingCompositeType(), is(expecTedTypesBelongingCompositeType));
+        assertThat(columns.get(0).getValue().getValue(), is("v6"));
+
+        assertThat(columns.get(1).getName().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+        assertThat(columns.get(1).getName().getCompositeValues(), is(new String[] { "12", "ab", "12" }));
+        assertThat(columns.get(1).getName().getTypesBelongingCompositeType(), is(expecTedTypesBelongingCompositeType));
+        assertThat(columns.get(1).getValue().getValue(), is("v5"));
+
+        assertThat(columns.get(2).getName().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+        assertThat(columns.get(2).getName().getCompositeValues(), is(new String[] { "12", "ab", "11" }));
+        assertThat(columns.get(2).getName().getTypesBelongingCompositeType(), is(expecTedTypesBelongingCompositeType));
+        assertThat(columns.get(2).getValue().getValue(), is("v4"));
+
+        assertThat(columns.get(3).getName().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+        assertThat(columns.get(3).getName().getCompositeValues(), is(new String[] { "11", "aa", "11" }));
+        assertThat(columns.get(3).getName().getTypesBelongingCompositeType(), is(expecTedTypesBelongingCompositeType));
+        assertThat(columns.get(3).getValue().getValue(), is("v3"));
+
+        assertThat(columns.get(4).getName().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+        assertThat(columns.get(4).getName().getCompositeValues(), is(new String[] { "11", "ab", "12" }));
+        assertThat(columns.get(4).getName().getTypesBelongingCompositeType(), is(expecTedTypesBelongingCompositeType));
+        assertThat(columns.get(4).getValue().getValue(), is("v2"));
+
+        assertThat(columns.get(5).getName().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+        assertThat(columns.get(5).getName().getCompositeValues(), is(new String[] { "11", "ab", "11" }));
+        assertThat(columns.get(5).getName().getTypesBelongingCompositeType(), is(expecTedTypesBelongingCompositeType));
+        assertThat(columns.get(5).getValue().getValue(), is("v1"));
+    }
 }

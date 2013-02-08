@@ -57,9 +57,8 @@ import org.junit.Test;
 import com.google.common.base.Charsets;
 
 /**
- * 
  * @author Jeremy Sevellec
- * 
+ * @author Marc Carre (#27)
  */
 public class DataLoaderTest {
 
@@ -669,4 +668,89 @@ public class DataLoaderTest {
 				is("org.apache.cassandra.locator.SimpleStrategy"));
 	}
 
+    @Test
+    public void shouldLoadDataWithReversedComparatorOnSimpleType() {
+        String clusterName = "TestCluster6";
+        String host = "localhost:9171";
+        DataLoader dataLoader = new DataLoader(clusterName, host);
+
+        try {
+            dataLoader.load(MockDataSetHelper.getMockDataSetWithReversedComparatorOnSimpleType());
+
+			/* verify */
+            Cluster cluster = HFactory.getOrCreateCluster(clusterName, host);
+            Keyspace keyspace = HFactory.createKeyspace("reversedKeyspace", cluster);
+            RangeSlicesQuery<String, String, String> query = HFactory.createRangeSlicesQuery(keyspace, StringSerializer.get(), StringSerializer.get(),
+                    StringSerializer.get());
+            query.setColumnFamily("columnFamilyWithReversedComparatorOnSimpleType");
+            query.setRange(null, null, false, Integer.MAX_VALUE);
+            QueryResult<OrderedRows<String, String, String>> result = query.execute();
+            List<Row<String, String, String>> rows = result.get().getList();
+
+            assertThat(rows.size(), is(1));
+            assertThat(rows.get(0).getKey(), is("row1"));
+            assertThat(rows.get(0).getColumnSlice().getColumns().size(), is(3));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(0), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(0).getName(), is("c"));
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(0).getValue(), is("c"));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(1), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(1).getName(), is("b"));
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(1).getValue(), is("b"));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(2), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(2).getName(), is("a"));
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(2).getValue(), is("a"));
+        } catch (HInvalidRequestException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void shouldLoadDataWithReversedComparatorOnCompositeTypes() {
+        String clusterName = "TestCluster6";
+        String host = "localhost:9171";
+        DataLoader dataLoader = new DataLoader(clusterName, host);
+
+        try {
+            dataLoader.load(MockDataSetHelper.getMockDataSetWithReversedComparatorOnCompositeTypes());
+
+			/* verify */
+            Cluster cluster = HFactory.getOrCreateCluster(clusterName, host);
+            Keyspace keyspace = HFactory.createKeyspace("reversedKeyspace", cluster);
+            RangeSlicesQuery<String, Composite, String> query = HFactory.createRangeSlicesQuery(keyspace, StringSerializer.get(), CompositeSerializer.get(),
+                    StringSerializer.get());
+            query.setColumnFamily("columnFamilyWithReversedCompOnCompositeTypes");
+            query.setRange(null, null, false, Integer.MAX_VALUE);
+            QueryResult<OrderedRows<String, Composite, String>> result = query.execute();
+            List<Row<String, Composite, String>> rows = result.get().getList();
+
+            assertThat(rows.size(), is(1));
+            assertThat(rows.get(0).getKey(), is("row1"));
+            assertThat(rows.get(0).getColumnSlice().getColumns().size(), is(6));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(0), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(0).getValue(), is("v6"));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(1), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(1).getValue(), is("v5"));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(2), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(2).getValue(), is("v4"));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(3), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(3).getValue(), is("v3"));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(4), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(4).getValue(), is("v2"));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(5), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(5).getValue(), is("v1"));
+        } catch (HInvalidRequestException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
 }

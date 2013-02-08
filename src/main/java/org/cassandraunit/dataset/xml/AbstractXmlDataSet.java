@@ -25,6 +25,7 @@ import java.util.List;
 
 /**
  * @author Jeremy Sevellec
+ * @author Marc Carre (#27)
  */
 public abstract class AbstractXmlDataSet implements DataSet {
 
@@ -163,15 +164,23 @@ public abstract class AbstractXmlDataSet implements DataSet {
         }
 
         GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType = null;
-        if (xmlColumnFamily.getComparatorType() != null) {
-            ComparatorType comparatorType = ComparatorTypeHelper.verifyAndExtract(xmlColumnFamily.getComparatorType());
+        final String xmlComparatorType = xmlColumnFamily.getComparatorType();
+
+        if (xmlComparatorType != null) {
+            ComparatorType comparatorType = ComparatorTypeHelper.verifyAndExtract(xmlComparatorType);
             columnFamily.setComparatorType(comparatorType);
             if (ComparatorType.COMPOSITETYPE.getTypeName().equals(comparatorType.getTypeName())) {
-                String comparatorTypeAlias = StringUtils.removeStart(xmlColumnFamily.getComparatorType(),
-                        ComparatorType.COMPOSITETYPE.getTypeName());
+                String comparatorTypeAlias = StringUtils.removeStart(xmlComparatorType, ComparatorType.COMPOSITETYPE.getTypeName());
                 columnFamily.setComparatorTypeAlias(comparatorTypeAlias);
                 typesBelongingCompositeTypeForComparatorType = ComparatorTypeHelper
                         .extractGenericTypesFromTypeAlias(comparatorTypeAlias);
+            } else if (StringUtils.containsIgnoreCase(xmlComparatorType,
+                    ColumnFamilyModel.REVERSED_QUALIFIER)) {
+                int begin = StringUtils.indexOfIgnoreCase(xmlComparatorType,
+                        ColumnFamilyModel.REVERSED_QUALIFIER);
+                int end = xmlComparatorType.length();
+                columnFamily.setComparatorTypeAlias(xmlComparatorType
+                        .substring(begin, end));
             }
         }
 

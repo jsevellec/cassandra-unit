@@ -4,3 +4,8 @@
 /.settings
 /cassandra-unit.iml
 /.idea
+
+.DS_Store
+bin/
+cassandra-unit.ipr
+cassandra-unit.iws

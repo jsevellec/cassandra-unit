@@ -22,9 +22,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * 
  * @author Jeremy Sevellec
- * 
+ * @author Marc Carre (#27)
  */
 public class MockDataSetHelper {
 
@@ -712,4 +711,111 @@ public class MockDataSetHelper {
         return mockDataSet;
     }
 
+    public static DataSet getMockDataSetWithReversedComparatorOnSimpleType() {
+        DataSet mockDataSet = mock(DataSet.class);
+        KeyspaceModel keyspace = new KeyspaceModel();
+        keyspace.setName("reversedKeyspace");
+        keyspace.getColumnFamilies();
+
+		/* column family */
+        ColumnFamilyModel columnFamily = new ColumnFamilyModel();
+        columnFamily.setName("columnFamilyWithReversedComparatorOnSimpleType");
+        columnFamily.setKeyType(ComparatorType.UTF8TYPE);
+        columnFamily.setComparatorType(ComparatorType.UTF8TYPE);
+        columnFamily.setComparatorTypeAlias("(reversed=true)");
+        columnFamily.setDefaultColumnValueType(ComparatorType.BYTESTYPE);
+
+		/* row1 */
+        RowModel row1 = new RowModel();
+        row1.setKey(new GenericType("row1", GenericTypeEnum.UTF_8_TYPE));
+
+		/* column1 */
+        ColumnModel column1 = new ColumnModel();
+        column1.setName(new GenericType("c", GenericTypeEnum.UTF_8_TYPE));
+        column1.setValue(new GenericType("c", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column1);
+
+		/* column2 */
+        ColumnModel column2 = new ColumnModel();
+        column2.setName(new GenericType("b", GenericTypeEnum.UTF_8_TYPE));
+        column2.setValue(new GenericType("b", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column2);
+
+		/* column3 */
+        ColumnModel column3 = new ColumnModel();
+        column3.setName(new GenericType("a", GenericTypeEnum.UTF_8_TYPE));
+        column3.setValue(new GenericType("a", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column3);
+
+        columnFamily.getRows().add(row1);
+        keyspace.getColumnFamilies().add(columnFamily);
+        when(mockDataSet.getKeyspace()).thenReturn(keyspace);
+        when(mockDataSet.getColumnFamilies()).thenReturn(keyspace.getColumnFamilies());
+
+        return mockDataSet;
+    }
+
+    public static DataSet getMockDataSetWithReversedComparatorOnCompositeTypes() {
+        DataSet mockDataSet = mock(DataSet.class);
+        KeyspaceModel keyspace = new KeyspaceModel();
+        keyspace.setName("reversedKeyspace");
+        keyspace.getColumnFamilies();
+
+		/* column family */
+        ColumnFamilyModel columnFamily = new ColumnFamilyModel();
+        columnFamily.setName("columnFamilyWithReversedCompOnCompositeTypes");
+        columnFamily.setKeyType(ComparatorType.UTF8TYPE);
+        columnFamily.setComparatorType(ComparatorType.COMPOSITETYPE);
+        columnFamily.setComparatorTypeAlias("(LongType(reversed=true),UTF8Type,IntegerType(reversed=true))");
+        columnFamily.setDefaultColumnValueType(ComparatorType.BYTESTYPE);
+
+		/* row1 */
+        RowModel row1 = new RowModel();
+        row1.setKey(new GenericType("row1", GenericTypeEnum.UTF_8_TYPE));
+
+        GenericTypeEnum[] columnNameTypes = {GenericTypeEnum.LONG_TYPE, GenericTypeEnum.UTF_8_TYPE, GenericTypeEnum.INTEGER_TYPE};
+
+		/* column1 */
+        ColumnModel column1 = new ColumnModel();
+        column1.setName(new GenericType(new String[] { "12", "aa", "11" }, columnNameTypes));
+        column1.setValue(new GenericType("v6", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column1);
+
+		/* column2 */
+        ColumnModel column2 = new ColumnModel();
+        column2.setName(new GenericType(new String[] { "12", "ab", "12" }, columnNameTypes));
+        column2.setValue(new GenericType("v5", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column2);
+
+		/* column3 */
+        ColumnModel column3 = new ColumnModel();
+        column3.setName(new GenericType(new String[] { "12", "ab", "11" }, columnNameTypes));
+        column3.setValue(new GenericType("v4", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column3);
+
+		/* column4 */
+        ColumnModel column4 = new ColumnModel();
+        column4.setName(new GenericType(new String[] { "11", "aa", "11" }, columnNameTypes));
+        column4.setValue(new GenericType("v3", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column4);
+
+		/* column5 */
+        ColumnModel column5 = new ColumnModel();
+        column5.setName(new GenericType(new String[] { "11", "ab", "12" }, columnNameTypes));
+        column5.setValue(new GenericType("v2", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column5);
+
+		/* column6 */
+        ColumnModel column6 = new ColumnModel();
+        column6.setName(new GenericType(new String[] { "11", "ab", "11" }, columnNameTypes));
+        column6.setValue(new GenericType("v1", GenericTypeEnum.UTF_8_TYPE));
+        row1.getColumns().add(column6);
+
+        columnFamily.getRows().add(row1);
+        keyspace.getColumnFamilies().add(columnFamily);
+        when(mockDataSet.getKeyspace()).thenReturn(keyspace);
+        when(mockDataSet.getColumnFamilies()).thenReturn(keyspace.getColumnFamilies());
+
+        return mockDataSet;
+    }
 }

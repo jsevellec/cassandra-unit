@@ -17,6 +17,7 @@ import java.util.List;
 
 /**
  * @author Jeremy Sevellec
+ * @author Marc Carre (#27)
  */
 public abstract class AbstractCommonsParserDataSet implements DataSet {
 
@@ -141,16 +142,21 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
 
         /* comparatorType */
         GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType = null;
-        if (parsedColumnFamily.getComparatorType() != null) {
-            ComparatorType comparatorType = ComparatorTypeHelper.verifyAndExtract(parsedColumnFamily
-                    .getComparatorType());
+        final String parsedComparatorType = parsedColumnFamily.getComparatorType();
+
+        if (parsedComparatorType != null) {
+
+            ComparatorType comparatorType = ComparatorTypeHelper.verifyAndExtract(parsedComparatorType);
             columnFamily.setComparatorType(comparatorType);
             if (ComparatorType.COMPOSITETYPE.getTypeName().equals(comparatorType.getTypeName())) {
-                String comparatorTypeAlias = StringUtils.removeStart(parsedColumnFamily.getComparatorType(),
-                        ComparatorType.COMPOSITETYPE.getTypeName());
+                String comparatorTypeAlias = StringUtils.removeStart(parsedComparatorType, ComparatorType.COMPOSITETYPE.getTypeName());
                 columnFamily.setComparatorTypeAlias(comparatorTypeAlias);
                 typesBelongingCompositeTypeForComparatorType = ComparatorTypeHelper
                         .extractGenericTypesFromTypeAlias(comparatorTypeAlias);
+            } else if (StringUtils.containsIgnoreCase(parsedComparatorType, ColumnFamilyModel.REVERSED_QUALIFIER)) {
+                int begin = StringUtils.indexOfIgnoreCase(parsedComparatorType, ColumnFamilyModel.REVERSED_QUALIFIER);
+                int end = parsedComparatorType.length();
+                columnFamily.setComparatorTypeAlias(parsedComparatorType.substring(begin, end));
             }
         }
 
