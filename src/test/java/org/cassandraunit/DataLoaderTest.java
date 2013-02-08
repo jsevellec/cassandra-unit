@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -748,6 +749,43 @@ public class DataLoaderTest {
 
             assertThat(rows.get(0).getColumnSlice().getColumns().get(5), notNullValue());
             assertThat(rows.get(0).getColumnSlice().getColumns().get(5).getValue(), is("v1"));
+        } catch (HInvalidRequestException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void shouldLoadBinaryData() {
+        String clusterName = "TestCluster6";
+        String host = "localhost:9171";
+        DataLoader dataLoader = new DataLoader(clusterName, host);
+
+        try {
+            dataLoader.load(MockDataSetHelper.getMockDataSetWithBinaryData());
+
+			/* verify */
+            Cluster cluster = HFactory.getOrCreateCluster(clusterName, host);
+            Keyspace keyspace = HFactory.createKeyspace("binaryKeyspace", cluster);
+            RangeSlicesQuery<String, String, byte[]> query = HFactory.createRangeSlicesQuery(keyspace, StringSerializer.get(), StringSerializer.get(),
+                    BytesArraySerializer.get());
+            query.setColumnFamily("columnFamilyWithBinaryData");
+            query.setRange(null, null, false, Integer.MAX_VALUE);
+            QueryResult<OrderedRows<String, String, byte[]>> result = query.execute();
+            List<Row<String, String, byte[]>> rows = result.get().getList();
+
+            assertThat(rows.size(), is(1));
+            assertThat(rows.get(0).getKey(), is("row1"));
+            assertThat(rows.get(0).getColumnSlice().getColumns().size(), is(2));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(0), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(0).getName(), is("a"));
+            assertThat(new String(rows.get(0).getColumnSlice().getColumns().get(0).getValue(), Charset.forName("UTF-8")), is("hello world!"));
+
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(1), notNullValue());
+            assertThat(rows.get(0).getColumnSlice().getColumns().get(1).getName(), is("b"));
+            String expectedValue = "Welcome to Apache Cassandra\r\n\r\nThe Apache Cassandra database is the right choice when you need scalability and high availability without compromising performance. Linear scalability and proven fault-tolerance on commodity hardware or cloud infrastructure make it the perfect platform for mission-critical data. Cassandra's support for replicating across multiple datacenters is best-in-class, providing lower latency for your users and the peace of mind of knowing that you can survive regional outages.";
+            assertThat(new String(rows.get(0).getColumnSlice().getColumns().get(1).getValue(), Charset.forName("UTF-8")), is(expectedValue));
         } catch (HInvalidRequestException e) {
             e.printStackTrace();
             fail();

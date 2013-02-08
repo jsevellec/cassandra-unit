@@ -18,6 +18,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.cassandraunit.exception.CassandraUnitException;
 import org.cassandraunit.type.GenericType;
 import org.cassandraunit.type.GenericTypeEnum;
+import org.cassandraunit.utils.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * @author Jeremy Sevellec
@@ -33,6 +35,8 @@ import java.util.UUID;
 public class GenericTypeSerializer extends AbstractSerializer<GenericType> {
 
     private static final GenericTypeSerializer instance = new GenericTypeSerializer();
+    private static final Pattern hexPattern = Pattern.compile("[0-9abcdefABCDEF]+");
+    private static final Pattern base64Pattern = Pattern.compile("[0-9a-zA-Z/+]+={0,3}");
 
     public static final DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd HHmmss");
 
@@ -70,16 +74,21 @@ public class GenericTypeSerializer extends AbstractSerializer<GenericType> {
                     byteBuffer = BooleanSerializer.get().toByteBuffer(Boolean.parseBoolean(genericValue));
                     break;
                 case BYTES_TYPE:
-                    byte[] hexDecodedBytes;
+                    byte[] decodedBytes;
                     try {
                         if (genericValue.isEmpty()) {
                             byteBuffer = ByteBufferSerializer.get().fromBytes(new byte[0]);
+                        } else if (isHex(genericValue)) {
+                            decodedBytes = Hex.decodeHex(genericValue.toCharArray());
+                            byteBuffer = ByteBufferSerializer.get().fromBytes(decodedBytes);
+                        } else if (isBase64(genericValue)) {
+                            decodedBytes = Base64.decode(genericValue);
+                            byteBuffer = ByteBufferSerializer.get().fromBytes(decodedBytes);
                         } else {
-                            hexDecodedBytes = Hex.decodeHex(genericValue.toCharArray());
-                            byteBuffer = ByteBufferSerializer.get().fromBytes(hexDecodedBytes);
+                            throw new CassandraUnitException("Failed to parse \"" + genericValue + "\" as bytes: unknown binary encoding.");
                         }
                     } catch (DecoderException e) {
-                        throw new CassandraUnitException("cannot parse \"" + genericValue + "\" as hex bytes", e);
+                        throw new CassandraUnitException("Failed to parse \"" + genericValue + "\" as bytes", e);
                     }
                     break;
                 case DATE_TYPE:
@@ -127,6 +136,16 @@ public class GenericTypeSerializer extends AbstractSerializer<GenericType> {
             }
         }
         return byteBuffer;
+    }
+
+    private boolean isHex(String genericValue) {
+        return hexPattern.matcher(genericValue).matches();
+    }
+
+    private boolean isBase64(String genericValue) {
+        if (!(genericValue.length() % 4 == 0))
+            return false;
+        return base64Pattern.matcher(genericValue).matches();
     }
 
     private Composite createComposite(GenericType genericType) {

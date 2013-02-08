@@ -544,4 +544,16 @@ public class ClasspathXmlDataSetTest {
         assertThat(columns.get(5).getName().getTypesBelongingCompositeType(), is(expecTedTypesBelongingCompositeType));
         assertThat(columns.get(5).getValue().getValue(), is("v1"));
     }
+
+    @Test
+    public void shouldGetBinaryData() {
+        DataSet dataSet = new ClassPathXmlDataSet("xml/dataSetWithBinaryData.xml");
+        ColumnFamilyModel columnFamilyModel = dataSet.getColumnFamilies().get(0);
+        assertThat(columnFamilyModel.getName(), is("columnFamilyWithBinaryData"));
+        List<ColumnModel> columns = columnFamilyModel.getRows().get(0).getColumns();
+        ColumnModel column1 = columns.get(0);
+        assertThat(column1.getName().getValue(), is("a"));
+        assertThat(column1.getValue().getValue(), is("aGVsbG8gd29ybGQh"));
+        assertThat(column1.getValue().getType(), is(GenericTypeEnum.BYTES_TYPE));
+    }
 }

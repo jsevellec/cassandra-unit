@@ -818,4 +818,46 @@ public class MockDataSetHelper {
 
         return mockDataSet;
     }
+
+    public static DataSet getMockDataSetWithBinaryData() {
+        DataSet mockDataSet = mock(DataSet.class);
+        KeyspaceModel keyspace = new KeyspaceModel();
+        keyspace.setName("binaryKeyspace");
+        keyspace.getColumnFamilies();
+
+        /* column family */
+        ColumnFamilyModel columnFamily = new ColumnFamilyModel();
+        columnFamily.setName("columnFamilyWithBinaryData");
+        columnFamily.setKeyType(ComparatorType.UTF8TYPE);
+        columnFamily.setDefaultColumnValueType(ComparatorType.BYTESTYPE);
+
+        /* row1 */
+        RowModel row = new RowModel();
+        row.setKey(new GenericType("row1", GenericTypeEnum.UTF_8_TYPE));
+
+        /* column1 */
+        ColumnModel column1 = new ColumnModel();
+        column1.setName(new GenericType("a", GenericTypeEnum.UTF_8_TYPE));
+        column1.setValue(new GenericType("aGVsbG8gd29ybGQh", GenericTypeEnum.BYTES_TYPE));
+        row.getColumns().add(column1);
+
+        /* column2 */
+        ColumnModel column2 = new ColumnModel();
+        column2.setName(new GenericType("b", GenericTypeEnum.UTF_8_TYPE));
+        String value2 = "V2VsY29tZSB0byBBcGFjaGUgQ2Fzc2FuZHJhDQoNClRoZSBBcGFjaGUgQ2Fzc2FuZHJhIGRhdGFiYXNlIGlzIHRoZSByaWdodCBjaG9pY2Ugd2hlbiB5b3UgbmVlZCBzY2FsYWJpbGl0eSBhbmQgaGln" +
+                "aCBhdmFpbGFiaWxpdHkgd2l0aG91dCBjb21wcm9taXNpbmcgcGVyZm9ybWFuY2UuIExpbmVhciBzY2FsYWJpbGl0eSBhbmQgcHJvdmVuIGZhdWx0LXRvbGVyYW5jZSBvbiBjb21tb2RpdHkgaGFyZHdh" +
+                "cmUgb3IgY2xvdWQgaW5mcmFzdHJ1Y3R1cmUgbWFrZSBpdCB0aGUgcGVyZmVjdCBwbGF0Zm9ybSBmb3IgbWlzc2lvbi1jcml0aWNhbCBkYXRhLiBDYXNzYW5kcmEncyBzdXBwb3J0IGZvciByZXBsaWNh" +
+                "dGluZyBhY3Jvc3MgbXVsdGlwbGUgZGF0YWNlbnRlcnMgaXMgYmVzdC1pbi1jbGFzcywgcHJvdmlkaW5nIGxvd2VyIGxhdGVuY3kgZm9yIHlvdXIgdXNlcnMgYW5kIHRoZSBwZWFjZSBvZiBtaW5kIG9m" +
+                "IGtub3dpbmcgdGhhdCB5b3UgY2FuIHN1cnZpdmUgcmVnaW9uYWwgb3V0YWdlcy4=";
+        column2.setValue(new GenericType(value2, GenericTypeEnum.BYTES_TYPE));
+        row.getColumns().add(column2);
+
+        columnFamily.getRows().add(row);
+        keyspace.getColumnFamilies().add(columnFamily);
+
+        when(mockDataSet.getKeyspace()).thenReturn(keyspace);
+        when(mockDataSet.getColumnFamilies()).thenReturn(keyspace.getColumnFamilies());
+
+        return mockDataSet;
+    }
 }
