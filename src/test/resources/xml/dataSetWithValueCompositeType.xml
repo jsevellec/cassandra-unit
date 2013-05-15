@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<keyspace xmlns="http://xml.dataset.cassandraunit.org">
+	<name>compositeKeyspace</name>
+	<columnFamilies>
+		<columnFamily>
+			<name>columnFamilyWithCompositeValue</name>
+			<comparatorType>UTF8Type</comparatorType>
+			<row>
+				<key>row1</key>
+				<column>
+					<name>column1</name>
+					<value>composite(long(11):utf8(aa):integer(11))</value>
+				</column>
+				<column>
+					<name>column2</name>
+					<value>composite(utf8(ab):integer(11):long(11))</value>
+				</column>
+				<column>
+					<name>column3</name>
+					<value>composite(integer(11):utf8(ab):long(12))</value>
+				</column>
+			</row>
+		</columnFamily>
+		
+		<columnFamily>
+			<name>columnFamilyWithDefaultCompositeValueType</name>
+			<comparatorType>UTF8Type</comparatorType>
+			<defaultColumnValueType>CompositeType(LongType,UTF8Type,IntegerType)</defaultColumnValueType>
+			<row>
+				<key>row1</key>
+				<column>
+					<name>column1</name>
+					<value>20:ba:5</value>
+				</column>
+				<column>
+					<name>column2</name>
+					<value>composite(utf8(bc):integer(21):long(22))</value>
+				</column>
+			</row>
+		</columnFamily>
+	</columnFamilies>
+</keyspace>

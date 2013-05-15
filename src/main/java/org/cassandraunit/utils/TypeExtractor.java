@@ -13,8 +13,13 @@ public class TypeExtractor {
 
     private static String endTypeFunction = ")";
     private static String startTypeFunction = "(";
+    
+    private static String compositeType = "composite";
+    private static String compositeSeparator = ":";
+    
     private static String[] availableTypeFunctionArray = new String[]{"bytes(", "integer(", "lexicaluuid(", "long(",
-            "utf8(", "timeuuid(", "uuid(", "ascii(", "boolean(", "date(", "double(", "float(", "countercolumn("};
+            "utf8(", "timeuuid(", "uuid(", "ascii(", "boolean(", "date(", "double(", "float(", "countercolumn(", 
+            compositeType + startTypeFunction};
 
     public static GenericType extract(String valueToExtract, ComparatorType defaultValueType) {
         String extractedValue = null;
@@ -24,7 +29,14 @@ public class TypeExtractor {
             String typeFunction = StringUtils.substringBefore(valueToExtract, startTypeFunction);
             String rightSideWithLastParenthesis = StringUtils.substringAfter(valueToExtract, typeFunction + startTypeFunction);
             extractedValue = StringUtils.removeEnd(rightSideWithLastParenthesis,endTypeFunction);
-            genericType = new GenericType(extractedValue, GenericTypeEnum.fromValue(typeFunction + "type"));
+            
+            if (compositeType.equals(typeFunction)) {
+            	/* composite type */
+            	genericType = extractFromComposite(extractedValue);
+            } else {
+            	/* simple type */
+	            genericType = new GenericType(extractedValue, GenericTypeEnum.fromValue(typeFunction + "type"));
+            }
         } else {
             /* there is no type function defined */
             extractedValue = valueToExtract;
@@ -62,4 +74,20 @@ public class TypeExtractor {
         }
         return key;
     }
+
+	private static GenericType extractFromComposite(String extractedValue)
+	{
+		String[] compositeValues = extractedValue.split(compositeSeparator);
+		
+		String[] extractedCompositeValues = new String[compositeValues.length];
+		GenericTypeEnum[] extractedCompositeTypes = new GenericTypeEnum[extractedCompositeValues.length];
+		
+		for (int index = 0; index != compositeValues.length; ++index) {
+			GenericType subValue = extract(compositeValues[index], null);
+			extractedCompositeValues[index] = subValue.getValue();
+			extractedCompositeTypes[index] = subValue.getType();
+		}
+		
+		return new GenericType(extractedCompositeValues, extractedCompositeTypes);
+	}
 }

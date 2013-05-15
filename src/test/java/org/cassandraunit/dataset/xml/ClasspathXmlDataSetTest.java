@@ -18,6 +18,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.cassandraunit.SampleDataSetChecker.assertThatKeyspaceModelWithCompositeTypeIsOk;
+import static org.cassandraunit.SampleDataSetChecker.assertThatKeyspaceModelWithValueCompositeTypeIsOk;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -427,6 +428,12 @@ public class ClasspathXmlDataSetTest {
     public void shouldNotGetAColumnFamilyWithCompositeType() throws Exception {
         DataSet dataSet = new ClassPathXmlDataSet("xml/dataSetWithBadCompositeType.xml");
         dataSet.getKeyspace();
+    }
+
+    @Test
+    public void shouldGetAColumnFamilyWithValueCompositeType() throws Exception {
+        DataSet dataSet = new ClassPathXmlDataSet("xml/dataSetWithValueCompositeType.xml");
+        assertThatKeyspaceModelWithValueCompositeTypeIsOk(dataSet);
     }
 
     @Test
