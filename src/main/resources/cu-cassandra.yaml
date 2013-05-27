@@ -265,6 +265,10 @@ rpc_address: localhost
 # port for Thrift to listen for clients on
 rpc_port: 9171
 
+start_native_transport: true
+# port for the CQL native transport to listen for clients on
+native_transport_port: 9031
+
 # enable or disable keepalive on rpc connections
 rpc_keepalive: true
 
