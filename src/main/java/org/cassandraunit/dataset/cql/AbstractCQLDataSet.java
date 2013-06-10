@@ -1,5 +1,6 @@
 package org.cassandraunit.dataset.cql;
 
+import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.cassandraunit.dataset.ParseException;
 
@@ -45,7 +46,9 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
         List<String> cqlQueries = new ArrayList();
         try {
             while ((line = br.readLine()) != null) {
+              if (StringUtils.isNotBlank(line)) {
                 cqlQueries.add(line);
+              }
             }
             br.close();
             return cqlQueries;
