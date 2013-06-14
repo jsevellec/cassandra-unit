@@ -16,4 +16,5 @@ public interface CQLDataSet {
 
     boolean isKeyspaceCreation();
 
+    boolean isKeyspaceDeletion();
 }

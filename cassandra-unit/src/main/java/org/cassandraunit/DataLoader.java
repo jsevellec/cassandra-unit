@@ -58,13 +58,28 @@ public class DataLoader {
     }
 
     public void load(DataSet dataSet, LoadingOption loadingOption) {
+      load(dataSet, loadingOption, true);
+    }
+
+    public void load(DataSet dataSet, boolean dropAndCreateKeyspace) {
+      load(dataSet, new LoadingOption(), dropAndCreateKeyspace);
+    }
+
+    public void load(DataSet dataSet, LoadingOption loadingOption, boolean dropAndCreateKeyspace) {
         KeyspaceModel dataSetKeyspace = dataSet.getKeyspace();
 
-        dropKeyspaceIfExist(dataSetKeyspace.getName());
+        if (dropAndCreateKeyspace) {
+          dropKeyspaceIfExist(dataSetKeyspace.getName());
+        }
 
         KeyspaceDefinition keyspaceDefinition = createKeyspaceDefinition(dataSet, loadingOption);
-
-        cluster.addKeyspace(keyspaceDefinition, true);
+        if (dropAndCreateKeyspace) {
+          cluster.addKeyspace(keyspaceDefinition, dropAndCreateKeyspace);
+        } else {
+          for(ColumnFamilyDefinition columnFamilyDefinition: keyspaceDefinition.getCfDefs()) {
+            cluster.addColumnFamily(columnFamilyDefinition);
+          }
+        }
 
         log.info("creating keyspace : {}", keyspaceDefinition.getName());
         Keyspace keyspace = HFactory.createKeyspace(dataSet.getKeyspace().getName(), cluster);

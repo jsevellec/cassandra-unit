@@ -20,40 +20,38 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
     private String dataSetLocation = null;
     private String keyspaceName = null;
     private boolean keyspaceCreation = true;
+    private boolean keyspaceDeletion = true;
 
     public AbstractCQLDataSet(String dataSetLocation) {
         this.dataSetLocation = dataSetLocation;
     }
 
-    public AbstractCQLDataSet(String dataSetLocation, boolean keyspaceCreation) {
-        this(dataSetLocation, keyspaceCreation, null);
+    public AbstractCQLDataSet(String dataSetLocation, boolean keyspaceCreation, boolean keyspaceDeletion) {
+        this(dataSetLocation, keyspaceCreation, keyspaceDeletion, null);
     }
 
     public AbstractCQLDataSet(String dataSetLocation, String keyspaceName) {
-        this(dataSetLocation, true, keyspaceName);
+        this(dataSetLocation, true, true, keyspaceName);
     }
 
-
-    public AbstractCQLDataSet(String dataSetLocation, boolean keyspaceCreation, String keyspaceName) {
+    public AbstractCQLDataSet(String dataSetLocation, boolean keyspaceCreation, boolean keyspaceDeletion, String keyspaceName) {
         if (getInputDataSetLocation(dataSetLocation) == null) {
             throw new ParseException("Dataset not found");
         }
         this.dataSetLocation = dataSetLocation;
         this.keyspaceCreation = keyspaceCreation;
+        this.keyspaceDeletion = keyspaceDeletion;
         if (keyspaceName != null) {
             this.keyspaceName = keyspaceName.toLowerCase();
         }
     }
 
-
     protected abstract InputStream getInputDataSetLocation(String dataSetLocation);
-
 
     @Override
     public List<String> getCQLStatements() {
         List<String> lines = getLines();
         return linesToCQLStatements(lines);
-
     }
 
     private List<String> linesToCQLStatements(List<String> lines) {
@@ -68,7 +66,6 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
                 statementUnderConstruction.append(" ");
             }
         }
-
         return statements;
     }
 
@@ -83,9 +80,7 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
 
     private boolean endOfStatementLine(String line) {
         return line.endsWith(END_OF_STATEMENT_DELIMITER);
-
     }
-
 
     public List<String> getLines() {
         InputStream inputStream = getInputDataSetLocation(dataSetLocation);
@@ -113,5 +108,9 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
 
     public boolean isKeyspaceCreation() {
         return keyspaceCreation;
+    }
+
+    public boolean isKeyspaceDeletion() {
+      return keyspaceDeletion;
     }
 }
