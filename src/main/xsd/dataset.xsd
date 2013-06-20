@@ -33,8 +33,8 @@
 			<element name="type" type="tns:ColumnFamilyType" minOccurs="0" maxOccurs="1" />
 			<element name="keyType" type="string" minOccurs="0" maxOccurs="1" />
 			<element name="comparatorType" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="subComparatorType" type="tns:DataType" minOccurs="0" maxOccurs="1" />
-			<element name="defaultColumnValueType" type="tns:DataType" minOccurs="0" maxOccurs="1" />
+			<element name="subComparatorType" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="defaultColumnValueType" type="string" minOccurs="0" maxOccurs="1" />
             <element name="comment" type="string" minOccurs="0" maxOccurs="1" />
             <element name="compactionStrategy" type="string" minOccurs="0" maxOccurs="1" />
             <element name="compactionStrategyOptions" type="tns:CompactionStrategyOptions" minOccurs="0" maxOccurs="1" />
@@ -68,24 +68,6 @@
 		</restriction>
 	</simpleType>
 
-	<simpleType name="DataType">
-		<restriction base="string">
-			<enumeration value="AsciiType" />
-			<enumeration value="BooleanType" />
-			<enumeration value="BytesType" />
-			<enumeration value="CounterColumnType" />
-			<enumeration value="DateType" />
-			<enumeration value="DoubleType" />
-			<enumeration value="FloatType" />
-			<enumeration value="IntegerType" />
-			<enumeration value="LexicalUUIDType" />
-			<enumeration value="LongType" />
-			<enumeration value="TimeUUIDType" />
-			<enumeration value="UTF8Type" />
-			<enumeration value="UUIDType" />			
-		</restriction>
-	</simpleType>
-
 	<complexType name="Row">
 		<sequence>
 			<element name="key" type="string" minOccurs="1" maxOccurs="1" />
@@ -97,7 +79,7 @@
 	<complexType name="ColumnMetadata">
 		<sequence>
 			<element name="name" type="string" minOccurs="1" maxOccurs="1" />
-			<element name="validationClass" type="tns:DataType" minOccurs="1" maxOccurs="1" />
+			<element name="validationClass" type="string" minOccurs="1" maxOccurs="1" />
 			<element name="indexType" type="tns:IndexType" minOccurs="0" maxOccurs="1" />
             <element name="indexName" type="string" minOccurs="0" maxOccurs="1" />
 		</sequence>

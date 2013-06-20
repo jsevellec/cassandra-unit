@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.cassandraunit.type.GenericTypeEnum.*;
 
 import java.util.List;
 
@@ -142,5 +143,42 @@ public class SampleDataSetChecker {
 		assertThat(columnFamilyModel2.getRows().get(0).getKey().getCompositeValues(), is(new String[] { "11", "a" }));
 		assertThat(columnFamilyModel2.getRows().get(0).getKey().getTypesBelongingCompositeType(),
 				is(new GenericTypeEnum[] { GenericTypeEnum.LONG_TYPE, GenericTypeEnum.UTF_8_TYPE }));
+	}
+
+	public static void assertThatKeyspaceModelWithValueCompositeTypeIsOk(DataSet dataSet) {
+		ColumnFamilyModel columnFamilyModel = dataSet.getColumnFamilies().get(0);
+		assertThat(columnFamilyModel.getName(), is("columnFamilyWithCompositeValue"));
+		
+		List<ColumnModel> columns = columnFamilyModel.getRows().get(0).getColumns();
+		
+		assertThat(columns.get(0).getName().getValue(), is("column1"));
+		assertThat(columns.get(0).getValue().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+		assertThat(columns.get(0).getValue().getCompositeValues(), is(new String[] { "11", "aa" , "11" }));
+		assertThat(columns.get(0).getValue().getTypesBelongingCompositeType(), is(new GenericTypeEnum[] { LONG_TYPE, UTF_8_TYPE, INTEGER_TYPE }));
+
+		assertThat(columns.get(1).getName().getValue(), is("column2"));
+		assertThat(columns.get(1).getValue().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+		assertThat(columns.get(1).getValue().getCompositeValues(), is(new String[] { "ab", "11" , "11" }));
+		assertThat(columns.get(1).getValue().getTypesBelongingCompositeType(), is(new GenericTypeEnum[] { UTF_8_TYPE, INTEGER_TYPE, LONG_TYPE }));
+
+		assertThat(columns.get(2).getName().getValue(), is("column3"));
+		assertThat(columns.get(2).getValue().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+		assertThat(columns.get(2).getValue().getCompositeValues(), is(new String[] { "11", "ab" , "12" }));
+		assertThat(columns.get(2).getValue().getTypesBelongingCompositeType(), is(new GenericTypeEnum[] { INTEGER_TYPE, UTF_8_TYPE, LONG_TYPE }));
+		
+		
+		// ColumnFamily 'columnFamilyWithCompositeValueTyped'
+		assertThat(dataSet.getColumnFamilies().get(1).getName(), is("columnFamilyWithDefaultCompositeValueType"));
+		columns = dataSet.getColumnFamilies().get(1).getRows().get(0).getColumns();
+		
+		assertThat(columns.get(0).getName().getValue(), is("column1"));
+		assertThat(columns.get(0).getValue().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+		assertThat(columns.get(0).getValue().getCompositeValues(), is(new String[] { "20", "ba" , "5" }));
+		assertThat(columns.get(0).getValue().getTypesBelongingCompositeType(), is(new GenericTypeEnum[] { LONG_TYPE, UTF_8_TYPE, INTEGER_TYPE }));
+
+		assertThat(columns.get(1).getName().getValue(), is("column2"));
+		assertThat(columns.get(1).getValue().getType(), is(GenericTypeEnum.COMPOSITE_TYPE));
+		assertThat(columns.get(1).getValue().getCompositeValues(), is(new String[] { "bc", "21" , "22" }));
+		assertThat(columns.get(1).getValue().getTypesBelongingCompositeType(), is(new GenericTypeEnum[] { UTF_8_TYPE, INTEGER_TYPE, LONG_TYPE }));
 	}
 }

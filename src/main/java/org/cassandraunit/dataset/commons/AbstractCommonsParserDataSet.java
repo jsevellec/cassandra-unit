@@ -167,7 +167,7 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
         }
 
         if (parsedColumnFamily.getDefaultColumnValueType() != null) {
-            columnFamily.setDefaultColumnValueType(ComparatorType.getByClassName(parsedColumnFamily
+            columnFamily.setDefaultColumnValueType( ComparatorTypeHelper.verifyAndExtract(parsedColumnFamily
                     .getDefaultColumnValueType().name()));
         }
 
