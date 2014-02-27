@@ -1,5 +1,6 @@
 package org.cassandraunit.spring;
 
+import com.datastax.driver.core.CloseFuture;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
@@ -38,8 +39,10 @@ public class DummyCassandraConnector {
 
     @PreDestroy
     public void preDestroy() {
-        session.shutdown();
-        cluster.shutdown();
+        CloseFuture closeFuture = session.closeAsync();
+        closeFuture.force();
+        closeFuture = cluster.closeAsync();
+        closeFuture.force();
     }
 
     public Session getSession() {

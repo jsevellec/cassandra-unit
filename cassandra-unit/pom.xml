@@ -140,12 +140,16 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <version>2.0.0-rc1</version>
+            <version>2.0.0</version>
             <exclusions>
-            <exclusion>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>jackson-core-asl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
             <!--<exclusion>-->
             <!--<groupId>org.apache.cassandra</groupId>-->
             <!--<artifactId>cassandra-thrift</artifactId>-->
@@ -173,7 +177,7 @@
         <dependency>
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-all</artifactId>
-            <version>2.0.2</version>
+            <version>2.0.5</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
