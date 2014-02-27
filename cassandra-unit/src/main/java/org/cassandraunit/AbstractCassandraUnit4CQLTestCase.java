@@ -1,5 +1,6 @@
 package org.cassandraunit;
 
+import com.datastax.driver.core.CloseFuture;
 import com.datastax.driver.core.Session;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.cassandraunit.dataset.DataSet;
@@ -45,7 +46,8 @@ public abstract class AbstractCassandraUnit4CQLTestCase {
     public void after(){
         if(session!=null){
             log.debug("session shutdown");
-            session.shutdown();
+            CloseFuture closeFuture = session.closeAsync();
+            closeFuture.force();
         }
     }
 
