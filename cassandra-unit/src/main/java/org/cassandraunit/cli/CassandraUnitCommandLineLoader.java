@@ -1,6 +1,12 @@
 package org.cassandraunit.cli;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.DataLoader;
@@ -8,6 +14,9 @@ import org.cassandraunit.LoadingOption;
 import org.cassandraunit.dataset.FileDataSet;
 import org.cassandraunit.dataset.cql.FileCQLDataSet;
 import org.cassandraunit.model.StrategyModel;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 
 public class CassandraUnitCommandLineLoader {
 
@@ -97,7 +106,9 @@ public class CassandraUnitCommandLineLoader {
     }
 
     private static void cqlDataSetLoad(String host, String port, String file) {
-        CQLDataLoader dataLoader = new CQLDataLoader(host,Integer.parseInt(port));
+        Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
+        Session session = cluster.connect();
+        CQLDataLoader dataLoader = new CQLDataLoader(session);
         dataLoader.load(new FileCQLDataSet(file, false));
     }
 

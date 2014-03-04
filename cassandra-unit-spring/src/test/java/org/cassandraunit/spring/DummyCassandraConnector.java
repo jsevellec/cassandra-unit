@@ -1,10 +1,10 @@
 package org.cassandraunit.spring;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 
 /**
  * @author Gaëtan Le Brun
@@ -38,8 +38,8 @@ public class DummyCassandraConnector {
 
     @PreDestroy
     public void preDestroy() {
-        session.shutdown();
-        cluster.shutdown();
+        session.close();
+        cluster.close();
     }
 
     public Session getSession() {

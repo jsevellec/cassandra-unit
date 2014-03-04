@@ -1,9 +1,9 @@
 package org.cassandraunit.spring;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import org.apache.log4j.Logger;
-import org.apache.thrift.transport.TTransportException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ListIterator;
+
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.DataLoader;
 import org.cassandraunit.dataset.ClassPathDataSet;
@@ -16,10 +16,10 @@ import org.springframework.test.context.support.AbstractTestExecutionListener;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ResourceUtils;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 /**
  * The goal of this abstract listener is to provide utility methods for its subclasses to be able to :
@@ -56,7 +56,11 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
         case cql:
           dataset = dataSetLocations(testContext, cassandraDataSet);
           datasetIterator = dataset.listIterator();
-          CQLDataLoader cqlDataLoader = new CQLDataLoader(host, port);
+
+          Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(port).build();
+          Session session = cluster.connect();
+          
+          CQLDataLoader cqlDataLoader = new CQLDataLoader(session);
           while (datasetIterator.hasNext()) {
             String next = datasetIterator.next();
             boolean dropAndCreateKeyspace = datasetIterator.previousIndex() == 0;

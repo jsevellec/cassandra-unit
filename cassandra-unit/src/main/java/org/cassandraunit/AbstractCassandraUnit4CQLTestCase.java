@@ -1,12 +1,13 @@
 package org.cassandraunit;
 
-import com.datastax.driver.core.Session;
 import org.cassandraunit.dataset.CQLDataSet;
-import org.cassandraunit.dataset.DataSet;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 
 /**
  * @author Marcin Szymaniuk
@@ -19,6 +20,7 @@ public abstract class AbstractCassandraUnit4CQLTestCase {
     private CassandraCQLUnit cassandraUnit;
     private boolean initialized = false;
     private Session session;
+    private Cluster cluster;
 
     public AbstractCassandraUnit4CQLTestCase() {
         cassandraUnit = new CassandraCQLUnit(getDataSet());
@@ -37,6 +39,7 @@ public abstract class AbstractCassandraUnit4CQLTestCase {
         if (!initialized) {
             cassandraUnit.before();
             session = cassandraUnit.session;
+            cluster = cassandraUnit.cluster;
             initialized = true;
         }
     }
@@ -45,7 +48,11 @@ public abstract class AbstractCassandraUnit4CQLTestCase {
     public void after(){
         if(session!=null){
             log.debug("session shutdown");
-            session.shutdown();
+            session.close();
+        }
+        if (cluster != null) {
+        	log.debug("cluster shutdown");
+        	cluster.close();
         }
     }
 

@@ -1,11 +1,11 @@
 package org.cassandraunit;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Session;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Session;
 
 /**
  * @author Marcin Szymaniuk
@@ -23,15 +23,8 @@ public class CQLDataLoader {
 
     private final Session session;
 
-    public CQLDataLoader(String hostIp, int port) {
-        this.session = createSession(hostIp, port);
-    }
-
-    private Session createSession(String hostIp, int port) {
-        Cluster cluster =
-                new Cluster.Builder().addContactPoints(hostIp).withPort(port).build();
-        Session session = cluster.connect();
-        return session;
+    public CQLDataLoader(Session session) {
+        this.session = session;
     }
 
     public void load(CQLDataSet dataSet) {
