@@ -1,7 +1,8 @@
 package org.cassandraunit.utils;
 
 import me.prettyprint.hector.api.ddl.ComparatorType;
-import org.apache.commons.lang.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.cassandraunit.dataset.ParseException;
 import org.cassandraunit.type.GenericType;
 import org.cassandraunit.type.GenericTypeEnum;
