@@ -5,7 +5,9 @@ package org.cassandraunit.dataset;
  */
 public class ParseException extends RuntimeException {
 
-    public ParseException(Throwable e) {
+	private static final long serialVersionUID = -8528027860660267501L;
+
+	public ParseException(Throwable e) {
         super(e);
     }
 

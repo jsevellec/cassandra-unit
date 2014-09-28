@@ -23,7 +23,7 @@ public class CassandraUnit extends BaseCassandraUnit  {
 
     public CassandraUnit(DataSet dataSet, String configurationFileName, String host) {
         this(dataSet, configurationFileName);
-        this.host = host;
+        CassandraUnit.host = host;
     }
 
     @Override

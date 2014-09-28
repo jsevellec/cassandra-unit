@@ -1,7 +1,5 @@
 package org.cassandraunit.dataset.cql;
 
-import org.cassandraunit.dataset.CQLDataSet;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -9,7 +7,7 @@ import java.io.InputStream;
 /**
  * @author Jeremy Sevellec
  */
-public class FileCQLDataSet extends AbstractCQLDataSet implements CQLDataSet {
+public class FileCQLDataSet extends AbstractCQLDataSet {
 
     public FileCQLDataSet(String dataSetLocation) {
         super(dataSetLocation, true, true, null);

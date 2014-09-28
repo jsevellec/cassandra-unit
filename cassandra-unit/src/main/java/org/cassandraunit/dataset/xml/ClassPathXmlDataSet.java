@@ -1,10 +1,8 @@
 package org.cassandraunit.dataset.xml;
 
-import org.cassandraunit.dataset.DataSet;
-
 import java.io.InputStream;
 
-public class ClassPathXmlDataSet extends AbstractXmlDataSet implements DataSet {
+public class ClassPathXmlDataSet extends AbstractXmlDataSet {
 
     public ClassPathXmlDataSet(String dataSetLocation) {
         super(dataSetLocation);

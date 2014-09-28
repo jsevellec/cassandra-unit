@@ -9,7 +9,7 @@ import java.util.List;
 public class ParsedSuperColumn {
 
     private String name;
-    private List<ParsedColumn> columns = new ArrayList<ParsedColumn>();
+    private List<ParsedColumn> columns = new ArrayList<>();
 
     public String getName() {
         return name;

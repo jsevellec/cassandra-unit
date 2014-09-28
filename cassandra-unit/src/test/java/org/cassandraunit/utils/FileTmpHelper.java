@@ -9,7 +9,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class FileTmpHelper {
 
-	public static String copyClassPathDataSetToTmpDirectory(Class c, String initialClasspathDataSetLocation)
+	public static String copyClassPathDataSetToTmpDirectory(Class<?> c, String initialClasspathDataSetLocation)
 			throws IOException {
 		InputStream dataSetInputStream = c.getResourceAsStream(initialClasspathDataSetLocation);
 		String dataSetFileName = StringUtils.substringAfterLast(initialClasspathDataSetLocation, "/");

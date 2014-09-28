@@ -11,8 +11,8 @@ import java.util.List;
 public class RowModel {
 
     private GenericType key;
-    private List<SuperColumnModel> superColumns = new ArrayList<SuperColumnModel>();
-    private List<ColumnModel> columns = new ArrayList<ColumnModel>();
+    private List<SuperColumnModel> superColumns = new ArrayList<>();
+    private List<ColumnModel> columns = new ArrayList<>();
 
     public GenericType getKey() {
         return key;

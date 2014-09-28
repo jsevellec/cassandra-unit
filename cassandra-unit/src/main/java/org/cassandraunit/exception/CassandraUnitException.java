@@ -2,7 +2,9 @@ package org.cassandraunit.exception;
 
 public class CassandraUnitException extends RuntimeException {
 
-    public CassandraUnitException(String message, Throwable cause) {
+	private static final long serialVersionUID = 3823886777280016967L;
+
+	public CassandraUnitException(String message, Throwable cause) {
         super(message, cause);
     }
 

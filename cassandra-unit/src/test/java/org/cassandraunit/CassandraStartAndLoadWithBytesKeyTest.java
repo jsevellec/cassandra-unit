@@ -26,12 +26,12 @@ public class CassandraStartAndLoadWithBytesKeyTest {
 
 	@Test
 	public void shouldGetBytesKey() {
-		CqlQuery<byte[], String, byte[]> query = new CqlQuery<byte[], String, byte[]>(cassandraUnit.keyspace,
+		CqlQuery<byte[], String, byte[]> query = new CqlQuery<>(cassandraUnit.keyspace,
 				BytesArraySerializer.get(), StringSerializer.get(), BytesArraySerializer.get());
 		query.setQuery("SELECT * FROM MyColumnFamily");
 		QueryResult<CqlRows<byte[], String, byte[]>> result = query.execute();
 		List<Row<byte[], String, byte[]>> rows = result.get().getList();
-		Row row = rows.get(0);
+		Row<?, ?, ?> row = rows.get(0);
 		assertThat(row, notNullValue());
 		assertThat((byte[]) row.getKey(), is(decodeHex("369ff963196dc2e5fe174dad2c0c6e9149b1acd9")));
 	}

@@ -11,7 +11,7 @@ public class ParsedKeyspace {
     private String name;
     private int replicationFactor = 1;
     private String strategy = "org.apache.cassandra.locator.SimpleStrategy";
-    private List<ParsedColumnFamily> columnFamilies = new ArrayList<ParsedColumnFamily>();
+    private List<ParsedColumnFamily> columnFamilies = new ArrayList<>();
 
     public String getName() {
         return name;

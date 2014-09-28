@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
-
 import me.prettyprint.hector.api.ddl.ColumnType;
 
 import org.cassandraunit.dataset.commons.ParsedColumn;
@@ -32,7 +30,7 @@ public class JsonDataSetExampleTest {
 	private Logger log = LoggerFactory.getLogger(JsonDataSetExampleTest.class);
 
 	@Test
-	public void shouldGenerateAJsonDataSetDocument() throws JAXBException {
+	public void shouldGenerateAJsonDataSetDocument() {
 
 		ParsedKeyspace keyspace = new ParsedKeyspace();
 		keyspace.setName("beautifulKeyspaceName");
@@ -45,7 +43,7 @@ public class JsonDataSetExampleTest {
 		columnFamily1.setKeyType("UTF8Type");
 		columnFamily1.setComparatorType("UTF8Type");
 		columnFamily1.setDefaultColumnValueType(ParsedDataType.UTF8Type);
-		List<ParsedRow> rows1 = new ArrayList<ParsedRow>();
+		List<ParsedRow> rows1 = new ArrayList<>();
 		ParsedRow row1 = new ParsedRow();
 		row1.setKey("key01");
 		List<ParsedColumn> columns1 = row1.getColumns();
@@ -64,7 +62,7 @@ public class JsonDataSetExampleTest {
 		columnFamily2.setKeyType("UTF8Type");
 		columnFamily2.setComparatorType("UTF8Type");
 		columnFamily2.setDefaultColumnValueType(ParsedDataType.UTF8Type);
-		List<ParsedRow> rows2 = new ArrayList<ParsedRow>();
+		List<ParsedRow> rows2 = new ArrayList<>();
 		ParsedRow row2 = new ParsedRow();
 		row2.setKey("key02");
 		List<ParsedSuperColumn> superColumns = row2.getSuperColumns();

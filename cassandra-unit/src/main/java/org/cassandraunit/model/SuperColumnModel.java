@@ -11,7 +11,7 @@ import java.util.List;
 public class SuperColumnModel {
 
     private GenericType name;
-    private List<ColumnModel> columns = new ArrayList<ColumnModel>();
+    private List<ColumnModel> columns = new ArrayList<>();
 
     public GenericType getName() {
         return name;

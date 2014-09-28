@@ -1,6 +1,5 @@
 package org.cassandraunit.dataset.yaml;
 
-import org.cassandraunit.dataset.DataSet;
 import org.cassandraunit.dataset.ParseException;
 import org.cassandraunit.dataset.commons.AbstractCommonsParserDataSet;
 import org.cassandraunit.dataset.commons.ParsedKeyspace;
@@ -9,7 +8,7 @@ import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.InputStream;
 
-public abstract class AbstractYamlDataSet extends AbstractCommonsParserDataSet implements DataSet {
+public abstract class AbstractYamlDataSet extends AbstractCommonsParserDataSet {
 
     private String dataSetLocation = null;
 

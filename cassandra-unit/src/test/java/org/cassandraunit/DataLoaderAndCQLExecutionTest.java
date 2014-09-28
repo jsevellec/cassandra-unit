@@ -14,7 +14,7 @@ public class DataLoaderAndCQLExecutionTest {
 
 	@Test
 	public void doQuery() {
-		final CqlQuery<String, String, String> query = new CqlQuery<String, String, String>(cassandraUnit.keyspace,
+		final CqlQuery<String, String, String> query = new CqlQuery<>(cassandraUnit.keyspace,
 				StringSerializer.get(), StringSerializer.get(), StringSerializer.get());
 		query.setQuery("UPDATE test SET 'method' = 'namedMethodValue' WHERE KEY='KEY'");
 		query.execute();

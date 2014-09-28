@@ -1,12 +1,10 @@
 package org.cassandraunit.dataset.yaml;
 
-import org.cassandraunit.dataset.DataSet;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-public class FileYamlDataSet extends AbstractYamlDataSet implements DataSet {
+public class FileYamlDataSet extends AbstractYamlDataSet {
 
     String dataSetLocation = null;
 

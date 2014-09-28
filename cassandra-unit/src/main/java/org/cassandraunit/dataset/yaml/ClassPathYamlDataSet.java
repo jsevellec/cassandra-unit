@@ -1,10 +1,8 @@
 package org.cassandraunit.dataset.yaml;
 
-import org.cassandraunit.dataset.DataSet;
-
 import java.io.InputStream;
 
-public class ClassPathYamlDataSet extends AbstractYamlDataSet implements DataSet {
+public class ClassPathYamlDataSet extends AbstractYamlDataSet {
 
     public ClassPathYamlDataSet(String dataSetLocation) {
         super(dataSetLocation);

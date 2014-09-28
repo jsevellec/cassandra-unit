@@ -25,12 +25,8 @@ import org.cassandraunit.model.ColumnFamilyModel;
 import org.cassandraunit.model.ColumnModel;
 import org.cassandraunit.model.StrategyModel;
 import org.cassandraunit.type.GenericTypeEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SampleDataSetChecker {
-    private static Logger logger = LoggerFactory.getLogger(SampleDataSetChecker.class);
-
 
     public static void assertDataSetLoaded(Keyspace keyspace) {
 		RangeSlicesQuery<byte[], byte[], byte[]> query = HFactory.createRangeSlicesQuery(keyspace,
