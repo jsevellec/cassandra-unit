@@ -3,9 +3,8 @@ package org.cassandraunit.dataset;
 /**
  * @author Jeremy Sevellec
  */
+@SuppressWarnings("serial")
 public class ParseException extends RuntimeException {
-
-	private static final long serialVersionUID = -8528027860660267501L;
 
 	public ParseException(Throwable e) {
         super(e);
