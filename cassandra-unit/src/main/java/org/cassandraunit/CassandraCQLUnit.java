@@ -1,8 +1,6 @@
 package org.cassandraunit;
 
 import org.cassandraunit.dataset.CQLDataSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
@@ -13,7 +11,6 @@ import com.datastax.driver.core.Session;
 public class CassandraCQLUnit extends BaseCassandraUnit {
     private CQLDataSet dataSet;
 
-    private static final Logger log = LoggerFactory.getLogger(CassandraCQLUnit.class);
     private String hostIp = "127.0.0.1";
     private int port = 9142;
     public Session session;

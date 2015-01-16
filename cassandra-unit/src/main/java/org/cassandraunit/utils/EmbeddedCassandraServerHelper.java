@@ -6,7 +6,6 @@ import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.db.commitlog.CommitLog;
-import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.service.CassandraDaemon;
 import org.apache.commons.lang.StringUtils;
@@ -37,31 +36,31 @@ public class EmbeddedCassandraServerHelper {
     private static final String INTERNAL_CASSANDRA_AUTH_KEYSPACE = "system_auth";
     private static final String INTERNAL_CASSANDRA_TRACES_KEYSPACE = "system_traces";
 
-    private static CassandraDaemon cassandraDaemon = null;
+    static CassandraDaemon cassandraDaemon = null;
     static ExecutorService executor;
     private static String launchedYamlFile;
 
-    public static void startEmbeddedCassandra() throws TTransportException, IOException, InterruptedException, ConfigurationException {
+    public static void startEmbeddedCassandra() throws TTransportException, IOException {
         startEmbeddedCassandra(DEFAULT_STARTUP_TIMEOUT);
     }
 
-    public static void startEmbeddedCassandra(long timeout) throws TTransportException, IOException, InterruptedException, ConfigurationException {
+    public static void startEmbeddedCassandra(long timeout) throws TTransportException, IOException {
         startEmbeddedCassandra(DEFAULT_CASSANDRA_YML_FILE, timeout);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile) throws TTransportException, IOException, ConfigurationException {
+    public static void startEmbeddedCassandra(String yamlFile) throws TTransportException, IOException {
         startEmbeddedCassandra(yamlFile, DEFAULT_STARTUP_TIMEOUT);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile, long timeout) throws TTransportException, IOException, ConfigurationException {
+    public static void startEmbeddedCassandra(String yamlFile, long timeout) throws TTransportException, IOException {
         startEmbeddedCassandra(yamlFile, DEFAULT_TMP_DIR, timeout);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
+    public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException {
         startEmbeddedCassandra(yamlFile, DEFAULT_TMP_DIR, DEFAULT_STARTUP_TIMEOUT);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile, String tmpDir, long timeout) throws TTransportException, IOException, ConfigurationException {
+    public static void startEmbeddedCassandra(String yamlFile, String tmpDir, long timeout) throws TTransportException, IOException {
         if (cassandraDaemon != null) {
             /* nothing to do Cassandra is already started */
             return;
@@ -84,7 +83,7 @@ public class EmbeddedCassandraServerHelper {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static void startEmbeddedCassandra(File file, String tmpDir, long timeout) throws TTransportException, IOException, ConfigurationException {
+    public static void startEmbeddedCassandra(File file, String tmpDir, long timeout) throws TTransportException, IOException {
         if (cassandraDaemon != null) {
             /* nothing to do Cassandra is already started */
             return;
@@ -171,7 +170,7 @@ public class EmbeddedCassandraServerHelper {
         }
     }
 
-    private static void rmdir(String dir) throws IOException {
+    private static void rmdir(String dir) {
         File dirFile = new File(dir);
         if (dirFile.exists()) {
             FileUtils.deleteRecursive(new File(dir));
@@ -186,18 +185,20 @@ public class EmbeddedCassandraServerHelper {
      * @throws IOException
      */
     private static void copy(String resource, String directory) throws IOException {
-        mkdir(directory);
-        InputStream is = EmbeddedCassandraServerHelper.class.getResourceAsStream(resource);
-        String fileName = resource.substring(resource.lastIndexOf("/") + 1);
-        File file = new File(directory + System.getProperty("file.separator") + fileName);
-        OutputStream out = new FileOutputStream(file);
-        byte buf[] = new byte[1024];
-        int len;
-        while ((len = is.read(buf)) > 0) {
-            out.write(buf, 0, len);
-        }
-        out.close();
-        is.close();
+    	
+    	mkdir(directory);
+    	String fileName = resource.substring(resource.lastIndexOf("/") + 1);
+    	File file = new File(directory + System.getProperty("file.separator") + fileName);
+    	try (
+			InputStream is = EmbeddedCassandraServerHelper.class.getResourceAsStream(resource);
+			OutputStream out = new FileOutputStream(file);
+		) {
+	        byte buf[] = new byte[1024];
+	        int len;
+	        while ((len = is.read(buf)) > 0) {
+	            out.write(buf, 0, len);
+	        }
+    	}
     }
 
     /**
@@ -210,7 +211,7 @@ public class EmbeddedCassandraServerHelper {
         FileUtils.createDirectory(dir);
     }
 
-    private static void cleanupAndLeaveDirs() throws IOException {
+    private static void cleanupAndLeaveDirs() {
         mkdirs();
         cleanup();
         mkdirs();
@@ -218,7 +219,7 @@ public class EmbeddedCassandraServerHelper {
         // brings it back to safe state
     }
 
-    private static void cleanup() throws IOException {
+    private static void cleanup() {
         // clean up commitlog
         String[] directoryNames = {DatabaseDescriptor.getCommitLogLocation(),};
         for (String dirName : directoryNames) {

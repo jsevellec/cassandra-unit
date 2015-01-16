@@ -24,8 +24,8 @@ public class ParsedColumnFamily {
     private Integer minCompactionThreshold = null;
     private Double readRepairChance = null;
     private Boolean replicationOnWrite = null;
-    private List<ParsedColumnMetadata> columnsMetadata = new ArrayList<ParsedColumnMetadata>();
-    private List<ParsedRow> rows = new ArrayList<ParsedRow>();
+    private List<ParsedColumnMetadata> columnsMetadata = new ArrayList<>();
+    private List<ParsedRow> rows = new ArrayList<>();
 
     public String getName() {
         return name;

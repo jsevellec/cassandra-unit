@@ -99,7 +99,7 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
         }
 
         if (parsedColumnFamily.getCompactionStrategyOptions() != null && !parsedColumnFamily.getCompactionStrategyOptions().isEmpty()) {
-            List<CompactionStrategyOptionModel> compactionStrategyOptionModels = new ArrayList<CompactionStrategyOptionModel>();
+            List<CompactionStrategyOptionModel> compactionStrategyOptionModels = new ArrayList<>();
             for (ParsedCompactionStrategyOption parsedCompactionStrategyOption : parsedColumnFamily.getCompactionStrategyOptions()) {
                 compactionStrategyOptionModels.add(new CompactionStrategyOptionModel(parsedCompactionStrategyOption.getName(), parsedCompactionStrategyOption.getValue()));
             }
@@ -189,7 +189,7 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
             List<ParsedColumnMetadata> parsedColumnsMetadata,
             ComparatorType comparatorType,
             GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType) {
-        List<ColumnMetadataModel> columnMetadatas = new ArrayList<ColumnMetadataModel>();
+        List<ColumnMetadataModel> columnMetadatas = new ArrayList<>();
         for (ParsedColumnMetadata parsedColumnMetadata : parsedColumnsMetadata) {
             columnMetadatas.add(mapParsedColumMetadataToColumnMetadata(parsedColumnMetadata, comparatorType, typesBelongingCompositeTypeForComparatorType));
         }
@@ -227,7 +227,7 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
                                                     GenericTypeEnum[] typesBelongingCompositeTypeForKeyType, ComparatorType comparatorType,
                                                     GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType, ComparatorType subComparatorType,
                                                     ComparatorType defaultColumnValueType) {
-        List<RowModel> rowsModel = new ArrayList<RowModel>();
+        List<RowModel> rowsModel = new ArrayList<>();
         for (ParsedRow jsonRow : parsedColumnFamily.getRows()) {
             rowsModel.add(mapsParsedRowToRowModel(parsedColumnFamily.getColumnsMetadata(), jsonRow, keyType, typesBelongingCompositeTypeForKeyType,
                     comparatorType, typesBelongingCompositeTypeForComparatorType, subComparatorType,
@@ -254,7 +254,7 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
 
     private List<SuperColumnModel> mapParsedSuperColumnsToSuperColumnsModel(List<ParsedColumnMetadata> metaData, List<ParsedSuperColumn> parsedSuperColumns,
                                                                             ComparatorType comparatorType, ComparatorType subComparatorType, ComparatorType defaultColumnValueType) {
-        List<SuperColumnModel> columnsModel = new ArrayList<SuperColumnModel>();
+        List<SuperColumnModel> columnsModel = new ArrayList<>();
         for (ParsedSuperColumn parsedSuperColumn : parsedSuperColumns) {
             columnsModel.add(mapParsedSuperColumnToSuperColumnModel(metaData, parsedSuperColumn, comparatorType,
                     subComparatorType, defaultColumnValueType));
@@ -278,7 +278,7 @@ public abstract class AbstractCommonsParserDataSet implements DataSet {
     private List<ColumnModel> mapParsedColumnsToColumnsModel(List<ParsedColumnMetadata> metaData, List<ParsedColumn> parsedColumns,
                                                              ComparatorType comparatorType, GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType,
                                                              ComparatorType defaultColumnValueType) {
-        List<ColumnModel> columnsModel = new ArrayList<ColumnModel>();
+        List<ColumnModel> columnsModel = new ArrayList<>();
         for (ParsedColumn jsonColumn : parsedColumns) {
             ParsedColumnMetadata columnMetaData = null;
             for (ParsedColumnMetadata tmpMetaData : metaData) {

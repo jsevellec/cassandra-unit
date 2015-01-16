@@ -1,13 +1,11 @@
 package org.cassandraunit.dataset.cql;
 
-import org.cassandraunit.dataset.CQLDataSet;
-
 import java.io.InputStream;
 
 /**
  * @author Jeremy Sevellec
  */
-public class ClassPathCQLDataSet extends AbstractCQLDataSet implements CQLDataSet {
+public class ClassPathCQLDataSet extends AbstractCQLDataSet {
 
     public ClassPathCQLDataSet(String dataSetLocation) {
         super(dataSetLocation, true, true, null);

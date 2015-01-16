@@ -30,9 +30,9 @@ public class ColumnFamilyModel {
     private Double readRepairChance = null;
     private Boolean replicationOnWrite = null;
 
-    private List<ColumnMetadataModel> columnsMetadata = new ArrayList<ColumnMetadataModel>();
+    private List<ColumnMetadataModel> columnsMetadata = new ArrayList<>();
 
-    private List<RowModel> rows = new ArrayList<RowModel>();
+    private List<RowModel> rows = new ArrayList<>();
 
     public String getName() {
         return name;

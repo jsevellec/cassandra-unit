@@ -28,7 +28,7 @@ public class YamlDataSetExampleTest {
 		keyspace.setName("beautifulKeyspaceName");
 		keyspace.setReplicationFactor(1);
 
-		List<ParsedColumnFamily> columnFamilies = new ArrayList<ParsedColumnFamily>();
+		List<ParsedColumnFamily> columnFamilies = new ArrayList<>();
 		columnFamilies.add(constructSuperColumnFamily());
 		keyspace.setColumnFamilies(columnFamilies);
 
@@ -45,7 +45,7 @@ public class YamlDataSetExampleTest {
 		parsedColumnFamily.setKeyType("BytesType");
 		parsedColumnFamily.setName("SuperColumnFamilyName");
 
-		List<ParsedRow> rows = new ArrayList<ParsedRow>();
+		List<ParsedRow> rows = new ArrayList<>();
 		rows.add(constructSuperRow());
 		parsedColumnFamily.setRows(rows);
 
@@ -55,7 +55,7 @@ public class YamlDataSetExampleTest {
 	private ParsedRow constructSuperRow() {
 		ParsedRow parsedRow = new ParsedRow();
 		parsedRow.setKey("key02");
-		List<ParsedSuperColumn> superColumns = new ArrayList<ParsedSuperColumn>();
+		List<ParsedSuperColumn> superColumns = new ArrayList<>();
 		superColumns.add(constructSuperColumn());
 		parsedRow.setSuperColumns(superColumns);
 		return parsedRow;
@@ -64,7 +64,7 @@ public class YamlDataSetExampleTest {
 	private ParsedSuperColumn constructSuperColumn() {
 		ParsedSuperColumn parsedSuperColumn = new ParsedSuperColumn();
 		parsedSuperColumn.setName("superColumnName02");
-		List<ParsedColumn> columns = new ArrayList<ParsedColumn>();
+		List<ParsedColumn> columns = new ArrayList<>();
 		columns.add(constructColumn("name021", "value021"));
 		columns.add(constructColumn("name022", "value022"));
 		columns.add(constructColumn("name023", "value023"));

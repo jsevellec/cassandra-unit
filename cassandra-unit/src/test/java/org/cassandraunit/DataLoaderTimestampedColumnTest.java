@@ -1,35 +1,19 @@
 package org.cassandraunit;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 import me.prettyprint.cassandra.serializers.*;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.beans.*;
-import me.prettyprint.hector.api.ddl.*;
-import me.prettyprint.hector.api.exceptions.HInvalidRequestException;
-import me.prettyprint.hector.api.exceptions.HectorException;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.query.*;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
-import org.cassandraunit.model.StrategyModel;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.cassandraunit.utils.MockDataSetHelper;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
-import static org.cassandraunit.SampleDataSetChecker.assertDefaultValuesDataIsEmpty;
-import static org.cassandraunit.SampleDataSetChecker.assertDefaultValuesSchemaExist;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * 

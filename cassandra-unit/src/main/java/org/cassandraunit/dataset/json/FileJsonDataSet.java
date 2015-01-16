@@ -1,12 +1,10 @@
 package org.cassandraunit.dataset.json;
 
-import org.cassandraunit.dataset.DataSet;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-public class FileJsonDataSet extends AbstractJsonDataSet implements DataSet {
+public class FileJsonDataSet extends AbstractJsonDataSet {
 
     public FileJsonDataSet(String dataSetLocation) {
         super(dataSetLocation);

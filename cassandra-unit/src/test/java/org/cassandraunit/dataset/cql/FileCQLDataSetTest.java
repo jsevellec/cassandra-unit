@@ -2,9 +2,7 @@ package org.cassandraunit.dataset.cql;
 
 import org.cassandraunit.dataset.AbstractFileDataSetTest;
 import org.cassandraunit.dataset.CQLDataSet;
-import org.cassandraunit.dataset.DataSet;
 import org.cassandraunit.dataset.ParseException;
-import org.cassandraunit.dataset.xml.FileXmlDataSet;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.notNullValue;

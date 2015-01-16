@@ -11,7 +11,7 @@ public class KeyspaceModel {
     private String name;
     private int replicationFactor = 1;
     private StrategyModel strategy = StrategyModel.SIMPLE_STRATEGY;
-    private List<ColumnFamilyModel> columnFamilies = new ArrayList<ColumnFamilyModel>();
+    private List<ColumnFamilyModel> columnFamilies = new ArrayList<>();
 
     public String getName() {
         return name;

@@ -179,7 +179,7 @@ public class DataLoader {
     }
 
     private List<HColumn<GenericType, GenericType>> createHColumnList(List<ColumnModel> columnsModel) {
-        List<HColumn<GenericType, GenericType>> hColumns = new ArrayList<HColumn<GenericType, GenericType>>();
+        List<HColumn<GenericType, GenericType>> hColumns = new ArrayList<>();
         for (ColumnModel columnModel : columnsModel) {
             GenericType columnValue = columnModel.getValue();
             if (columnValue == null) {
@@ -197,7 +197,7 @@ public class DataLoader {
     }
 
     private List<HCounterColumn<GenericType>> createHCounterColumnList(List<ColumnModel> columnsModel) {
-        List<HCounterColumn<GenericType>> hColumns = new ArrayList<HCounterColumn<GenericType>>();
+        List<HCounterColumn<GenericType>> hColumns = new ArrayList<>();
         for (ColumnModel columnModel : columnsModel) {
             HCounterColumn<GenericType> column = HFactory.createCounterColumn(columnModel.getName(), LongSerializer
                     .get().fromByteBuffer(GenericTypeSerializer.get().toByteBuffer(columnModel.getValue())),
@@ -209,7 +209,7 @@ public class DataLoader {
 
     private List<ColumnFamilyDefinition> createColumnFamilyDefinitions(DataSet dataSet) {
         KeyspaceModel dataSetKeyspace = dataSet.getKeyspace();
-        List<ColumnFamilyDefinition> columnFamilyDefinitions = new ArrayList<ColumnFamilyDefinition>();
+        List<ColumnFamilyDefinition> columnFamilyDefinitions = new ArrayList<>();
         for (ColumnFamilyModel columnFamily : dataSet.getColumnFamilies()) {
             ColumnFamilyDefinition cfDef = HFactory.createColumnFamilyDefinition(dataSetKeyspace.getName(),
                     columnFamily.getName(),
@@ -223,7 +223,7 @@ public class DataLoader {
             }
 
             if (columnFamily.getCompactionStrategyOptions() != null && !columnFamily.getCompactionStrategyOptions().isEmpty()) {
-                Map<String, String> compactionStrategyOptions = new HashMap<String, String>();
+                Map<String, String> compactionStrategyOptions = new HashMap<>();
                 for (CompactionStrategyOptionModel compactionStrategyOption : columnFamily.getCompactionStrategyOptions()) {
                     compactionStrategyOptions.put(compactionStrategyOption.getName(), compactionStrategyOption.getValue());
                 }
@@ -271,7 +271,7 @@ public class DataLoader {
     }
 
     private List<ColumnDefinition> createColumnsDefinition(List<ColumnMetadataModel> columnsMetadata) {
-        List<ColumnDefinition> columnsDefinition = new ArrayList<ColumnDefinition>();
+        List<ColumnDefinition> columnsDefinition = new ArrayList<>();
         for (ColumnMetadataModel columnMetadata : columnsMetadata) {
             BasicColumnDefinition columnDefinition = new BasicColumnDefinition();
 

@@ -19,7 +19,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,15 +54,13 @@ public abstract class AbstractXmlDataSet implements DataSet {
             throw new ParseException(e);
         } catch (SAXException e) {
             throw new ParseException(e);
-        } catch (URISyntaxException e) {
-            throw new ParseException(e);
         }
 
     }
 
     protected abstract InputStream getInputDataSetLocation(String dataSetLocation);
 
-    private Unmarshaller getUnmarshaller() throws JAXBException, SAXException, URISyntaxException {
+    private Unmarshaller getUnmarshaller() throws JAXBException, SAXException {
         JAXBContext jc = JAXBContext.newInstance(org.cassandraunit.dataset.xml.Keyspace.class);
         Unmarshaller unmarshaller = jc.createUnmarshaller();
 
@@ -122,7 +119,7 @@ public abstract class AbstractXmlDataSet implements DataSet {
         }
 
         if (xmlColumnFamily.getCompactionStrategyOptions() != null) {
-            List<CompactionStrategyOptionModel> compactionStrategyOptionModels = new ArrayList<CompactionStrategyOptionModel>();
+            List<CompactionStrategyOptionModel> compactionStrategyOptionModels = new ArrayList<>();
             for (CompactionStrategyOption compactionStrategyOption : xmlColumnFamily.getCompactionStrategyOptions().getCompactionStrategyOption()) {
                 compactionStrategyOptionModels.add(new CompactionStrategyOptionModel(compactionStrategyOption.getName(), compactionStrategyOption.getValue()));
             }
@@ -210,7 +207,7 @@ public abstract class AbstractXmlDataSet implements DataSet {
     private List<ColumnMetadataModel> mapXmlColumsMetadataToColumnsMetadata(
             List<ColumnMetadata> xmlColumnsMetadata, ComparatorType comparatorType, GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType) {
 
-        ArrayList<ColumnMetadataModel> columnsMetadata = new ArrayList<ColumnMetadataModel>();
+        ArrayList<ColumnMetadataModel> columnsMetadata = new ArrayList<>();
 
         for (org.cassandraunit.dataset.xml.ColumnMetadata xmlColumnMetadata : xmlColumnsMetadata) {
             columnsMetadata.add(mapXmlColumnMetadataToColumMetadataModel(xmlColumnMetadata, comparatorType, typesBelongingCompositeTypeForComparatorType));
@@ -238,8 +235,8 @@ public abstract class AbstractXmlDataSet implements DataSet {
                                                  ComparatorType keyType, GenericTypeEnum[] typesBelongingCompositeTypeForKeyType,
                                                  ComparatorType comparatorType, GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType,
                                                  ComparatorType subcomparatorType, ComparatorType defaultColumnValueType) {
-        List<RowModel> rowsModel = new ArrayList<RowModel>();
-        List<ColumnMetadata> columnMetaData = new ArrayList<ColumnMetadata>();
+        List<RowModel> rowsModel = new ArrayList<>();
+        List<ColumnMetadata> columnMetaData = new ArrayList<>();
         if (xmlColumnFamily.getColumnMetadata() != null) {
             columnMetaData = xmlColumnFamily.getColumnMetadata();
         }
@@ -275,7 +272,7 @@ public abstract class AbstractXmlDataSet implements DataSet {
      */
     private List<SuperColumnModel> mapXmlSuperColumnsToSuperColumnsModel(List<ColumnMetadata> columnMetaData, List<SuperColumn> xmlSuperColumns,
                                                                          ComparatorType comparatorType, ComparatorType subComparatorType, ComparatorType defaultColumnValueType) {
-        List<SuperColumnModel> columnsModel = new ArrayList<SuperColumnModel>();
+        List<SuperColumnModel> columnsModel = new ArrayList<>();
         for (SuperColumn xmlSuperColumnType : xmlSuperColumns) {
             columnsModel.add(mapXmlSuperColumnToSuperColumnModel(columnMetaData, xmlSuperColumnType, comparatorType, subComparatorType,
                     defaultColumnValueType));
@@ -372,7 +369,7 @@ public abstract class AbstractXmlDataSet implements DataSet {
     private List<ColumnModel> mapXmlColumnsToColumnsModel(List<ColumnMetadata> columnMetaData, List<Column> xmlColumns,
                                                           ComparatorType columnNameComparatorType, GenericTypeEnum[] typesBelongingCompositeTypeForComparatorType,
                                                           ComparatorType defaultColumnValueType) {
-        List<ColumnModel> columnsModel = new ArrayList<ColumnModel>();
+        List<ColumnModel> columnsModel = new ArrayList<>();
 
         for (Column xmlColumn : xmlColumns) {
             ColumnMetadata assocMetaData = null;

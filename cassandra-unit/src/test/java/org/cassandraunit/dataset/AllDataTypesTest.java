@@ -43,7 +43,7 @@ public abstract class AllDataTypesTest extends AbstractCassandraUnit4TestCase {
 		}
 	}
 	
-	protected Map<String, SollData> COLUMNS = new HashMap<String, SollData>();
+	protected Map<String, SollData> COLUMNS = new HashMap<>();
 
 	@Before
 	public void init() {
@@ -53,7 +53,9 @@ public abstract class AllDataTypesTest extends AbstractCassandraUnit4TestCase {
 		Date sollDate = new Date();
 		try {
 			sollDate = dateFormat.parse("20010704 120856");
-		} catch (ParseException e) {}
+		} catch (ParseException e) {
+			// Nothing to do here 
+		}
 		COLUMNS.put("date", new SollData(sollDate, DateSerializer.get()));
 		COLUMNS.put("double", new SollData(Double.MAX_VALUE, DoubleSerializer.get()));
 		COLUMNS.put("float", new SollData(Float.MAX_VALUE, FloatSerializer.get()));

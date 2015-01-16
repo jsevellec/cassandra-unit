@@ -55,7 +55,7 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
     }
 
     private List<String> linesToCQLStatements(List<String> lines) {
-        List<String> statements = new ArrayList<String>();
+        List<String> statements = new ArrayList<>();
         StringBuffer statementUnderConstruction = new StringBuffer();
         for (String line : lines) {
             line = line.trim();
@@ -84,12 +84,15 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
     }
 
     public List<String> getLines() {
-        InputStream inputStream = getInputDataSetLocation(dataSetLocation);
-        final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        BufferedReader br = new BufferedReader(inputStreamReader);
-        String line;
-        List<String> cqlQueries = new ArrayList();
-        try {
+        
+        try (
+        		InputStream inputStream = getInputDataSetLocation(dataSetLocation);
+        		final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader br = new BufferedReader(inputStreamReader);
+        	)
+    	{
+        	String line;
+        	List<String> cqlQueries = new ArrayList<>();
             while ((line = br.readLine()) != null) {
                 if (StringUtils.isNotBlank(line)) {
                     cqlQueries.add(line);

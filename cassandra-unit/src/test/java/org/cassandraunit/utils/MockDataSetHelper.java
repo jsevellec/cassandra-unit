@@ -40,17 +40,17 @@ public class MockDataSetHelper {
 		/* keyspace */
 		KeyspaceModel keyspace = new KeyspaceModel();
 		keyspace.setName("beautifulKeyspaceName");
-		List<ColumnFamilyModel> columnFamilies = new ArrayList<ColumnFamilyModel>();
+		List<ColumnFamilyModel> columnFamilies = new ArrayList<>();
 
 		/* column family */
 		ColumnFamilyModel columnFamily = new ColumnFamilyModel();
 		columnFamily.setName("columnFamily1");
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("10", GenericTypeEnum.BYTES_TYPE));
-		List<ColumnModel> columns1 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns1 = new ArrayList<>();
 
 		columns1.add(constructDefaultColumnForMock("11", "11"));
 		columns1.add(constructDefaultColumnForMock("12", "12"));
@@ -60,7 +60,7 @@ public class MockDataSetHelper {
 		/* row2 */
 		RowModel row2 = new RowModel();
 		row2.setKey(new GenericType("20", GenericTypeEnum.BYTES_TYPE));
-		List<ColumnModel> columns2 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns2 = new ArrayList<>();
 
 		columns2.add(constructDefaultColumnForMock("21", "21"));
 		columns2.add(constructDefaultColumnForMock("22", "22"));
@@ -71,7 +71,7 @@ public class MockDataSetHelper {
 		/* row3 */
 		RowModel row3 = new RowModel();
 		row3.setKey(new GenericType("30", GenericTypeEnum.BYTES_TYPE));
-		List<ColumnModel> columns3 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns3 = new ArrayList<>();
 
 		columns3.add(constructDefaultColumnForMock("31", "31"));
 		columns3.add(constructDefaultColumnForMock("32", "32"));
@@ -98,7 +98,7 @@ public class MockDataSetHelper {
 		keyspace.setName("otherKeyspaceName");
 		keyspace.setStrategy(StrategyModel.SIMPLE_STRATEGY);
 		keyspace.setReplicationFactor(1);
-		List<ColumnFamilyModel> columnFamilies = new ArrayList<ColumnFamilyModel>();
+		List<ColumnFamilyModel> columnFamilies = new ArrayList<>();
 
 		/* column family 1 */
 		ColumnFamilyModel beautifulColumnFamily = new ColumnFamilyModel();
@@ -111,7 +111,7 @@ public class MockDataSetHelper {
 
         beautifulColumnFamily.setComment("amazing comment");
         beautifulColumnFamily.setCompactionStrategy("LeveledCompactionStrategy");
-        List<CompactionStrategyOptionModel> compactionStrategyOptions = new ArrayList<CompactionStrategyOptionModel>();
+        List<CompactionStrategyOptionModel> compactionStrategyOptions = new ArrayList<>();
         compactionStrategyOptions.add(new CompactionStrategyOptionModel("sstable_size_in_mb", "10"));
         beautifulColumnFamily.setCompactionStrategyOptions(compactionStrategyOptions);
         beautifulColumnFamily.setGcGraceSeconds(9999);
@@ -121,12 +121,12 @@ public class MockDataSetHelper {
         beautifulColumnFamily.setReplicationOnWrite(Boolean.FALSE);
 
 
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("13816710-1dd2-11b2-879a-782bcb80ff6a", GenericTypeEnum.TIME_UUID_TYPE));
-		List<SuperColumnModel> superColumns1 = new ArrayList<SuperColumnModel>();
+		List<SuperColumnModel> superColumns1 = new ArrayList<>();
 		superColumns1.add(constructDefinedSuperColumnForMock(11));
 		superColumns1.add(constructDefinedSuperColumnForMock(12));
 
@@ -136,7 +136,7 @@ public class MockDataSetHelper {
 		/* row2 */
 		RowModel row2 = new RowModel();
 		row2.setKey(new GenericType("13818e20-1dd2-11b2-879a-782bcb80ff6a", GenericTypeEnum.TIME_UUID_TYPE));
-		List<SuperColumnModel> superColumns2 = new ArrayList<SuperColumnModel>();
+		List<SuperColumnModel> superColumns2 = new ArrayList<>();
 		superColumns2.add(constructDefinedSuperColumnForMock(21));
 		superColumns2.add(constructDefinedSuperColumnForMock(22));
 		superColumns2.add(constructDefinedSuperColumnForMock(23));
@@ -208,7 +208,7 @@ public class MockDataSetHelper {
     private static SuperColumnModel constructDefinedSuperColumnForMock(int columnNumber) {
 		SuperColumnModel superColumnModel = new SuperColumnModel();
 		superColumnModel.setName(new GenericType("name" + columnNumber, GenericTypeEnum.UTF_8_TYPE));
-		List<ColumnModel> columns = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns = new ArrayList<>();
 		columns.add(constructDefinedColumnForMock(columnNumber + "1", "value" + columnNumber + "1"));
 		columns.add(constructDefinedColumnForMock(columnNumber + "2", "value" + columnNumber + "2"));
 		superColumnModel.setColumns(columns);
@@ -229,7 +229,7 @@ public class MockDataSetHelper {
 		keyspace.setName("otherKeyspaceName");
 		keyspace.setStrategy(StrategyModel.SIMPLE_STRATEGY);
 		keyspace.setReplicationFactor(1);
-		List<ColumnFamilyModel> columnFamilies = new ArrayList<ColumnFamilyModel>();
+		List<ColumnFamilyModel> columnFamilies = new ArrayList<>();
 		columnFamilies.add(constructColumnFamily1ForDefinedValueSimple());
 		columnFamilies.add(constructColumnFamily2ForDefinedValueSimple());
 		columnFamilies.add(constructColumnFamily3ForDefinedValueSimple());
@@ -252,18 +252,18 @@ public class MockDataSetHelper {
 		columnFamily.setComparatorType(ComparatorType.UTF8TYPE);
 		columnFamily.setSubComparatorType(ComparatorType.UTF8TYPE);
 		columnFamily.setDefaultColumnValueType(ComparatorType.COUNTERTYPE);
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row 1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("10", GenericTypeEnum.LONG_TYPE));
-		List<SuperColumnModel> superColumns = new ArrayList<SuperColumnModel>();
+		List<SuperColumnModel> superColumns = new ArrayList<>();
 		row1.setSuperColumns(superColumns);
 		SuperColumnModel superColumn = new SuperColumnModel();
 		superColumn.setName(new GenericType("superColumnName11", GenericTypeEnum.UTF_8_TYPE));
 		superColumns.add(superColumn);
 
-		List<ColumnModel> columns = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns = new ArrayList<>();
 		superColumn.setColumns(columns);
 
 		ColumnModel columnModel111 = new ColumnModel();
@@ -288,12 +288,12 @@ public class MockDataSetHelper {
 		columnFamily.setKeyType(ComparatorType.LONGTYPE);
 		columnFamily.setComparatorType(ComparatorType.UTF8TYPE);
 		columnFamily.setDefaultColumnValueType(ComparatorType.COUNTERTYPE);
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row 1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("10", GenericTypeEnum.LONG_TYPE));
-		List<ColumnModel> columns1 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns1 = new ArrayList<>();
 		ColumnModel columnModel11 = new ColumnModel();
 		columnModel11.setName(new GenericType("counter11", GenericTypeEnum.UTF_8_TYPE));
 		columnModel11.setValue(new GenericType("11", GenericTypeEnum.COUNTER_TYPE));
@@ -314,12 +314,12 @@ public class MockDataSetHelper {
 		ColumnFamilyModel columnFamily = new ColumnFamilyModel();
 		columnFamily.setName("beautifulColumnFamilyName5");
 		columnFamily.setDefaultColumnValueType(ComparatorType.UTF8TYPE);
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row 1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("01", GenericTypeEnum.BYTES_TYPE));
-		List<ColumnModel> columns1 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns1 = new ArrayList<>();
 		ColumnModel columnModel11 = new ColumnModel();
 		columnModel11.setName(new GenericType("01", GenericTypeEnum.BYTES_TYPE));
 		columnModel11.setValue(new GenericType("1", GenericTypeEnum.LONG_TYPE));
@@ -340,12 +340,12 @@ public class MockDataSetHelper {
 		ColumnFamilyModel columnFamily = new ColumnFamilyModel();
 		columnFamily.setName("beautifulColumnFamilyName4");
 		columnFamily.setDefaultColumnValueType(ComparatorType.LONGTYPE);
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row 1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("01", GenericTypeEnum.BYTES_TYPE));
-		List<ColumnModel> columns1 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns1 = new ArrayList<>();
 		ColumnModel columnModel11 = new ColumnModel();
 		columnModel11.setName(new GenericType("01", GenericTypeEnum.BYTES_TYPE));
 		columnModel11.setValue(new GenericType("1", GenericTypeEnum.LONG_TYPE));
@@ -368,12 +368,12 @@ public class MockDataSetHelper {
 		columnFamily.setKeyType(ComparatorType.UUIDTYPE);
 		columnFamily.setComparatorType(ComparatorType.LEXICALUUIDTYPE);
 
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row 1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("13816710-1dd2-11b2-879a-782bcb80ff6a", GenericTypeEnum.UUID_TYPE));
-		List<ColumnModel> columns1 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns1 = new ArrayList<>();
 		ColumnModel columnModel11 = new ColumnModel();
 		columnModel11
 				.setName(new GenericType("13816710-1dd2-11b2-879a-782bcb80ff6a", GenericTypeEnum.LEXICAL_UUID_TYPE));
@@ -398,12 +398,12 @@ public class MockDataSetHelper {
 		columnFamily.setKeyType(ComparatorType.LONGTYPE);
 		columnFamily.setComparatorType(ComparatorType.INTEGERTYPE);
 
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row 1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("10", GenericTypeEnum.LONG_TYPE));
-		List<ColumnModel> columns1 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns1 = new ArrayList<>();
 		ColumnModel columnModel11 = new ColumnModel();
 		columnModel11.setName(new GenericType("11", GenericTypeEnum.INTEGER_TYPE));
 		columnModel11.setValue(new GenericType("11", GenericTypeEnum.BYTES_TYPE));
@@ -426,12 +426,12 @@ public class MockDataSetHelper {
 		columnFamily.setKeyType(ComparatorType.TIMEUUIDTYPE);
 		columnFamily.setComparatorType(ComparatorType.UTF8TYPE);
 
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		/* row 1 */
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("13816710-1dd2-11b2-879a-782bcb80ff6a", GenericTypeEnum.TIME_UUID_TYPE));
-		List<ColumnModel> columns1 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns1 = new ArrayList<>();
 		ColumnModel columnModel11 = new ColumnModel();
 		columnModel11.setName(new GenericType("name11", GenericTypeEnum.UTF_8_TYPE));
 		columnModel11.setValue(new GenericType("11", GenericTypeEnum.BYTES_TYPE));
@@ -446,7 +446,7 @@ public class MockDataSetHelper {
 		/* row 2 */
 		RowModel row2 = new RowModel();
 		row2.setKey(new GenericType("13818e20-1dd2-11b2-879a-782bcb80ff6a", GenericTypeEnum.TIME_UUID_TYPE));
-		List<ColumnModel> columns2 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns2 = new ArrayList<>();
 		ColumnModel columnModel21 = new ColumnModel();
 		columnModel21.setName(new GenericType("name21", GenericTypeEnum.UTF_8_TYPE));
 		columnModel21.setValue(new GenericType("21", GenericTypeEnum.BYTES_TYPE));
@@ -468,20 +468,20 @@ public class MockDataSetHelper {
 		/* keyspace */
 		KeyspaceModel keyspace = new KeyspaceModel();
 		keyspace.setName("beautifulKeyspaceName");
-		List<ColumnFamilyModel> columnFamilies = new ArrayList<ColumnFamilyModel>();
+		List<ColumnFamilyModel> columnFamilies = new ArrayList<>();
 		ColumnFamilyModel columnFamily = new ColumnFamilyModel();
 		columnFamily.setName("beautifulColumnFamilyName");
 		columnFamily.setType(ColumnType.SUPER);
 
-		List<RowModel> rows = new ArrayList<RowModel>();
+		List<RowModel> rows = new ArrayList<>();
 
 		RowModel row1 = new RowModel();
 		row1.setKey(new GenericType("01", GenericTypeEnum.BYTES_TYPE));
-		List<SuperColumnModel> superColumns1 = new ArrayList<SuperColumnModel>();
+		List<SuperColumnModel> superColumns1 = new ArrayList<>();
 
 		SuperColumnModel superColumn11 = new SuperColumnModel();
 		superColumn11.setName(new GenericType("11", GenericTypeEnum.BYTES_TYPE));
-		List<ColumnModel> columns11 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns11 = new ArrayList<>();
 		columns11.add(constructDefaultColumnForMock("1110", "1110"));
 		columns11.add(constructDefaultColumnForMock("1120", "1120"));
 		superColumn11.setColumns(columns11);
@@ -489,7 +489,7 @@ public class MockDataSetHelper {
 
 		SuperColumnModel superColumn12 = new SuperColumnModel();
 		superColumn12.setName(new GenericType("12", GenericTypeEnum.BYTES_TYPE));
-		List<ColumnModel> columns12 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns12 = new ArrayList<>();
 		columns12.add(constructDefaultColumnForMock("1210", "1210"));
 		columns12.add(constructDefaultColumnForMock("1220", "1220"));
 		superColumn12.setColumns(columns12);
@@ -500,10 +500,10 @@ public class MockDataSetHelper {
 
 		RowModel row2 = new RowModel();
 		row2.setKey(new GenericType("02", GenericTypeEnum.BYTES_TYPE));
-		List<SuperColumnModel> superColumns2 = new ArrayList<SuperColumnModel>();
+		List<SuperColumnModel> superColumns2 = new ArrayList<>();
 		SuperColumnModel superColumn21 = new SuperColumnModel();
 		superColumn21.setName(new GenericType("21", GenericTypeEnum.BYTES_TYPE));
-		List<ColumnModel> columns21 = new ArrayList<ColumnModel>();
+		List<ColumnModel> columns21 = new ArrayList<>();
 		columns21.add(constructDefaultColumnForMock("2110", "2110"));
 		columns21.add(constructDefaultColumnForMock("2120", "2120"));
 		superColumn21.setColumns(columns21);
@@ -526,7 +526,7 @@ public class MockDataSetHelper {
 		/* keyspace */
 		KeyspaceModel keyspace = new KeyspaceModel();
 		keyspace.setName("keyspace");
-		List<ColumnFamilyModel> columnFamilies = new ArrayList<ColumnFamilyModel>();
+		List<ColumnFamilyModel> columnFamilies = new ArrayList<>();
 
 		/* column family */
 		ColumnFamilyModel columnFamily = new ColumnFamilyModel();

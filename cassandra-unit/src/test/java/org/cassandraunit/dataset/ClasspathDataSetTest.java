@@ -1,16 +1,8 @@
 package org.cassandraunit.dataset;
 
 import static org.cassandraunit.SampleDataSetChecker.assertDataSetDefaultValues;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import me.prettyprint.hector.api.ddl.ColumnIndexType;
-import me.prettyprint.hector.api.ddl.ComparatorType;
 
 import org.cassandraunit.dataset.json.ClassPathJsonDataSet;
-import org.cassandraunit.model.StrategyModel;
-import org.cassandraunit.type.GenericTypeEnum;
 import org.junit.Test;
 
 /**
