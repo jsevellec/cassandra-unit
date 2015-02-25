@@ -34,7 +34,7 @@ public class SimpleCQLLexer {
 	public SimpleCQLLexer(List<String> lines) {
     	StringBuffer t = new StringBuffer();
     	for (String l : lines) {
-    		t.append(l);
+    		t.append(l.trim());
     		t.append('\n');
     	}
     	
@@ -80,6 +80,8 @@ public class SimpleCQLLexer {
     			} else if (c == '/' && peekAhead() == '*') {
     				state = LexState.INMULTILINECOMMENT;
     				advance();
+    			} else if (c == '\n') {
+    				statementUnderConstruction.append(' ');
     			} else {
     				statementUnderConstruction.append(c);
     				if (c == '\"') {
@@ -87,7 +89,7 @@ public class SimpleCQLLexer {
     				} else if (c == '\'') {
     					state = LexState.INSQUOTESTRING;
     				} else if (c == ';') {
-                        statements.add(statementUnderConstruction.toString());
+                        statements.add(statementUnderConstruction.toString().trim());
                         statementUnderConstruction.setLength(0);
         			}
     			}
@@ -122,9 +124,9 @@ public class SimpleCQLLexer {
 			}
 
     	}
-    	
-    	if (statementUnderConstruction.length() > 0) {
-            statements.add(statementUnderConstruction.toString());
+    	String tmp = statementUnderConstruction.toString().trim();
+    	if (tmp.length() > 0) {
+            statements.add(tmp);
     	}
     	    	
     	return statements;
