@@ -55,32 +55,8 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
     }
 
     private List<String> linesToCQLStatements(List<String> lines) {
-        List<String> statements = new ArrayList<String>();
-        StringBuffer statementUnderConstruction = new StringBuffer();
-        for (String line : lines) {
-            line = line.trim();
-            statementUnderConstruction.append(line);
-            if (endOfStatementLine(line)) {
-                statements.add(statementUnderConstruction.toString());
-                statementUnderConstruction.setLength(0);
-            } else {
-                statementUnderConstruction.append(" ");
-            }
-        }
-        return statements;
-    }
-
-//    private boolean spaceNeededAfter(String line) {
-//        boolean spaceNeeded = true;
-//        String[] characterWithoutSpaceNeededAfter = {"<", ">", ":", "=", "|", "("};
-//        if (StringUtils.endsWithAny(line, characterWithoutSpaceNeededAfter)) {
-//            spaceNeeded = false;
-//        }
-//        return spaceNeeded;
-//    }
-
-    private boolean endOfStatementLine(String line) {
-        return line.endsWith(END_OF_STATEMENT_DELIMITER);
+    	SimpleCQLLexer lexer = new SimpleCQLLexer(lines);
+    	return lexer.getStatements();
     }
 
     public List<String> getLines() {
