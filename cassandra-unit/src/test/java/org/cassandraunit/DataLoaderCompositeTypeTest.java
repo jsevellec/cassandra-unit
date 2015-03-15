@@ -2,6 +2,9 @@ package org.cassandraunit;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+
+import java.util.List;
+
 import me.prettyprint.cassandra.serializers.CompositeSerializer;
 import me.prettyprint.cassandra.serializers.IntegerSerializer;
 import me.prettyprint.cassandra.serializers.LongSerializer;
@@ -10,6 +13,7 @@ import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.beans.ColumnSlice;
 import me.prettyprint.hector.api.beans.Composite;
+import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
 import me.prettyprint.hector.api.ddl.ComparatorType;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.query.QueryResult;
@@ -27,6 +31,14 @@ public class DataLoaderCompositeTypeTest {
 		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
 	}
 
+	ColumnFamilyDefinition findNamed(List<ColumnFamilyDefinition> l, String name) {
+		for (ColumnFamilyDefinition i : l) {
+			if (i.getName().equals(name))
+				return i;
+		}
+		return null;
+	}	
+	
 	@Test
 	public void shouldCreateKeyspaceAndLoadDataWithColumnCompositeType() {
 		String clusterName = "TestClusterCompositeType01";
@@ -35,10 +47,11 @@ public class DataLoaderCompositeTypeTest {
 		dataLoader.load(MockDataSetHelper.getMockDataSetWithCompositeType());
 		/* test */
 		Cluster cluster = HFactory.getOrCreateCluster(clusterName, host);
-		assertThat(cluster.describeKeyspace("compositeKeyspace").getCfDefs().get(0).getName(),
+		ColumnFamilyDefinition cfdef = findNamed(cluster.describeKeyspace("compositeKeyspace").getCfDefs(), "columnFamilyWithCompositeType");
+		assertThat(cfdef.getName(),
 				is("columnFamilyWithCompositeType"));
 		assertThat(
-				cluster.describeKeyspace("compositeKeyspace").getCfDefs().get(0).getComparatorType().getTypeName(),
+				cfdef.getComparatorType().getTypeName(),
 				is(ComparatorType
 						.getByClassName(
 								"CompositeType(org.apache.cassandra.db.marshal.LongType,org.apache.cassandra.db.marshal.UTF8Type,org.apache.cassandra.db.marshal.IntegerType)")
@@ -101,10 +114,11 @@ public class DataLoaderCompositeTypeTest {
 		dataLoader.load(MockDataSetHelper.getMockDataSetWithCompositeType());
 		/* test */
 		Cluster cluster = HFactory.getOrCreateCluster(clusterName, host);
-		assertThat(cluster.describeKeyspace("compositeKeyspace").getCfDefs().get(1).getName(),
+		ColumnFamilyDefinition cfdef = findNamed(cluster.describeKeyspace("compositeKeyspace").getCfDefs(), "columnFamilyWithRowKeyCompositeType");
+		assertThat(cfdef.getName(),
 				is("columnFamilyWithRowKeyCompositeType"));
 		assertThat(
-				cluster.describeKeyspace("compositeKeyspace").getCfDefs().get(1).getKeyValidationClass(),
+				cfdef.getKeyValidationClass(),
 				is("org.apache.cassandra.db.marshal.CompositeType(org.apache.cassandra.db.marshal.LongType,org.apache.cassandra.db.marshal.UTF8Type)"));
 
 		Keyspace keyspace = HFactory.createKeyspace("compositeKeyspace", cluster);
