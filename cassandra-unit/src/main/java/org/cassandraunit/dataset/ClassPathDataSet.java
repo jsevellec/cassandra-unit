@@ -1,6 +1,6 @@
 package org.cassandraunit.dataset;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cassandraunit.dataset.json.ClassPathJsonDataSet;
 import org.cassandraunit.dataset.xml.ClassPathXmlDataSet;
 import org.cassandraunit.dataset.yaml.ClassPathYamlDataSet;

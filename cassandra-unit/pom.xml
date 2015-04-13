@@ -185,10 +185,11 @@
             <version>16.0</version>
         </dependency>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
         </dependency>
+
         <!-- hamcrest could be moved to the test-scope. But as the examples do not declare hamcrest-deps in their pom, 
              better leave them in compile-scope --> 
         <dependency> <!-- dont mix self-contained hamcrest-all and hamcrest-submodules -->
