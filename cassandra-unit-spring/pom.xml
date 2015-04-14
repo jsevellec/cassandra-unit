@@ -133,7 +133,7 @@
             <groupId>org.hectorclient</groupId>
             <artifactId>hector-core</artifactId>
             <version>${cu.hector.version}</version>
-            <scope>test</scope>
+            <optional>true</optional>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
