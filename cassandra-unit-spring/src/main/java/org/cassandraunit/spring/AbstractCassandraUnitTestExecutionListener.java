@@ -10,6 +10,7 @@ import org.cassandraunit.dataset.ClassPathDataSet;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
@@ -28,7 +29,7 @@ import com.google.common.base.Preconditions;
  * 
  * @author Gaëtan Le Brun
  */
-public abstract class AbstractCassandraUnitTestExecutionListener extends AbstractTestExecutionListener {
+public abstract class AbstractCassandraUnitTestExecutionListener extends AbstractTestExecutionListener implements Ordered {
   private static final org.slf4j.Logger LOGGER      = LoggerFactory.getLogger(CassandraUnitTestExecutionListener.class);
   private static       boolean          initialized = false;
 
@@ -111,4 +112,10 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
     }
   }
 
+  @Override
+  public int getOrder() {
+    // since spring 4.1 the default-order is LOWEST_PRECEDENCE. But we want to start EmbeddedCassandra even before
+    // the springcontext such that beans can connect to the started cassandra
+    return 0;
+  }
 }
