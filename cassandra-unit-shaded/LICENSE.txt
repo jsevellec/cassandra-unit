@@ -1,0 +1,4 @@
+The sourcecode of cassandra-unit-shaded consists solely of the pom. The pom itself is licensed as CC0 (Public Domain, http://creativecommons.org/publicdomain/zero/1.0/).
+
+Any shaded libraries contained in the binary jar retain their original open source license, most times the apache license 2.0.
+
