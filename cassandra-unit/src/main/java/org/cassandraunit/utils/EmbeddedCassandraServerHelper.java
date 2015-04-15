@@ -201,7 +201,7 @@ public class EmbeddedCassandraServerHelper {
              com.datastax.driver.core.Session session = cluster.connect()) {
             List<String> keyspaces = new ArrayList<String>();
             for (com.datastax.driver.core.KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
-                if (!keyspace.getName().startsWith("system_")) {
+                if (!keyspace.getName().startsWith("system_") && !keyspace.getName().equals("system")) {
                     keyspaces.add(keyspace.getName());
                 }
             }
