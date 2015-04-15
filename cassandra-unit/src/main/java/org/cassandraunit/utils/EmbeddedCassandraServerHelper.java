@@ -197,7 +197,7 @@ public class EmbeddedCassandraServerHelper {
         String host = DatabaseDescriptor.getRpcAddress().getHostName();
         int port = DatabaseDescriptor.getNativeTransportPort();
         try (com.datastax.driver.core.Cluster cluster =
-             com.datastax.driver.core.Cluster.builder().addContactPoint(host + ":" + port).build();
+             com.datastax.driver.core.Cluster.builder().addContactPoint(host).withPort(port).build();
              com.datastax.driver.core.Session session = cluster.connect()) {
             List<String> keyspaces = new ArrayList<String>();
             for (com.datastax.driver.core.KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
