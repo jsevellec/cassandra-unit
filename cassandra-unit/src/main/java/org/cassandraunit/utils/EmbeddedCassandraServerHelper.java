@@ -185,9 +185,7 @@ public class EmbeddedCassandraServerHelper {
         for (KeyspaceDefinition keyspaceDefinition : keyspaces) {
             String keyspaceName = keyspaceDefinition.getName();
 
-            if (!INTERNAL_CASSANDRA_KEYSPACE.equals(keyspaceName)
-                    && !INTERNAL_CASSANDRA_AUTH_KEYSPACE.equals(keyspaceName)
-                    && !INTERNAL_CASSANDRA_TRACES_KEYSPACE.equals(keyspaceName)) {
+            if (!isSystemKeyspaceName(keyspaceName)) {
                 cluster.dropKeyspace(keyspaceName);
             }
         }
@@ -201,7 +199,7 @@ public class EmbeddedCassandraServerHelper {
              com.datastax.driver.core.Session session = cluster.connect()) {
             List<String> keyspaces = new ArrayList<String>();
             for (com.datastax.driver.core.KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
-                if (!keyspace.getName().startsWith("system_") && !keyspace.getName().equals("system")) {
+                if (!isSystemKeyspaceName(keyspace.getName())) {
                     keyspaces.add(keyspace.getName());
                 }
             }
@@ -209,6 +207,12 @@ public class EmbeddedCassandraServerHelper {
                 session.execute("DROP KEYSPACE " + keyspace);
             }
         }
+    }
+    
+    private static boolean isSystemKeyspaceName(String keyspaceName) {
+        return    INTERNAL_CASSANDRA_KEYSPACE.equals(keyspaceName) 
+               || INTERNAL_CASSANDRA_AUTH_KEYSPACE.equals(keyspaceName)
+               || INTERNAL_CASSANDRA_TRACES_KEYSPACE.equals(keyspaceName);
     }
     
     private static void rmdir(String dir) throws IOException {
