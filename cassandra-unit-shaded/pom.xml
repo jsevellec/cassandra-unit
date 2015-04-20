@@ -20,7 +20,7 @@
         cassandra-unit-shaded is a replacement for cassandra-unit only, not also
         for cassandra-unit-spring. If you want to use both -shaded and
         -spring, then exclude cassandra-unit out of the imported dependencies
-        of cassandra-unit.
+        of cassandra-unit-spring.
     </description>
 
     <properties>
