@@ -15,7 +15,7 @@ public class CassandraCQLUnit extends BaseCassandraUnit {
 
     private static final Logger log = LoggerFactory.getLogger(CassandraCQLUnit.class);
     private String hostIp = "127.0.0.1";
-    private int port = 9142;
+    private int port = 9042;
     public Session session;
     public Cluster cluster;
 

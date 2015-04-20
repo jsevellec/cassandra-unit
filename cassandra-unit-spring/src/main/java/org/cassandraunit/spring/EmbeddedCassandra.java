@@ -25,5 +25,5 @@ public @interface EmbeddedCassandra {
   String clusterName() default "Test Cluster";
   String host() default "127.0.0.1";
   // CQL port be default, use 9171 for Thrift
-  int port() default 9142;
+  int port() default 9042;
 }

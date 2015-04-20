@@ -34,7 +34,7 @@ public class CassandraStartAndLoadWithCQLsDatasetAnnotationTest {
   private void test() {
     Cluster cluster = Cluster.builder()
         .addContactPoints("127.0.0.1")
-        .withPort(9142)
+        .withPort(9042)
         .build();
     Session session = cluster.connect("cassandra_unit_keyspace");
 
