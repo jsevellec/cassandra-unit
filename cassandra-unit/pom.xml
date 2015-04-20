@@ -9,8 +9,8 @@
     <artifactId>cassandra-unit</artifactId>
     <packaging>jar</packaging>
     <name>cassandra-unit</name>
-
     <description>Test framework to develop with Cassandra</description>
+
     <build>
         <resources>
             <resource>
@@ -130,48 +130,16 @@
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                 </configuration>
             </plugin>
-
-
         </plugins>
     </build>
 
     <dependencies>
 
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>2.1.4</version>
-            <exclusions>
-            <exclusion>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            </exclusion>
-            <exclusion>
-            <!--<groupId>org.apache.cassandra</groupId>-->
-            <!--<artifactId>cassandra-thrift</artifactId>-->
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>1.8.5</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.8.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
-            <version>1.1</version>
-        </dependency>
-
+            <version>${cu.junit.version}</version>
+        </dependency> 
         <dependency>
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-all</artifactId>
@@ -186,47 +154,61 @@
                     <artifactId>log4j</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcore</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion> <!-- ST4 and stringtemplate seem to contain the same classes... ST4 is newer -->
+                    <groupId>org.antlr</groupId>
+                    <artifactId>stringtemplate</artifactId>
+                </exclusion>
+                <exclusion> <!-- is this used at all? -->
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-validator</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
-
+        <dependency> <!-- for cassandra-all because maven fails to reliably resolve the conflict with cassandra-driver-core -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>16.0</version>
+        </dependency>
         <dependency>
-            <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
-            <artifactId>concurrentlinkedhashmap-lru</artifactId>
-            <version>1.3</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
         </dependency>
 
+        <!-- hamcrest could be moved to the test-scope. But as the examples do not declare hamcrest-deps in their pom, 
+             better leave them in compile-scope --> 
+        <dependency> <!-- dont mix self-contained hamcrest-all and hamcrest-submodules -->
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>${cu.hamcrest.version}</version>
+        </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.6.1</version>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${cu.hamcrest.version}</version>
         </dependency>
 
-        <!-- log -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>2.2.4-1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.11</version>
-        </dependency>
-
+        <!-- optional clients. The app defines which one to use and in which version -->
         <dependency>
             <groupId>org.hectorclient</groupId>
             <artifactId>hector-core</artifactId>
-            <version>1.1-4</version>
+            <version>${cu.hector.version}</version>
+            <optional>true</optional>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -235,16 +217,19 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-cli</groupId>
-            <artifactId>commons-cli</artifactId>
-            <version>1.2</version>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>${cu.cassandra.driver.version}</version>
+            <optional>true</optional>
         </dependency>
 
+        <!-- test -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.8.5</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -252,5 +237,29 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- log -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${cu.slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${cu.slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${cu.slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

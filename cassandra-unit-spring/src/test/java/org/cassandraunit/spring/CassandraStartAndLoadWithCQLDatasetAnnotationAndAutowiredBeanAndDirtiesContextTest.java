@@ -1,11 +1,15 @@
 package org.cassandraunit.spring;
 
-import com.datastax.driver.core.ResultSet;
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -13,14 +17,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+import com.datastax.driver.core.ResultSet;
 
 /**
  * @author Gaëtan Le Brun
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/autowired-context.xml"})
+@ContextConfiguration(value = {"classpath:/autowired-context.xml"},
+    initializers = {CassandraStartAndLoadWithCQLDatasetAnnotationAndAutowiredBeanAndDirtiesContextTest.EnsureUniqueContext.class} )
 @TestExecutionListeners({CassandraUnitDependencyInjectionTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class})
 @CassandraDataSet(value = {"cql/dataset1.cql"})
 @EmbeddedCassandra
@@ -55,4 +59,10 @@ public class CassandraStartAndLoadWithCQLDatasetAnnotationAndAutowiredBeanAndDir
         assertEquals(2, DummyCassandraConnector.getInstancesCounter());
     }
 
+    public static class EnsureUniqueContext implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+        @Override
+        public void initialize(ConfigurableApplicationContext ctx) {
+        }
+    }
 }

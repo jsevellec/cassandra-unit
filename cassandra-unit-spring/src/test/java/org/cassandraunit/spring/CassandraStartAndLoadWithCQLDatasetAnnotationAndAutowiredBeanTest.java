@@ -1,11 +1,14 @@
 package org.cassandraunit.spring;
 
 import com.datastax.driver.core.ResultSet;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -17,7 +20,8 @@ import static org.junit.Assert.assertEquals;
  * @author Gaëtan Le Brun
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/autowired-context.xml" })
+@ContextConfiguration(value = {"classpath:/autowired-context.xml"},
+  initializers = {CassandraStartAndLoadWithCQLDatasetAnnotationAndAutowiredBeanTest.EnsureUniqueContext.class} )
 @TestExecutionListeners({CassandraUnitDependencyInjectionTestExecutionListener.class, DependencyInjectionTestExecutionListener.class})
 @CassandraDataSet(value = { "cql/dataset1.cql" })
 @EmbeddedCassandra
@@ -51,4 +55,10 @@ public class CassandraStartAndLoadWithCQLDatasetAnnotationAndAutowiredBeanTest {
     assertEquals(1, DummyCassandraConnector.getInstancesCounter());
   }
 
+  public static class EnsureUniqueContext implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+    @Override
+    public void initialize(ConfigurableApplicationContext ctx) {
+    }
+  }
 }

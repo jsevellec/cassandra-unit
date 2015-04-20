@@ -15,7 +15,7 @@ import me.prettyprint.hector.api.ddl.ComparatorType;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.mutation.Mutator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cassandraunit.dataset.DataSet;
 import org.cassandraunit.model.ColumnFamilyModel;
 import org.cassandraunit.model.ColumnMetadataModel;

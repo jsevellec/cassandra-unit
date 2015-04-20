@@ -1,6 +1,6 @@
 package org.cassandraunit.dataset.cql;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.cassandraunit.dataset.ParseException;
 

@@ -10,7 +10,7 @@
 	<packaging>pom</packaging>
 	<name>cassandra-unit-parent</name>
 	<version>2.1.3.2-SNAPSHOT</version>
-	<description>Test framekork to develop with Cassandra</description>
+	<description>Test framework to develop with Cassandra</description>
 	<url>https://github.com/jsevellec/cassandra-unit</url>
 	<licenses>
 		<license>
@@ -26,11 +26,19 @@
 	</scm>
 	<modules>
 		<module>cassandra-unit</module>
+		<module>cassandra-unit-shaded</module>
 		<module>cassandra-unit-spring</module>
 	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <cu.junit.version>4.11</cu.junit.version>
+        <cu.slf4j.version>1.7.5</cu.slf4j.version>
+        <cu.hector.version>1.1-4</cu.hector.version>
+        <cu.cassandra.driver.version>2.1.4</cu.cassandra.driver.version>
+        <cu.spring.version>4.0.2.RELEASE</cu.spring.version>
+        <cu.hamcrest.version>1.3</cu.hamcrest.version>
 	</properties>
 
 </project>

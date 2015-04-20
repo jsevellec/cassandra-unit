@@ -4,17 +4,19 @@ import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
+
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.db.commitlog.CommitLog;
 import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.service.CassandraDaemon;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -97,6 +99,7 @@ public class EmbeddedCassandraServerHelper {
 
         System.setProperty("cassandra.config", "file:" + file.getAbsolutePath());
         System.setProperty("cassandra-foreground", "true");
+        System.setProperty("cassandra.native.epoll.enabled", "false"); // JNA doesnt cope with relocated netty
 
         // If there is no log4j config set already, set the default config
         if (System.getProperty("log4j.configuration") == null) {
@@ -152,6 +155,25 @@ public class EmbeddedCassandraServerHelper {
     }
 
     private static void dropKeyspaces() {
+        if (hasHector()) {
+            dropKeyspacesWithHector();
+        } else {
+            dropKeyspacesWithNativeDriver();
+        }
+    }
+
+    private static boolean hasHector() {
+        boolean hector = false;
+        try {
+            new CassandraHostConfigurator("");
+            hector = true;
+        } catch(NoClassDefFoundError err) {
+            hector = false;
+        }
+        return hector;
+    }
+    
+    private static void dropKeyspacesWithHector() {
         String host = DatabaseDescriptor.getRpcAddress().getHostName();
         int port = DatabaseDescriptor.getRpcPort();
         log.debug("Cleaning cassandra keyspaces on " + host + ":" + port);
@@ -163,14 +185,36 @@ public class EmbeddedCassandraServerHelper {
         for (KeyspaceDefinition keyspaceDefinition : keyspaces) {
             String keyspaceName = keyspaceDefinition.getName();
 
-            if (!INTERNAL_CASSANDRA_KEYSPACE.equals(keyspaceName)
-                    && !INTERNAL_CASSANDRA_AUTH_KEYSPACE.equals(keyspaceName)
-                    && !INTERNAL_CASSANDRA_TRACES_KEYSPACE.equals(keyspaceName)) {
+            if (!isSystemKeyspaceName(keyspaceName)) {
                 cluster.dropKeyspace(keyspaceName);
             }
         }
     }
 
+    private static void dropKeyspacesWithNativeDriver() {
+        String host = DatabaseDescriptor.getRpcAddress().getHostName();
+        int port = DatabaseDescriptor.getNativeTransportPort();
+        try (com.datastax.driver.core.Cluster cluster =
+             com.datastax.driver.core.Cluster.builder().addContactPoint(host).withPort(port).build();
+             com.datastax.driver.core.Session session = cluster.connect()) {
+            List<String> keyspaces = new ArrayList<String>();
+            for (com.datastax.driver.core.KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
+                if (!isSystemKeyspaceName(keyspace.getName())) {
+                    keyspaces.add(keyspace.getName());
+                }
+            }
+            for (String keyspace : keyspaces) {
+                session.execute("DROP KEYSPACE " + keyspace);
+            }
+        }
+    }
+    
+    private static boolean isSystemKeyspaceName(String keyspaceName) {
+        return    INTERNAL_CASSANDRA_KEYSPACE.equals(keyspaceName) 
+               || INTERNAL_CASSANDRA_AUTH_KEYSPACE.equals(keyspaceName)
+               || INTERNAL_CASSANDRA_TRACES_KEYSPACE.equals(keyspaceName);
+    }
+    
     private static void rmdir(String dir) throws IOException {
         File dirFile = new File(dir);
         if (dirFile.exists()) {
