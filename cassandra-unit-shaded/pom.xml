@@ -51,6 +51,7 @@
                             <createDependencyReducedPom>true</createDependencyReducedPom>
                             <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
                             <minimizeJar>false</minimizeJar>
+                            <dependencyReducedPomLocation>${basedir}/target/dependency-reduced-pom.xml</dependencyReducedPomLocation>
 
                             <artifactSet>
                                 <includes>
@@ -112,6 +113,14 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin> <!-- http://stackoverflow.com/questions/8880361/superfluous-warnings-when-using-maven-shade-plugin -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <forceCreation>true</forceCreation>
+                </configuration>
             </plugin>
         </plugins>
     </build>
