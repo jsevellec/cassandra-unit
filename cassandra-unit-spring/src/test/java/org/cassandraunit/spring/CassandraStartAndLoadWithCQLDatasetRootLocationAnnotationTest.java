@@ -34,7 +34,7 @@ public class CassandraStartAndLoadWithCQLDatasetRootLocationAnnotationTest {
   private void test() {
     Cluster cluster = Cluster.builder()
         .addContactPoints("127.0.0.1")
-        .withPort(9142)
+        .withPort(9042)
         .build();
     Session session = cluster.connect("cassandra_unit_keyspace");
     ResultSet result = session.execute("select * from testCQLTableRootLocation WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570797");

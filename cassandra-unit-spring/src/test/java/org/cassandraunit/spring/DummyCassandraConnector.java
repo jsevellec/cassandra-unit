@@ -31,7 +31,7 @@ public class DummyCassandraConnector {
     public void init() {
         cluster = Cluster.builder()
                 .addContactPoints("127.0.0.1")
-                .withPort(9142)
+                .withPort(9042)
                 .build();
         session = cluster.connect("cassandra_unit_keyspace");
     }

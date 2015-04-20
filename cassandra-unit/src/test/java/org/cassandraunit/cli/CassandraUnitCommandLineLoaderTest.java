@@ -190,7 +190,7 @@ public class CassandraUnitCommandLineLoaderTest {
         String targetFileDataSet = FileTmpHelper.copyClassPathDataSetToTmpDirectory(this.getClass(),
                 "/cql/simpleWithKeyspaceCreation.cql");
         String host = "localhost";
-        String port = "9142";
+        String port = "9042";
         String[] args = {"-f", targetFileDataSet, "-h", host, "-p", port};
         CassandraUnitCommandLineLoader.main(args);
 
