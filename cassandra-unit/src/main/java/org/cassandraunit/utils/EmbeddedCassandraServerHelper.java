@@ -1,6 +1,7 @@
 package org.cassandraunit.utils;
 
 import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.Session;
 import com.datastax.driver.core.TableMetadata;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
@@ -54,6 +55,8 @@ public class EmbeddedCassandraServerHelper {
 
     private static CassandraDaemon cassandraDaemon = null;
     private static String launchedYamlFile;
+    private static com.datastax.driver.core.Cluster cluster;
+    private static Session session;
 
     public static void startEmbeddedCassandra() throws TTransportException, IOException, InterruptedException, ConfigurationException {
         startEmbeddedCassandra(DEFAULT_STARTUP_TIMEOUT);
@@ -136,6 +139,21 @@ public class EmbeddedCassandraServerHelper {
                 log.error("Cassandra daemon did not start after " + timeout + " ms. Consider increasing the timeout");
                 throw new AssertionError("Cassandra daemon did not start within timeout");
             }
+
+            cluster = com.datastax.driver.core.Cluster.builder()
+                .addContactPoints(EmbeddedCassandraServerHelper.getHost())
+                .withPort(EmbeddedCassandraServerHelper.getNativeTransportPort())
+                .build();
+
+            session = cluster.connect();
+
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    session.close();
+                    cluster.close();
+                }
+            }));
         } catch (InterruptedException e) {
             log.error("Interrupted waiting for Cassandra daemon to start:", e);
             throw new AssertionError(e);
@@ -180,6 +198,14 @@ public class EmbeddedCassandraServerHelper {
         }
     }
 
+    public static com.datastax.driver.core.Cluster getCluster() {
+        return cluster;
+    }
+
+    public static Session getSession() {
+        return session;
+    }
+
     /**
      * Get the embedded cassandra cluster name
      * 
@@ -217,19 +243,13 @@ public class EmbeddedCassandraServerHelper {
     }
 
     private static void cleanDataWithNativeDriver(String keyspace, String... excludedTables) {
-        String host = DatabaseDescriptor.getRpcAddress().getHostName();
-        int port = DatabaseDescriptor.getNativeTransportPort();
-        try (com.datastax.driver.core.Cluster cluster =
-                     com.datastax.driver.core.Cluster.builder().addContactPoint(host).withPort(port).build();
-             com.datastax.driver.core.Session session = cluster.connect()) {
-            final KeyspaceMetadata keyspaceMetadata = cluster.getMetadata().getKeyspace(keyspace);
-            final Collection<TableMetadata> tables = keyspaceMetadata.getTables();
-            List<String> excludeTableList = Arrays.asList(excludedTables);
-            for (TableMetadata table : tables) {
-                final String tableName = table.getName();
-                if (!excludeTableList.contains(tableName)) {
-                    session.execute("truncate table " + tableName);
-                }
+        final KeyspaceMetadata keyspaceMetadata = cluster.getMetadata().getKeyspace(keyspace);
+        final Collection<TableMetadata> tables = keyspaceMetadata.getTables();
+        List<String> excludeTableList = Arrays.asList(excludedTables);
+        for (TableMetadata table : tables) {
+            final String tableName = table.getName();
+            if (!excludeTableList.contains(tableName)) {
+                session.execute("truncate table " + tableName);
             }
         }
     }
@@ -288,20 +308,14 @@ public class EmbeddedCassandraServerHelper {
     }
 
     private static void dropKeyspacesWithNativeDriver() {
-        String host = DatabaseDescriptor.getRpcAddress().getHostName();
-        int port = DatabaseDescriptor.getNativeTransportPort();
-        try (com.datastax.driver.core.Cluster cluster =
-             com.datastax.driver.core.Cluster.builder().addContactPoint(host).withPort(port).build();
-             com.datastax.driver.core.Session session = cluster.connect()) {
-            List<String> keyspaces = new ArrayList<String>();
-            for (com.datastax.driver.core.KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
-                if (!isSystemKeyspaceName(keyspace.getName())) {
-                    keyspaces.add(keyspace.getName());
-                }
+        List<String> keyspaces = new ArrayList<String>();
+        for (com.datastax.driver.core.KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
+            if (!isSystemKeyspaceName(keyspace.getName())) {
+                keyspaces.add(keyspace.getName());
             }
-            for (String keyspace : keyspaces) {
-                session.execute("DROP KEYSPACE " + keyspace);
-            }
+        }
+        for (String keyspace : keyspaces) {
+            session.execute("DROP KEYSPACE " + keyspace);
         }
     }
     

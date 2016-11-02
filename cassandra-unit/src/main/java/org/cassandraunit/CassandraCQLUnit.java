@@ -57,11 +57,8 @@ public class CassandraCQLUnit extends BaseCassandraUnit {
 
 	@Override
 	protected void load() {
-		String hostIp = EmbeddedCassandraServerHelper.getHost();
-		int port = EmbeddedCassandraServerHelper.getNativeTransportPort();
-		cluster = new Cluster.Builder().addContactPoints(hostIp).withPort(port).withSocketOptions(getSocketOptions())
-				.build();
-		session = cluster.connect();
+		cluster = EmbeddedCassandraServerHelper.getCluster();
+		session = EmbeddedCassandraServerHelper.getSession();
 		CQLDataLoader dataLoader = new CQLDataLoader(session);
 		dataLoader.load(dataSet);
 		session = dataLoader.getSession();
@@ -70,10 +67,6 @@ public class CassandraCQLUnit extends BaseCassandraUnit {
 	@Override
 	protected void after() {
 		super.after();
-		try (Cluster c = cluster; Session s = session) {
-			session = null;
-			cluster = null;
-		}
 	}
 
 	// Getters for those who do not like to directly access fields

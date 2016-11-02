@@ -4,6 +4,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +32,7 @@ public class CassandraStartAndLoadWithSpringDependencyInjectionTest {
     
   @Test
   public void should_work() {
-    Cluster cluster = Cluster.builder()
-            .addContactPoints("127.0.0.1")
-            .withPort(9142)
-            .build();
-    Session session = cluster.connect("cassandra_unit_keyspace");
+    Session session = EmbeddedCassandraServerHelper.getSession();
     ResultSet result = session.execute("select * from testCQLTable WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570737");
     String val = result.iterator().next().getString("value");
     assertEquals("Cql loaded string", val);

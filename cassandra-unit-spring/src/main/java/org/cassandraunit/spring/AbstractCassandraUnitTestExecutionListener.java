@@ -44,26 +44,19 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
       initialized = true;
     }
 
-    String clusterName = EmbeddedCassandraServerHelper.getClusterName(); 
-    String host = EmbeddedCassandraServerHelper.getHost();
-    int rpcPort = EmbeddedCassandraServerHelper.getRpcPort();
-    int nativeTransportPort = EmbeddedCassandraServerHelper.getNativeTransportPort();
-
     CassandraDataSet cassandraDataSet = AnnotationUtils.findAnnotation(testContext.getTestClass(), CassandraDataSet.class);
     if (cassandraDataSet != null) {
       List<String> dataset = null;
       ListIterator<String> datasetIterator = null;
       String keyspace = cassandraDataSet.keyspace();
+
       // TODO : find a way to hide them and avoid switch, need some refactoring cassandra-unit
       switch (cassandraDataSet.type()) {
         case cql:
           dataset = dataSetLocations(testContext, cassandraDataSet);
           datasetIterator = dataset.listIterator();
 
-          Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(nativeTransportPort).build();
-          Session session = cluster.connect();
-          
-          CQLDataLoader cqlDataLoader = new CQLDataLoader(session);
+          CQLDataLoader cqlDataLoader = new CQLDataLoader(EmbeddedCassandraServerHelper.getSession());
           while (datasetIterator.hasNext()) {
             String next = datasetIterator.next();
             boolean dropAndCreateKeyspace = datasetIterator.previousIndex() == 0;
@@ -73,6 +66,11 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
         default:
           dataset = dataSetLocations(testContext, cassandraDataSet);
           datasetIterator = dataset.listIterator();
+
+          String clusterName = EmbeddedCassandraServerHelper.getClusterName();
+          String host = EmbeddedCassandraServerHelper.getHost();
+          int rpcPort = EmbeddedCassandraServerHelper.getRpcPort();
+
           DataLoader dataLoader = new DataLoader(clusterName, host + ":" + rpcPort);
           while (datasetIterator.hasNext()) {
             String next = datasetIterator.next();

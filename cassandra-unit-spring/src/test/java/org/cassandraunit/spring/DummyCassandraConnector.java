@@ -5,6 +5,7 @@ import javax.annotation.PreDestroy;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 
 /**
  * @author Gaëtan Le Brun
@@ -27,22 +28,8 @@ public class DummyCassandraConnector {
         return instancesCounter;
     }
 
-    @PostConstruct
-    public void init() {
-        cluster = Cluster.builder()
-                .addContactPoints("127.0.0.1")
-                .withPort(9142)
-                .build();
-        session = cluster.connect("cassandra_unit_keyspace");
-    }
-
-    @PreDestroy
-    public void preDestroy() {
-        session.close();
-        cluster.close();
-    }
 
     public Session getSession() {
-        return session;
+        return EmbeddedCassandraServerHelper.getSession();
     }
 }
