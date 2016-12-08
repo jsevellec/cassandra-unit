@@ -28,6 +28,7 @@
   </scm>
     <modules>
         <module>cassandra-unit</module>
+        <module>cassandra-unit-shaded</module>
         <module>cassandra-unit-spring</module>
     </modules>
 

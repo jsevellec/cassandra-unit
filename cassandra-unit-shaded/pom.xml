@@ -1,0 +1,111 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.cassandraunit</groupId>
+        <artifactId>cassandra-unit-parent</artifactId>
+        <version>3.1.1.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>cassandra-unit-shaded</artifactId>
+    <description>Shaded version of cassandra-unit</description>
+    <properties>
+        <shade.prefix>org.cassandraunit.shaded</shade.prefix>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>false</minimizeJar>
+                            <dependencyReducedPomLocation>${basedir}/target/dependency-reduced-pom.xml</dependencyReducedPomLocation>
+                            <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+                            <artifactSet>
+                                <includes>
+                                    <!-- included only to suppress dependency, not relocated -->
+                                    <include>org.cassandraunit:cassandra-unit</include>
+
+                                    <!-- included due to relocated sub-dependencies, but itself not relocated because Class.forName -->
+                                    <include>org.apache.cassandra:cassandra-all</include>
+
+                                    <!-- included and relocated due to clash between hector and cassandra itself -->
+                                    <include>org.apache.cassandra:cassandra-thrift</include>
+
+                                    <!-- included and relocated due to potential clashes, especially guava -->
+                                    <include>com.google.guava:guava</include>
+                                    <include>org.antlr:*</include>
+                                    <include>org.codehaus.jackson:*</include>
+                                    <include>com.yammer.metrics:metrics-core</include>
+                                    <include>com.addthis.metrics:*</include>
+                                    <include>io.netty:*</include>
+                                </includes>
+                            </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache.cassandra.thrift</pattern>
+                                    <shadedPattern>${shade.prefix}.org.apache.cassandra.thrift</shadedPattern>
+                                </relocation>
+                                <relocation><!-- guava. With Trailing dot else com.googlecode would also match -->
+                                    <pattern>com.google.</pattern>
+                                    <shadedPattern>${shade.prefix}.com.google.</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.antlr</pattern>
+                                    <shadedPattern>${shade.prefix}.org.antlr</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.codehaus.jackson</pattern>
+                                    <shadedPattern>${shade.prefix}.org.codehaus.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.yammer.metrics</pattern>
+                                    <shadedPattern>${shade.prefix}.com.yammer.metrics</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.addthis.metrics</pattern>
+                                    <shadedPattern>${shade.prefix}.com.addthis.metrics</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>${shade.prefix}.io.netty</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer">
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                                    <addHeader>false</addHeader>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-library</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+</project>
