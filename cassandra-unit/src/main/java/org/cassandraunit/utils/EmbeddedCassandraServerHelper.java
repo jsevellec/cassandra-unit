@@ -246,7 +246,7 @@ public class EmbeddedCassandraServerHelper {
         for (TableMetadata table : tables) {
             final String tableName = table.getName();
             if (!excludeTableList.contains(tableName)) {
-                session.execute("truncate table " + tableName);
+                session.execute("truncate table " + keyspace + "." + tableName);
             }
         }
     }
