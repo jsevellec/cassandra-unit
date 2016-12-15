@@ -1,11 +1,9 @@
 package org.cassandraunit;
 
+import com.datastax.driver.core.Session;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Session;
 
 /**
  * @author Marcin Szymaniuk
@@ -60,7 +58,7 @@ public class CQLDataLoader {
         }
 
         if (dataSet.isKeyspaceCreation()) {
-            String createQuery = "CREATE KEYSPACE " + keyspaceName + " WITH replication={'class' : 'SimpleStrategy', 'replication_factor':1} AND durable_writes = false";
+            String createQuery = "CREATE KEYSPACE IF NOT EXISTS " + keyspaceName + " WITH replication={'class' : 'SimpleStrategy', 'replication_factor':1} AND durable_writes = false";
             log.debug("executing : " + createQuery);
             session.execute(createQuery);
             String useQuery = "USE " + keyspaceName;
