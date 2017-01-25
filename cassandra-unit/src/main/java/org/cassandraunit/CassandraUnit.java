@@ -4,30 +4,30 @@ import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.factory.HFactory;
 import org.cassandraunit.dataset.DataSet;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 
 public class CassandraUnit extends BaseCassandraUnit  {
     public Cluster cluster;
     public Keyspace keyspace;
     private DataSet dataSet;
 
-    public static String clusterName = "TestCluster";
-    public static String host = "localhost:9171";
+    public static String clusterName;
+    public static String host;
 
     public CassandraUnit(DataSet dataSet) {
         this.dataSet = dataSet;
     }
-    public CassandraUnit(DataSet dataSet, String configurationFileName) {
-    	this(dataSet);
-    	this.configurationFileName = configurationFileName;
-    }
 
-    public CassandraUnit(DataSet dataSet, String configurationFileName, String host) {
-        this(dataSet, configurationFileName);
-        this.host = host;
+    public CassandraUnit(DataSet dataSet, String configurationFileName) {
+        this(dataSet);
+        this.configurationFileName = configurationFileName;
     }
 
     @Override
     protected void load() {
+        host = EmbeddedCassandraServerHelper.getHost() + ":" + EmbeddedCassandraServerHelper.getRpcPort();
+        clusterName = EmbeddedCassandraServerHelper.getClusterName();
+
         DataLoader dataLoader = new DataLoader(clusterName, host);
         dataLoader.load(dataSet);
 

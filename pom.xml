@@ -9,7 +9,7 @@
 	<artifactId>cassandra-unit-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>cassandra-unit-parent</name>
-	<version>2.0.2.2</version>
+	<version>2.0.2.2-rndport-1</version>
 	<description>Test framekork to develop with Cassandra</description>
 	<url>https://github.com/jsevellec/cassandra-unit</url>
 	<licenses>

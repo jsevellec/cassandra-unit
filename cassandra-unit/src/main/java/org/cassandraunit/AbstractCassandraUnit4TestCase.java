@@ -23,9 +23,6 @@ public abstract class AbstractCassandraUnit4TestCase {
     	cassandraUnit = new CassandraUnit(getDataSet(), configurationFileName);
     }
 
-    public AbstractCassandraUnit4TestCase(String configurationFileName, String host) {
-    	cassandraUnit = new CassandraUnit(getDataSet(), configurationFileName, host);
-	}
 
 	@Before
     public void before() throws Exception {

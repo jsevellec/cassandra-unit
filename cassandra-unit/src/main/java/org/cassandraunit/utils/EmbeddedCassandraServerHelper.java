@@ -13,17 +13,22 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.reader.UnicodeReader;
 
 import java.io.*;
+import java.net.ServerSocket;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * @author Jeremy Sevellec
+ * @author deklanowski backported randomizing port config
  */
 public class EmbeddedCassandraServerHelper {
 
@@ -32,6 +37,11 @@ public class EmbeddedCassandraServerHelper {
     public static final long DEFAULT_STARTUP_TIMEOUT = 10000;
     public static final String DEFAULT_TMP_DIR = "target/embeddedCassandra";
     public static final String DEFAULT_CASSANDRA_YML_FILE = "cu-cassandra.yaml";
+
+    /** Configuration file which facilitates randomizing key port configurations */
+    public static final String CASSANDRA_RNDPORT_YML_FILE = "cu-cassandra-rndport.yaml";
+
+
     public static final String DEFAULT_LOG4J_CONFIG_FILE = "/log4j-embedded-cassandra.properties";
     private static final String INTERNAL_CASSANDRA_KEYSPACE = "system";
     private static final String INTERNAL_CASSANDRA_AUTH_KEYSPACE = "system_auth";
@@ -40,6 +50,7 @@ public class EmbeddedCassandraServerHelper {
     private static CassandraDaemon cassandraDaemon = null;
     static ExecutorService executor;
     private static String launchedYamlFile;
+    private static final Pattern PORT_PATTERN = Pattern.compile("^([a-z_]+)_port:\\s*([0-9]+)\\s*$", Pattern.MULTILINE);
 
     public static void startEmbeddedCassandra() throws TTransportException, IOException, InterruptedException, ConfigurationException {
         startEmbeddedCassandra(DEFAULT_STARTUP_TIMEOUT);
@@ -74,6 +85,7 @@ public class EmbeddedCassandraServerHelper {
         rmdir(tmpDir);
         copy(yamlFile, tmpDir);
         File file = new File(tmpDir + yamlFile);
+        readAndAdaptYaml(file);
         startEmbeddedCassandra(file, tmpDir, timeout);
     }
 
@@ -147,6 +159,43 @@ public class EmbeddedCassandraServerHelper {
     public static void cleanEmbeddedCassandra() {
         dropKeyspaces();
     }
+
+    /**
+     * Get the embedded cassandra cluster name
+     *
+     * @return the cluster name
+     */
+    public static String getClusterName() {
+        return DatabaseDescriptor.getClusterName();
+    }
+
+    /**
+     * Get embedded cassandra host.
+     *
+     * @return the cassandra host
+     */
+    public static String getHost() {
+        return DatabaseDescriptor.getRpcAddress().getHostName();
+    }
+
+    /**
+     * Get embedded cassandra RPC port.
+     *
+     * @return the cassandra RPC port
+     */
+    public static int getRpcPort() {
+        return DatabaseDescriptor.getRpcPort();
+    }
+
+    /**
+     * Get embedded cassandra native transport port.
+     *
+     * @return the cassandra native transport port.
+     */
+    public static int getNativeTransportPort() {
+        return DatabaseDescriptor.getNativeTransportPort();
+    }
+
 
     private static void dropKeyspaces() {
         String host = DatabaseDescriptor.getRpcAddress().getHostName();
@@ -237,7 +286,63 @@ public class EmbeddedCassandraServerHelper {
 
     public static void mkdirs() {
         DatabaseDescriptor.createAllDirectories();
-
     }
+
+    private static void readAndAdaptYaml(File cassandraConfig) throws IOException {
+        final String yaml = readYamlFileToString(cassandraConfig);
+
+        // read the ports and replace them if zero. dump back the changed string, preserving comments (thus no snakeyaml)
+        Matcher portMatcher = PORT_PATTERN.matcher(yaml);
+        StringBuffer sb = new StringBuffer();
+        boolean replaced = false;
+        while (portMatcher.find()) {
+            String portName = portMatcher.group(1);
+            int portValue = Integer.parseInt(portMatcher.group(2));
+            String replacement;
+            if (portValue == 0) {
+                portValue = findUnusedLocalPort();
+                replacement = portName + "_port: " + portValue;
+                log.info(String.format("Port Configuration replaced: %s",replacement));
+                replaced = true;
+            } else {
+                replacement = portMatcher.group(0);
+            }
+            portMatcher.appendReplacement(sb, replacement);
+        }
+        portMatcher.appendTail(sb);
+
+        if (replaced) {
+            writeStringToYamlFile(cassandraConfig, sb.toString());
+        }
+    }
+
+    private static String readYamlFileToString(File yamlFile) throws IOException {
+        // using UnicodeReader to read the correct encoding according to BOM
+        try (UnicodeReader reader = new UnicodeReader(new FileInputStream(yamlFile))) {
+            StringBuffer sb = new StringBuffer();
+            char[] cbuf = new char[1024];
+
+            int readden = reader.read(cbuf);
+            while(readden >= 0) {
+                sb.append(cbuf, 0, readden);
+                readden = reader.read(cbuf);
+            }
+            return sb.toString();
+        }
+    }
+
+    private static void writeStringToYamlFile(File yamlFile, String yaml) throws IOException {
+        // write utf-8 without BOM
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(yamlFile), "utf-8")) {
+            writer.write(yaml);
+        }
+    }
+
+    private static int findUnusedLocalPort() throws IOException {
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+            return serverSocket.getLocalPort();
+        }
+    }
+
 
 }
