@@ -6,15 +6,15 @@
         <version>3.1.4.0-SNAPSHOT</version>
 	</parent>
     <groupId>org.cassandraunit</groupId>
-	<artifactId>cassandra-unit-spring</artifactId>
+	<artifactId>cassandra-unit-spring-boot</artifactId>
 	<packaging>jar</packaging>
-	<name>cassandra-unit-spring</name>
-	<description>Spring Test framework to develop with Cassandra</description>
+	<name>cassandra-unit-spring-boot</name>
+	<description>Spring Boot Test framework to develop with Cassandra</description>
 
 	<dependencies>
         <dependency>
             <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
+            <artifactId>cassandra-unit-spring</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -44,6 +44,16 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-autoconfigure</artifactId>
+          <version>${spring.boot.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-data-cassandra</artifactId>
+          <version>${spring.boot.version}</version>
+      </dependency>
         <!-- hamcrest could be moved to the test-scope. But as the examples do not declare hamcrest-deps in their pom, 
              better leave them in compile-scope --> 
         <dependency> <!-- dont mix self-contained hamcrest-all and hamcrest-submodules -->
