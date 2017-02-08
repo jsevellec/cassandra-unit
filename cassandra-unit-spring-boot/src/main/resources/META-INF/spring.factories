@@ -1,3 +1,5 @@
 org.cassandraunit.spring.boot.AutoConfigureEmbeddedCassandra=\
 org.cassandraunit.spring.boot.EmbeddedCassandraAutoConfiguration,\
+org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration,\
+org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration,\
 org.springframework.boot.autoconfigure.data.cassandra.CassandraRepositoriesAutoConfiguration
