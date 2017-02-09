@@ -1,9 +1,12 @@
 package org.cassandraunit.spring.boot;
 
+import org.cassandraunit.dataset.DataSetFileExtensionEnum;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.OverrideAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.filter.TypeExcludeFilters;
+import org.springframework.boot.test.autoconfigure.properties.PropertyMapping;
 import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.annotation.AliasFor;
@@ -28,6 +31,7 @@ import java.lang.annotation.Target;
 @TypeExcludeFilters(EmbeddedCassandraTypeExludeFilter.class)
 @AutoConfigureEmbeddedCassandra
 @ImportAutoConfiguration
+@PropertyMapping("cassandraunit")
 public @interface EmbeddedCassandraTest {
   /**
    * Determines if default filtering should be used with
@@ -59,4 +63,10 @@ public @interface EmbeddedCassandraTest {
    */
   @AliasFor(annotation = ImportAutoConfiguration.class, attribute = "exclude")
   Class<?>[] excludeAutoConfiguration() default {};
+
+  String keyspace() default "cassandra_unit_keyspace";
+  String[] dataSets() default {};
+  DataSetFileExtensionEnum type() default DataSetFileExtensionEnum.cql;
+  String configuration() default EmbeddedCassandraServerHelper.CASSANDRA_RNDPORT_YML_FILE;
+  long timeout() default EmbeddedCassandraServerHelper.DEFAULT_STARTUP_TIMEOUT;
 }

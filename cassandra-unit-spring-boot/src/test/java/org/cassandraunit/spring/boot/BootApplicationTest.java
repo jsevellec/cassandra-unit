@@ -4,6 +4,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
 import org.assertj.core.api.Assertions;
+import org.cassandraunit.dataset.DataSetFileExtensionEnum;
 import org.cassandraunit.spring.CassandraDataSet;
 import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
@@ -14,12 +15,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.data.cassandra.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -32,7 +35,13 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(SpringRunner.class)
 //@SpringBootTest
-@EmbeddedCassandraTest
+@EmbeddedCassandraTest(
+    configuration = "someConfiguration",
+    dataSets = {"someDataSets"},
+    keyspace = "someKeyspace",
+    timeout = 1234L,
+    type = DataSetFileExtensionEnum.yaml
+)
 @TestExecutionListeners(listeners = {
     CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class
 }, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
@@ -48,6 +57,8 @@ public class BootApplicationTest {
   private CassandraTemplate cassandraTemplate;
   @Resource
   private CassandraMappingContext cassandraMappingContext;
+  @Resource
+  private Environment environment;
 
   @Test
   public void loadsCassandra(){
