@@ -1,4 +1,4 @@
-package org.cassandraunit.spring.data;
+package org.cassandraunit.spring.boot.model;
 
 import org.springframework.data.cassandra.mapping.Column;
 import org.springframework.data.cassandra.mapping.PrimaryKey;
@@ -10,7 +10,7 @@ import java.util.UUID;
  * @author pfrank
  */
 @Table("testCQLTable1")
-public class TestCqlTable1 {
+public class CqlTable1 {
   @PrimaryKey
   private UUID id;
 
