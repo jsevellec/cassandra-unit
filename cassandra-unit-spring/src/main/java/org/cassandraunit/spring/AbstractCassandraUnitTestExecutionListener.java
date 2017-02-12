@@ -3,11 +3,13 @@ package org.cassandraunit.spring;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.cassandraunit.CQLDataLoader;
+import org.cassandraunit.dataset.DataSetFileExtensionEnum;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 import org.springframework.util.ClassUtils;
@@ -41,22 +43,9 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
 
         CassandraDataSet cassandraDataSet = AnnotationUtils.findAnnotation(testContext.getTestClass(), CassandraDataSet.class);
         if (cassandraDataSet != null) {
-            List<String> dataset = null;
-            ListIterator<String> datasetIterator = null;
-            String keyspace = cassandraDataSet.keyspace();
-
-
-            dataset = dataSetLocations(testContext, cassandraDataSet);
-            datasetIterator = dataset.listIterator();
-
-            CQLDataLoader cqlDataLoader = new CQLDataLoader(EmbeddedCassandraServerHelper.getSession());
-            while (datasetIterator.hasNext()) {
-                String next = datasetIterator.next();
-                boolean dropAndCreateKeyspace = datasetIterator.previousIndex() == 0;
-                cqlDataLoader.load(new ClassPathCQLDataSet(next, dropAndCreateKeyspace, dropAndCreateKeyspace, keyspace));
-            }
+            List<String> dataset = dataSetLocations(testContext, cassandraDataSet);
+            EmbeddedCassandraServerHelper.loadDataSets(EmbeddedCassandraServerHelper.getSession(), cassandraDataSet.keyspace(), dataset);
         }
-
     }
 
     private List<String> dataSetLocations(TestContext testContext, CassandraDataSet cassandraDataSet) {

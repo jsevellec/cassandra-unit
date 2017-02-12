@@ -34,19 +34,9 @@ import static org.junit.Assert.assertEquals;
  * @author pfrank
  */
 @RunWith(SpringRunner.class)
-//@SpringBootTest
 @EmbeddedCassandraTest(
-    configuration = "someConfiguration",
-    dataSets = {"someDataSets"},
-    keyspace = "someKeyspace",
-    timeout = 1234L,
-    type = DataSetFileExtensionEnum.yaml
+    dataSets = {"cql/dataset1.cql"}
 )
-@TestExecutionListeners(listeners = {
-    CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class
-}, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
-@EmbeddedCassandra(configuration = EmbeddedCassandraServerHelper.DEFAULT_CASSANDRA_YML_FILE, timeout = 60000)
-@CassandraDataSet({"cql/dataset1.cql"})
 public class BootApplicationTest {
   private static final Logger LOG = LoggerFactory.getLogger(BootApplicationTest.class);
   @Resource

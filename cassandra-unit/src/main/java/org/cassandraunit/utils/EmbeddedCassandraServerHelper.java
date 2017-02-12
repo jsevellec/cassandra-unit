@@ -11,6 +11,8 @@ import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.service.CassandraDaemon;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.transport.TTransportException;
+import org.cassandraunit.CQLDataLoader;
+import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.reader.UnicodeReader;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,30 +57,30 @@ public class EmbeddedCassandraServerHelper {
     private static com.datastax.driver.core.Cluster cluster;
     private static Session session;
 
-    public static void startEmbeddedCassandra() throws TTransportException, IOException, InterruptedException, ConfigurationException {
-        startEmbeddedCassandra(DEFAULT_STARTUP_TIMEOUT);
+    public static CassandraDaemon startEmbeddedCassandra() throws TTransportException, IOException, InterruptedException, ConfigurationException {
+        return startEmbeddedCassandra(DEFAULT_STARTUP_TIMEOUT);
     }
 
-    public static void startEmbeddedCassandra(long timeout) throws TTransportException, IOException, InterruptedException, ConfigurationException {
-        startEmbeddedCassandra(DEFAULT_CASSANDRA_YML_FILE, timeout);
+    public static CassandraDaemon startEmbeddedCassandra(long timeout) throws TTransportException, IOException, InterruptedException, ConfigurationException {
+        return startEmbeddedCassandra(DEFAULT_CASSANDRA_YML_FILE, timeout);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile) throws TTransportException, IOException, ConfigurationException {
-        startEmbeddedCassandra(yamlFile, DEFAULT_STARTUP_TIMEOUT);
+    public static CassandraDaemon startEmbeddedCassandra(String yamlFile) throws TTransportException, IOException, ConfigurationException {
+        return startEmbeddedCassandra(yamlFile, DEFAULT_STARTUP_TIMEOUT);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile, long timeout) throws TTransportException, IOException, ConfigurationException {
-        startEmbeddedCassandra(yamlFile, DEFAULT_TMP_DIR, timeout);
+    public static CassandraDaemon startEmbeddedCassandra(String yamlFile, long timeout) throws TTransportException, IOException, ConfigurationException {
+        return startEmbeddedCassandra(yamlFile, DEFAULT_TMP_DIR, timeout);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
-        startEmbeddedCassandra(yamlFile, tmpDir, DEFAULT_STARTUP_TIMEOUT);
+    public static CassandraDaemon startEmbeddedCassandra(String yamlFile, String tmpDir) throws TTransportException, IOException, ConfigurationException {
+        return startEmbeddedCassandra(yamlFile, tmpDir, DEFAULT_STARTUP_TIMEOUT);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile, String tmpDir, long timeout) throws TTransportException, IOException, ConfigurationException {
+    public static CassandraDaemon startEmbeddedCassandra(String yamlFile, String tmpDir, long timeout) throws TTransportException, IOException, ConfigurationException {
         if (cassandraDaemon != null) {
             /* nothing to do Cassandra is already started */
-            return;
+            return cassandraDaemon;
         }
 
         if (!StringUtils.startsWith(yamlFile, "/")) {
@@ -88,7 +91,7 @@ public class EmbeddedCassandraServerHelper {
         copy(yamlFile, tmpDir);
         File file = new File(tmpDir + yamlFile);
         readAndAdaptYaml(file);
-        startEmbeddedCassandra(file, tmpDir, timeout);
+        return startEmbeddedCassandra(file, tmpDir, timeout);
     }
 
     /**
@@ -98,10 +101,10 @@ public class EmbeddedCassandraServerHelper {
      * @throws IOException
      * @throws ConfigurationException
      */
-    public static void startEmbeddedCassandra(File file, String tmpDir, long timeout) throws TTransportException, IOException, ConfigurationException {
+    public static CassandraDaemon startEmbeddedCassandra(File file, String tmpDir, long timeout) throws TTransportException, IOException, ConfigurationException {
         if (cassandraDaemon != null) {
             /* nothing to do Cassandra is already started */
-            return;
+            return cassandraDaemon;
         }
 
         checkConfigNameForRestart(file.getAbsolutePath());
@@ -163,6 +166,8 @@ public class EmbeddedCassandraServerHelper {
         } finally {
             executor.shutdown();
         }
+
+        return cassandraDaemon;
     }
 
     private static void checkConfigNameForRestart(String yamlFile) {
@@ -407,4 +412,14 @@ public class EmbeddedCassandraServerHelper {
         }
     }
 
+    public static void loadDataSets(final Session session, final String keyspace, final List<String> dataSetLocations){
+        final ListIterator<String> datasetIterator = dataSetLocations.listIterator();
+
+        final CQLDataLoader cqlDataLoader = new CQLDataLoader(session);
+        while (datasetIterator.hasNext()) {
+            String next = datasetIterator.next();
+            boolean dropAndCreateKeyspace = datasetIterator.previousIndex() == 0;
+            cqlDataLoader.load(new ClassPathCQLDataSet(next, dropAndCreateKeyspace, dropAndCreateKeyspace, keyspace));
+        }
+    }
 }
