@@ -39,11 +39,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring.boot.version}</version>
-        </dependency>
         <!-- hamcrest could be moved to the test-scope. But as the examples do not declare hamcrest-deps in their pom, 
              better leave them in compile-scope --> 
         <dependency> <!-- dont mix self-contained hamcrest-all and hamcrest-submodules -->
