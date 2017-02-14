@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author pfrank
  */
 @ConfigurationProperties(prefix = "cassandraunit")
-public class EmbeddedCassadraTestProperties {
+public class DataCassadraTestProperties {
   private String keyspace;
   private String configuration;
   private String[] dataSets;

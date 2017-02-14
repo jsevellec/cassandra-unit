@@ -11,11 +11,11 @@ import java.util.Set;
  * @author pfrank
  */
 public class EmbeddedCassandraTypeExludeFilter extends AnnotationCustomizableTypeExcludeFilter {
-  private final EmbeddedCassandraTest annotation;
+  private final DataCassandraTest annotation;
 
   EmbeddedCassandraTypeExludeFilter(Class<?> testClass) {
     this.annotation = AnnotatedElementUtils.getMergedAnnotation(testClass,
-        EmbeddedCassandraTest.class);
+        DataCassandraTest.class);
   }
 
   @Override

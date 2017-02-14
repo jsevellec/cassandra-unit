@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
 @AutoConfigureEmbeddedCassandra
 @ImportAutoConfiguration
 @PropertyMapping("cassandraunit")
-public @interface EmbeddedCassandraTest {
+public @interface DataCassandraTest {
   /**
    * Determines if default filtering should be used with
    * {@link SpringBootApplication @SpringBootApplication}. By default no beans are

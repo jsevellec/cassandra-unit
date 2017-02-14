@@ -4,13 +4,8 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
 import org.assertj.core.api.Assertions;
-import org.cassandraunit.dataset.DataSetFileExtensionEnum;
-import org.cassandraunit.spring.CassandraDataSet;
-import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
-import org.cassandraunit.spring.EmbeddedCassandra;
 import org.cassandraunit.spring.boot.model.CqlTable1;
 import org.cassandraunit.spring.boot.repository.CqlTable1Repository;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -19,10 +14,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.data.cassandra.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -34,7 +27,7 @@ import static org.junit.Assert.assertEquals;
  * @author pfrank
  */
 @RunWith(SpringRunner.class)
-@EmbeddedCassandraTest(
+@DataCassandraTest(
     dataSets = {"cql/dataset1.cql"}
 )
 public class BootApplicationTest {

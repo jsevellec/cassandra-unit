@@ -17,13 +17,13 @@ import java.util.Arrays;
  * @author pfrank
  */
 @Configuration
-@EnableConfigurationProperties(EmbeddedCassadraTestProperties.class)
+@EnableConfigurationProperties(DataCassadraTestProperties.class)
 public class EmbeddedCassandraAutoConfiguration {
-  private final EmbeddedCassadraTestProperties embeddedCassadraTestProperties;
+  private final DataCassadraTestProperties dataCassadraTestProperties;
 
   public EmbeddedCassandraAutoConfiguration(
-      final EmbeddedCassadraTestProperties embeddedCassadraTestProperties) {
-    this.embeddedCassadraTestProperties = embeddedCassadraTestProperties;
+      final DataCassadraTestProperties dataCassadraTestProperties) {
+    this.dataCassadraTestProperties = dataCassadraTestProperties;
   }
 
   @Bean
@@ -32,8 +32,8 @@ public class EmbeddedCassandraAutoConfiguration {
     try {
       cassandraDaemon =
           EmbeddedCassandraServerHelper
-              .startEmbeddedCassandra(embeddedCassadraTestProperties.getConfiguration(),
-                                      embeddedCassadraTestProperties.getTimeout());
+              .startEmbeddedCassandra(dataCassadraTestProperties.getConfiguration(),
+                                      dataCassadraTestProperties.getTimeout());
     }catch(TTransportException | IOException x){
       throw new IllegalStateException("Unable to start Cassandra Daemon", x);
     }
@@ -45,9 +45,9 @@ public class EmbeddedCassandraAutoConfiguration {
   public Session session(){
     cassandraDaemon();
     final Session session = EmbeddedCassandraServerHelper.getSession();
-    final String[] dataSets = embeddedCassadraTestProperties.getDataSets();
+    final String[] dataSets = dataCassadraTestProperties.getDataSets();
     if(dataSets != null && dataSets.length > 0) {
-      EmbeddedCassandraServerHelper.loadDataSets(session, embeddedCassadraTestProperties.getKeyspace(),
+      EmbeddedCassandraServerHelper.loadDataSets(session, dataCassadraTestProperties.getKeyspace(),
                                                  Arrays.asList(dataSets));
     }
     return session;
