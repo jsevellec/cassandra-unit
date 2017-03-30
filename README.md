@@ -7,7 +7,7 @@ https://github.com/jsevellec/cassandra-unit/wiki
 What is it?
 -----------
 Like other *Unit projects, CassandraUnit is a Java utility test tool.
-It helps you create your Java Application with Cassandra Database backend.
+It helps you create your Java Application with [Apache Cassandra](http://cassandra.apache.org) Database backend.
 CassandraUnit is for Cassandra what DBUnit is for Relational Databases.
 
 CassandraUnit helps you writing isolated JUnit tests in a Test Driven Development style.
