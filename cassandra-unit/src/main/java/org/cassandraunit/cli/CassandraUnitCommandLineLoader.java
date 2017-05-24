@@ -79,6 +79,16 @@ public class CassandraUnitCommandLineLoader {
         if (yamlFile != null) {
             try {
                 EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(yamlFile), "temp", Long.parseLong(timeout));
+                if (file != null) {
+                    String fileExtension = StringUtils.substringAfterLast(file, ".");
+
+                    if (CQL_FILE_EXTENSION.equals(fileExtension)) {
+                        cqlDataSetLoad(host, port, file);
+                    } else {
+                        otherTypeOfDataSetLoad(host, port, file);
+                    }
+                    System.out.println("Loading completed");
+                }
             } catch (TTransportException | IOException e) {
                 e.printStackTrace();
             }
