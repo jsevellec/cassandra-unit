@@ -7,14 +7,19 @@ import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.FileCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 public class CassandraUnitCommandLineStarter {
 
     private static final String LOCALHOST = "localhost";
     private final static CommandLineParser commandLineParser = new PosixParser();
     private final static Options options = new Options();
+    private static final String CASSANDRA_YAML_TEMPLATE = "runnable/samples/cassandra.yaml";
+    private static final String CASSANDRA_YAML = "cassandra.yaml";
     private static CommandLine commandLine = null;
 
     public static void main(String[] args) {
@@ -51,14 +56,24 @@ public class CassandraUnitCommandLineStarter {
     protected static void load() {
         System.out.println("Starting Cassandra...");
         String port = commandLine.getOptionValue("p");
-        String file = commandLine.getOptionValue("f");
-        String yamlFile = commandLine.getOptionValue("y");
+        String schema = commandLine.getOptionValue("s");
+//        String yamlFile = commandLine.getOptionValue("y");
         String timeout = commandLine.getOptionValue("t");
 
+        Path cassandraYamlPath = Paths.get(CASSANDRA_YAML_TEMPLATE);
+        try (Stream<String> input = Files.lines(cassandraYamlPath);
+             PrintWriter output = new PrintWriter(CASSANDRA_YAML, "UTF-8")) {
+            input.map(line -> line.replace("", port))
+                    .forEachOrdered(output::println);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         try {
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(yamlFile), "temp", Long.parseLong(timeout));
-            if (file != null) {
-                dataSetLoad(LOCALHOST, port, file);
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(CASSANDRA_YAML), "temp", Long.parseLong(timeout));
+            if (hasValidValue(schema)) {
+                dataSetLoad(LOCALHOST, port, schema);
             }
         } catch (TTransportException | IOException e) {
             e.printStackTrace();
@@ -77,7 +92,7 @@ public class CassandraUnitCommandLineStarter {
 
     private static boolean containBadReplicationFactorArgumentValue() {
         String replicationFactor = commandLine.getOptionValue("r");
-        if (replicationFactor != null && !replicationFactor.trim().isEmpty()) {
+        if (hasValidValue(replicationFactor)) {
             try {
                 Integer.parseInt(replicationFactor);
                 return false;
@@ -88,15 +103,19 @@ public class CassandraUnitCommandLineStarter {
         return false;
     }
 
+    private static boolean hasValidValue(String replicationFactor) {
+        return replicationFactor != null && !replicationFactor.trim().isEmpty();
+    }
+
     private static void printUsage(String message) {
         System.out.println(message);
         printUsage();
     }
 
     private static void initOptions() {
-        options.addOption(OptionBuilder.withLongOpt("file").hasArg().withDescription("dataset to load").create("f"));
+        options.addOption(OptionBuilder.withLongOpt("schema").hasArg().withDescription("schema to load").create("s"));
         options.addOption(OptionBuilder.withLongOpt("port").hasArg().withDescription("target port").create("p"));
-        options.addOption(OptionBuilder.withLongOpt("yaml").hasArg().withDescription("yaml file (required)").create("y"));
+//        options.addOption(OptionBuilder.withLongOpt("yaml").hasArg().withDescription("yaml file (required)").create("y"));
         options.addOption(OptionBuilder.withLongOpt("timeout").hasArg().withDescription("start up timeout (required)").create("t"));
     }
 
