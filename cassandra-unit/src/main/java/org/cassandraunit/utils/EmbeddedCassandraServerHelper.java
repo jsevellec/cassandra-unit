@@ -91,13 +91,16 @@ public class EmbeddedCassandraServerHelper {
         startEmbeddedCassandra(file, tmpDir, timeout);
     }
 
-    /**
-     * Set embedded cassandra up and spawn it in a new thread.
-     *
-     * @throws TTransportException
-     * @throws IOException
-     * @throws ConfigurationException
-     */
+    public static void startEmbeddedCassandra(File file, long timeout) throws TTransportException, IOException, ConfigurationException {
+        startEmbeddedCassandra(file, DEFAULT_TMP_DIR, timeout);
+    }
+        /**
+         * Set embedded cassandra up and spawn it in a new thread.
+         *
+         * @throws TTransportException
+         * @throws IOException
+         * @throws ConfigurationException
+         */
     public static void startEmbeddedCassandra(File file, String tmpDir, long timeout) throws TTransportException, IOException, ConfigurationException {
         if (cassandraDaemon != null) {
             /* nothing to do Cassandra is already started */

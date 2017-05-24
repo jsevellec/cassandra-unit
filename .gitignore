@@ -18,3 +18,4 @@ target/
 .DS_Store
 bin/
 
+/runnable/

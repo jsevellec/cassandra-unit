@@ -67,8 +67,6 @@ public class CassandraUnitCommandLineLoaderTest {
         assertThat(CassandraUnitCommandLineLoader.isUsageBeenPrinted(), is(true));
     }
 
-
-
     @Test
     public void shouldLoadCQLDataSet() throws Exception {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra();

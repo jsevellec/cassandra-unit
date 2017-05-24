@@ -2,12 +2,12 @@
 
 mvn install dependency:copy-dependencies -DoutputDirectory=lib
 
-mkdir tmp
+rm -rf runnable
+mkdir runnable
 
-cp -R cassandra-unit/src/main/cli/* tmp
+cp -R cassandra-unit/src/main/cli/* runnable
 
-mkdir tmp/lib
-cp -R cassandra-unit/lib tmp/
+mkdir runnable/lib
+cp -R cassandra-unit/lib runnable/
 
-cp ~/.m2/repository/org/cassandraunit/cassandra-unit/3.1.4.0-SNAPSHOT/cassandra-unit-3.1.4.0-SNAPSHOT.jar tmp/lib/
-
+cp cassandra-unit/target/cassandra-unit-3.1.4.0-SNAPSHOT.jar runnable/lib/
