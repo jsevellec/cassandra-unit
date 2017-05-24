@@ -4,8 +4,12 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.thrift.transport.TTransportException;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.FileCQLDataSet;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+
+import java.io.IOException;
 
 public class CassandraUnitCommandLineLoader {
 
@@ -62,16 +66,25 @@ public class CassandraUnitCommandLineLoader {
         String host = commandLine.getOptionValue("h");
         String port = commandLine.getOptionValue("p");
         String file = commandLine.getOptionValue("f");
+        String yamlFile = commandLine.getOptionValue("y");
+        String timeout = commandLine.getOptionValue("t");
 
-        String fileExtension = StringUtils.substringAfterLast(file, ".");
-
-        if (CQL_FILE_EXTENSION.equals(fileExtension)) {
-            cqlDataSetLoad(host, port, file);
+        if (yamlFile != null) {
+            try {
+                EmbeddedCassandraServerHelper.startEmbeddedCassandra(yamlFile, timeout);
+            } catch (TTransportException | IOException e) {
+                e.printStackTrace();
+            }
         } else {
-            otherTypeOfDataSetLoad(host, port, file);
-        }
+            String fileExtension = StringUtils.substringAfterLast(file, ".");
 
-        System.out.println("Loading completed");
+            if (CQL_FILE_EXTENSION.equals(fileExtension)) {
+                cqlDataSetLoad(host, port, file);
+            } else {
+                otherTypeOfDataSetLoad(host, port, file);
+            }
+            System.out.println("Loading completed");
+        }
     }
 
     private static void otherTypeOfDataSetLoad(String host, String port, String file) {
