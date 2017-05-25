@@ -2,21 +2,10 @@ package org.cassandraunit.cli;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.thrift.transport.TTransportException;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.FileCQLDataSet;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-
-import java.io.File;
-import java.io.IOException;
 
 public class CassandraUnitCommandLineLoader {
 
@@ -73,38 +62,20 @@ public class CassandraUnitCommandLineLoader {
         String host = commandLine.getOptionValue("h");
         String port = commandLine.getOptionValue("p");
         String file = commandLine.getOptionValue("f");
-        String yamlFile = commandLine.getOptionValue("y");
-        String timeout = commandLine.getOptionValue("t");
 
-        if (yamlFile != null) {
-            try {
-                EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(yamlFile), "temp", Long.parseLong(timeout));
-                if (file != null) {
-                    String fileExtension = StringUtils.substringAfterLast(file, ".");
+        String fileExtension = StringUtils.substringAfterLast(file, ".");
 
-                    if (CQL_FILE_EXTENSION.equals(fileExtension)) {
-                        cqlDataSetLoad(host, port, file);
-                    } else {
-                        otherTypeOfDataSetLoad(host, port, file);
-                    }
-                    System.out.println("Loading completed");
-                }
-            } catch (TTransportException | IOException e) {
-                e.printStackTrace();
-            }
+        if (CQL_FILE_EXTENSION.equals(fileExtension)) {
+            cqlDataSetLoad(host, port, file);
         } else {
-            String fileExtension = StringUtils.substringAfterLast(file, ".");
-
-            if (CQL_FILE_EXTENSION.equals(fileExtension)) {
-                cqlDataSetLoad(host, port, file);
-            } else {
-                otherTypeOfDataSetLoad(host, port, file);
-            }
-            System.out.println("Loading completed");
+            otherTypeOfDataSetLoad(host, port, file);
         }
+
+        System.out.println("Loading completed");
     }
 
     private static void otherTypeOfDataSetLoad(String host, String port, String file) {
+
         Cluster cluster = com.datastax.driver.core.Cluster.builder()
                 .addContactPoints(host)
                 .withPort(Integer.parseInt(port))
@@ -134,9 +105,11 @@ public class CassandraUnitCommandLineLoader {
         return false;
     }
 
+
     private static void printUsage(String message) {
         System.out.println(message);
         printUsage();
+
     }
 
     private static void initOptions() {
@@ -147,10 +120,6 @@ public class CassandraUnitCommandLineLoader {
                 .isRequired().create("h"));
         options.addOption(OptionBuilder.withLongOpt("port").hasArg().withDescription("target port (required)")
                 .isRequired().create("p"));
-        options.addOption(OptionBuilder.withLongOpt("yaml").hasArg().withDescription("yaml file (required)")
-                .create("y"));
-        options.addOption(OptionBuilder.withLongOpt("timeout").hasArg().withDescription("start up timeout (required)")
-                .create("t"));
     }
 
     private static void clearStaticAttributes() {
