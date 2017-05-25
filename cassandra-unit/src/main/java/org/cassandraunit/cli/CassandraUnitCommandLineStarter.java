@@ -18,7 +18,7 @@ public class CassandraUnitCommandLineStarter {
     private static final String LOCALHOST = "localhost";
     private final static CommandLineParser commandLineParser = new PosixParser();
     private final static Options options = new Options();
-    private static final String CASSANDRA_YAML_TEMPLATE = "runnable/samples/cassandra.yaml";
+    private static final String CASSANDRA_YAML_TEMPLATE = "directory/samples/cassandra.yaml";
     private static final String CASSANDRA_YAML = "cassandra.yaml";
     private static CommandLine commandLine = null;
 
@@ -57,9 +57,14 @@ public class CassandraUnitCommandLineStarter {
         System.out.println("Starting Cassandra...");
         String port = commandLine.getOptionValue("p");
         String schema = commandLine.getOptionValue("s");
+        String installationFolder = commandLine.getOptionValue("d");
         String timeout = commandLine.getOptionValue("t");
 
-        Path cassandraYamlPath = Paths.get(CASSANDRA_YAML_TEMPLATE);
+        if (!hasValidValue(timeout)) {
+            timeout = "20000";
+        }
+
+        Path cassandraYamlPath = Paths.get(CASSANDRA_YAML_TEMPLATE.replaceFirst("directory", installationFolder));
         try (Stream<String> input = Files.lines(cassandraYamlPath);
              PrintWriter output = new PrintWriter(CASSANDRA_YAML, "UTF-8")) {
             input.map(line -> line.replace("9042", port))
@@ -102,8 +107,8 @@ public class CassandraUnitCommandLineStarter {
         return false;
     }
 
-    private static boolean hasValidValue(String replicationFactor) {
-        return replicationFactor != null && !replicationFactor.trim().isEmpty();
+    private static boolean hasValidValue(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     private static void printUsage(String message) {
@@ -114,7 +119,8 @@ public class CassandraUnitCommandLineStarter {
     private static void initOptions() {
         options.addOption(OptionBuilder.withLongOpt("schema").hasArg().withDescription("schema to load").create("s"));
         options.addOption(OptionBuilder.withLongOpt("port").hasArg().withDescription("target port").create("p"));
-        options.addOption(OptionBuilder.withLongOpt("timeout").hasArg().withDescription("start up timeout (required)").create("t"));
+        options.addOption(OptionBuilder.withLongOpt("timeout").hasArg().withDescription("start up timeout").create("t"));
+        options.addOption(OptionBuilder.withLongOpt("directory").hasArg().withDescription("installation directory").create("d"));
     }
 
     private static void printUsage() {
