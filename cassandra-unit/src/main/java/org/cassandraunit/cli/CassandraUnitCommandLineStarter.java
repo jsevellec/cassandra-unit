@@ -57,13 +57,12 @@ public class CassandraUnitCommandLineStarter {
         System.out.println("Starting Cassandra...");
         String port = commandLine.getOptionValue("p");
         String schema = commandLine.getOptionValue("s");
-//        String yamlFile = commandLine.getOptionValue("y");
         String timeout = commandLine.getOptionValue("t");
 
         Path cassandraYamlPath = Paths.get(CASSANDRA_YAML_TEMPLATE);
         try (Stream<String> input = Files.lines(cassandraYamlPath);
              PrintWriter output = new PrintWriter(CASSANDRA_YAML, "UTF-8")) {
-            input.map(line -> line.replace("", port))
+            input.map(line -> line.replace("9042", port))
                     .forEachOrdered(output::println);
         } catch (IOException e) {
             e.printStackTrace();
@@ -86,7 +85,7 @@ public class CassandraUnitCommandLineStarter {
                 .withPort(Integer.parseInt(port))
                 .build();
         CQLDataLoader dataLoader = new CQLDataLoader(cluster.connect());
-        dataLoader.load(new FileCQLDataSet(file, false));
+        dataLoader.load(new FileCQLDataSet(file));
         System.out.println("Loading completed");
     }
 
@@ -115,7 +114,6 @@ public class CassandraUnitCommandLineStarter {
     private static void initOptions() {
         options.addOption(OptionBuilder.withLongOpt("schema").hasArg().withDescription("schema to load").create("s"));
         options.addOption(OptionBuilder.withLongOpt("port").hasArg().withDescription("target port").create("p"));
-//        options.addOption(OptionBuilder.withLongOpt("yaml").hasArg().withDescription("yaml file (required)").create("y"));
         options.addOption(OptionBuilder.withLongOpt("timeout").hasArg().withDescription("start up timeout (required)").create("t"));
     }
 

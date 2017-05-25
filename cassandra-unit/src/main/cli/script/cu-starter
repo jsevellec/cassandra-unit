@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Use JAVA_HOME if set, otherwise look for java in PATH
+if [ -x $JAVA_HOME/bin/java ]; then
+    JAVA=$JAVA_HOME/bin/java
+else
+    JAVA=`which java`
+fi
+
+# Construct cassandraUnit home
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+CASSANDRA_UNIT_HOME="$( dirname "$SCRIPT_DIR")"
+
+# Construct classpath
+for jar in $CASSANDRA_UNIT_HOME/lib/*.jar; do
+    CLASSPATH=$CLASSPATH:$jar
+done
+
+#add log4j.xml to the classpath
+CLASSPATH=$CLASSPATH:$CASSANDRA_UNIT_HOME/conf/
+
+if [ -z $CLASSPATH ]; then
+    echo "You must set the CLASSPATH var" >&2
+    exit 1
+fi
+
+# Execute cassandraUnit
+$JAVA -ea -cp $CLASSPATH -Xmx256M \
+		-Dlog4j.configuration=log4j-cu-loader.xml \
+        org.cassandraunit.cli.CassandraUnitCommandLineStarter "$@"
