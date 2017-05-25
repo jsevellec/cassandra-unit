@@ -21,7 +21,6 @@ public class ClassPathCQLDataSet extends AbstractCQLDataSet implements CQLDataSe
       super(dataSetLocation, keyspaceCreation, keyspaceDeletion);
     }
 
-
     public ClassPathCQLDataSet(String dataSetLocation, String keyspaceName) {
       super(dataSetLocation, true, true , keyspaceName);
     }

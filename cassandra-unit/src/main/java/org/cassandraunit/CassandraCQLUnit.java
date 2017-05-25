@@ -12,8 +12,8 @@ import com.datastax.driver.core.Session;
  * @author David Webb
  */
 public class CassandraCQLUnit extends BaseCassandraUnit {
-	private CQLDataSet dataSet;
 
+	private CQLDataSet dataSet;
 	public Session session;
 	public Cluster cluster;
 

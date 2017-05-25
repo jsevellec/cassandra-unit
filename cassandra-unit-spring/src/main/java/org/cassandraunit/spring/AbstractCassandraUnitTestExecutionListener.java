@@ -41,13 +41,9 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
 
         CassandraDataSet cassandraDataSet = AnnotationUtils.findAnnotation(testContext.getTestClass(), CassandraDataSet.class);
         if (cassandraDataSet != null) {
-            List<String> dataset = null;
-            ListIterator<String> datasetIterator = null;
             String keyspace = cassandraDataSet.keyspace();
-
-
-            dataset = dataSetLocations(testContext, cassandraDataSet);
-            datasetIterator = dataset.listIterator();
+            List<String> dataset = dataSetLocations(testContext, cassandraDataSet);
+            ListIterator<String> datasetIterator = dataset.listIterator();
 
             CQLDataLoader cqlDataLoader = new CQLDataLoader(EmbeddedCassandraServerHelper.getSession());
             while (datasetIterator.hasNext()) {
@@ -56,7 +52,6 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
                 cqlDataLoader.load(new ClassPathCQLDataSet(next, dropAndCreateKeyspace, dropAndCreateKeyspace, keyspace));
             }
         }
-
     }
 
     private List<String> dataSetLocations(TestContext testContext, CassandraDataSet cassandraDataSet) {

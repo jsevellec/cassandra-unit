@@ -11,7 +11,6 @@ public class GenericType {
     private GenericTypeEnum[] typesBelongingCompositeType;
 
     public GenericType(String value, GenericTypeEnum type) {
-        super();
         this.value = value;
         this.type = type;
     }
@@ -23,7 +22,6 @@ public class GenericType {
      * @param typesBelongingCompositeType the type array belonging the compositeType
      */
     public GenericType(String[] compositeValues, GenericTypeEnum[] typesBelongingCompositeType) {
-        super();
         if ((compositeValues == null) || (typesBelongingCompositeType == null)
                 || (compositeValues.length != typesBelongingCompositeType.length)) {
             throw new IllegalArgumentException(
@@ -32,7 +30,6 @@ public class GenericType {
         this.compositeValues = compositeValues;
         this.type = GenericTypeEnum.COMPOSITE_TYPE;
         this.typesBelongingCompositeType = typesBelongingCompositeType;
-
     }
 
     public String getValue() {
@@ -55,5 +52,4 @@ public class GenericType {
     public String[] getCompositeValues() {
         return compositeValues;
     }
-
 }

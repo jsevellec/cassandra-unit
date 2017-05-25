@@ -14,7 +14,6 @@ public class CQLDataLoader {
     private static final Logger log = LoggerFactory.getLogger(CQLDataLoader.class);
     public static final String DEFAULT_KEYSPACE_NAME = "cassandraunitkeyspace";
 
-
     public Session getSession() {
         return session;
     }
@@ -30,7 +29,7 @@ public class CQLDataLoader {
 
         log.debug("loading data");
         for (String query : dataSet.getCQLStatements()) {
-            log.debug("executing : " + query);
+            log.debug("executing : {}", query);
             session.execute(query);
         }
 
@@ -46,25 +45,22 @@ public class CQLDataLoader {
             keyspaceName = dataSet.getKeyspaceName();
         }
 
-        log.debug("initKeyspaceContext : " +
-                "keyspaceDeletion=" + dataSet.isKeyspaceDeletion() +
-                "keyspaceCreation=" + dataSet.isKeyspaceCreation() +
-                ";keyspaceName=" + keyspaceName);
+        log.debug("initKeyspaceContext : keyspaceDeletion={} keyspaceCreation={} ;keyspaceName={}",
+                dataSet.isKeyspaceDeletion(), dataSet.isKeyspaceCreation(), keyspaceName);
 
         if (dataSet.isKeyspaceDeletion()) {
             String dropQuery = "DROP KEYSPACE IF EXISTS " + keyspaceName;
-            log.debug("executing : " + dropQuery);
+            log.debug("executing : {}", dropQuery);
             session.execute(dropQuery);
         }
 
         if (dataSet.isKeyspaceCreation()) {
             String createQuery = "CREATE KEYSPACE IF NOT EXISTS " + keyspaceName + " WITH replication={'class' : 'SimpleStrategy', 'replication_factor':1} AND durable_writes = false";
-            log.debug("executing : " + createQuery);
+            log.debug("executing : {}", createQuery);
             session.execute(createQuery);
             String useQuery = "USE " + keyspaceName;
-            log.debug("executing : " + useQuery);
+            log.debug("executing : {}", useQuery);
             session.execute(useQuery);
         }
-
     }
 }

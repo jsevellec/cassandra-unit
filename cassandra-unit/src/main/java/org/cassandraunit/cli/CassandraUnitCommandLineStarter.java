@@ -74,7 +74,6 @@ public class CassandraUnitCommandLineStarter {
             e.printStackTrace();
         }
 
-
         try {
             EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(installationFolder, CASSANDRA_YAML), "temp", Long.parseLong(timeout));
             if (hasValidValue(schema)) {

@@ -22,5 +22,4 @@ public class CassandraUnitTestExecutionListener extends AbstractCassandraUnitTes
     public void afterTestMethod(TestContext testContext) throws Exception {
         cleanServer();
     }
-
 }

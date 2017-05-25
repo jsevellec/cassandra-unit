@@ -64,7 +64,7 @@ public class SimpleCQLLexer {
 	}
 	
 	List<String> getStatements() {
-        List<String> statements = new ArrayList<String>();
+        List<String> statements = new ArrayList<>();
         StringBuffer statementUnderConstruction = new StringBuffer();
 
         char c;

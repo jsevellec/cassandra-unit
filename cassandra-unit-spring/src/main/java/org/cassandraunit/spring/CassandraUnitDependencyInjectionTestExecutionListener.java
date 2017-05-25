@@ -24,9 +24,7 @@ public class CassandraUnitDependencyInjectionTestExecutionListener extends Abstr
   @Override
   public void afterTestMethod(TestContext testContext) throws Exception {
     if (Boolean.TRUE.equals(testContext.getAttribute(DependencyInjectionTestExecutionListener.REINJECT_DEPENDENCIES_ATTRIBUTE))) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Cleaning and reloading server for test context [" + testContext + "].");
-      }
+      LOGGER.debug("Cleaning and reloading server for test context [{}]", testContext);
       cleanServer();
       startServer(testContext);
     }
@@ -36,5 +34,4 @@ public class CassandraUnitDependencyInjectionTestExecutionListener extends Abstr
   public void afterTestClass(TestContext testContext) throws Exception {
     cleanServer();
   }
-
 }

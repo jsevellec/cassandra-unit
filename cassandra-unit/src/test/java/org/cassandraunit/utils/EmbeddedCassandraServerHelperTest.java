@@ -30,21 +30,15 @@ public class EmbeddedCassandraServerHelperTest {
     }
 
     private void testIfTheEmbeddedCassandraServerIsUpOnHost(String host, int port) {
-        Cluster cluster = com.datastax.driver.core.Cluster.builder()
+        try (Cluster cluster = Cluster.builder()
                 .addContactPoints(host)
                 .withPort(port)
-                .build();
-
-
-        try {
+                .build()) {
             Session session = cluster.connect();
 
-            assertThat(session.getState().getConnectedHosts().size(),is(1));
+            assertThat(session.getState().getConnectedHosts().size(), is(1));
             KeyspaceMetadata system = session.getCluster().getMetadata().getKeyspace("system");
-            assertThat(system.getTables().size(),not(0));
-
-        } finally {
-            cluster.close();
+            assertThat(system.getTables().size(), not(0));
         }
     }
 }

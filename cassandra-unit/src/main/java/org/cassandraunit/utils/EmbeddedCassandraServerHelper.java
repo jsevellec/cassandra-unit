@@ -258,13 +258,12 @@ public class EmbeddedCassandraServerHelper {
         }
     }
 
-
     private static void dropKeyspaces() {
             dropKeyspacesWithNativeDriver();
     }
 
     private static void dropKeyspacesWithNativeDriver() {
-        List<String> keyspaces = new ArrayList<String>();
+        List<String> keyspaces = new ArrayList<>();
         for (com.datastax.driver.core.KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
             if (!isSystemKeyspaceName(keyspace.getName())) {
                 keyspaces.add(keyspace.getName());
@@ -411,5 +410,4 @@ public class EmbeddedCassandraServerHelper {
             return serverSocket.getLocalPort();
         }
     }
-
 }

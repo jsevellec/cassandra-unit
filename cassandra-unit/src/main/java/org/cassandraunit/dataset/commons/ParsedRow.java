@@ -9,8 +9,8 @@ import java.util.List;
 public class ParsedRow {
 
     private String key;
-    private List<ParsedSuperColumn> superColumns = new ArrayList<ParsedSuperColumn>();
-    private List<ParsedColumn> columns = new ArrayList<ParsedColumn>();
+    private List<ParsedSuperColumn> superColumns = new ArrayList<>();
+    private List<ParsedColumn> columns = new ArrayList<>();
 
     public String getKey() {
         return key;
@@ -35,5 +35,4 @@ public class ParsedRow {
     public List<ParsedColumn> getColumns() {
         return columns;
     }
-
 }

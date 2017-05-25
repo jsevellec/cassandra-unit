@@ -32,5 +32,4 @@ public class ParsedColumn {
     public String getTimestamp() {
         return timestamp;
     }
-
 }

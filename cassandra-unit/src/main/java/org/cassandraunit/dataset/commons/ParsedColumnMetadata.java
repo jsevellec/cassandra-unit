@@ -38,5 +38,4 @@ public class ParsedColumnMetadata {
     public void setIndexName(String indexName) {
         this.indexName = indexName;
     }
-
 }

@@ -9,5 +9,4 @@ public class CassandraUnitException extends RuntimeException {
     public CassandraUnitException(String message) {
         super(message);
     }
-
 }
