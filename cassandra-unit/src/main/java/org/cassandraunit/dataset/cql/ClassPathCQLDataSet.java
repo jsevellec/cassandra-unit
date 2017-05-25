@@ -35,7 +35,6 @@ public class ClassPathCQLDataSet extends AbstractCQLDataSet implements CQLDataSe
 
     @Override
     protected InputStream getInputDataSetLocation(String dataSetLocation) {
-        InputStream inputDataSetLocation = this.getClass().getResourceAsStream("/" + dataSetLocation);
-        return inputDataSetLocation;
+        return this.getClass().getResourceAsStream("/" + dataSetLocation);
     }
 }

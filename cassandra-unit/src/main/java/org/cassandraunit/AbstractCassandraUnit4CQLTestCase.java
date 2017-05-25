@@ -1,6 +1,5 @@
 package org.cassandraunit;
 
-import com.datastax.driver.core.CloseFuture;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.After;

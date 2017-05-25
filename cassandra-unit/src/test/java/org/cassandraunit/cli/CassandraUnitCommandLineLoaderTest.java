@@ -13,7 +13,7 @@ import static org.junit.Assert.assertThat;
 
 public class CassandraUnitCommandLineLoaderTest {
 
-    public void shouldPrintUsageWhenNoArgumentsSpecified() throws Exception {
+    public void shouldPrintUsageWhenNoArgumentsSpecified() {
         String[] args = {};
         CassandraUnitCommandLineLoader.main(args);
         assertThat(CassandraUnitCommandLineLoader.isUsageBeenPrinted(), is(true));

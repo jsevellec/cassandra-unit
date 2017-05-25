@@ -1,10 +1,10 @@
 package org.cassandraunit.spring;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -16,6 +16,7 @@ import org.springframework.util.ResourceUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
 
 /**
  * The goal of this abstract listener is to provide utility methods for its subclasses to be able to :
@@ -25,7 +26,7 @@ import java.util.ListIterator;
  * @author Gaëtan Le Brun
  */
 public abstract class AbstractCassandraUnitTestExecutionListener extends AbstractTestExecutionListener implements Ordered {
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CassandraUnitTestExecutionListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraUnitTestExecutionListener.class);
     private static boolean initialized = false;
 
     protected void startServer(TestContext testContext) throws Exception {
@@ -33,7 +34,7 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
                 AnnotationUtils.findAnnotation(testContext.getTestClass(), EmbeddedCassandra.class),
                 "CassandraUnitTestExecutionListener must be used with @EmbeddedCassandra on " + testContext.getTestClass());
         if (!initialized) {
-            String yamlFile = Optional.fromNullable(embeddedCassandra.configuration()).get();
+            String yamlFile = Optional.ofNullable(embeddedCassandra.configuration()).get();
             long timeout = embeddedCassandra.timeout();
             EmbeddedCassandraServerHelper.startEmbeddedCassandra(yamlFile, timeout);
             initialized = true;

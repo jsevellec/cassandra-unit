@@ -79,7 +79,7 @@ public class CassandraUnitCommandLineStarter {
             if (hasValidValue(schema)) {
                 dataSetLoad(LOCALHOST, port, schema);
             }
-        } catch (TTransportException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

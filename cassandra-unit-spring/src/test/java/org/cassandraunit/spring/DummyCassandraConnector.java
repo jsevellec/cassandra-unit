@@ -1,8 +1,5 @@
 package org.cassandraunit.spring;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;

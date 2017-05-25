@@ -2,6 +2,7 @@ package org.cassandraunit.dataset.cql;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Steve Nicolai
@@ -32,13 +33,10 @@ public class SimpleCQLLexer {
     int pos;
 
 	public SimpleCQLLexer(List<String> lines) {
-    	StringBuffer t = new StringBuffer();
-    	for (String l : lines) {
-    		t.append(l.trim());
-    		t.append('\n');
-    	}
-    	
-    	text = t.toString();
+		text = lines.stream()
+				.map(String::trim)
+				.collect(Collectors.joining("\n"));
+
     	pos = 0;
     	state = LexState.DEFAULT;
 	}
@@ -65,7 +63,7 @@ public class SimpleCQLLexer {
 	
 	List<String> getStatements() {
         List<String> statements = new ArrayList<>();
-        StringBuffer statementUnderConstruction = new StringBuffer();
+        StringBuilder statementUnderConstruction = new StringBuilder();
 
         char c;
     	while ((c = getChar()) != 0) {    		

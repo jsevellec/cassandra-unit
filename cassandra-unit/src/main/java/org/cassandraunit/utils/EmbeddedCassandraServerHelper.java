@@ -58,7 +58,7 @@ public class EmbeddedCassandraServerHelper {
         startEmbeddedCassandra(DEFAULT_STARTUP_TIMEOUT);
     }
 
-    public static void startEmbeddedCassandra(long timeout) throws TTransportException, IOException, InterruptedException, ConfigurationException {
+    public static void startEmbeddedCassandra(long timeout) throws TTransportException, ConfigurationException, IOException {
         startEmbeddedCassandra(DEFAULT_CASSANDRA_YML_FILE, timeout);
     }
 
@@ -101,7 +101,7 @@ public class EmbeddedCassandraServerHelper {
          * @throws IOException
          * @throws ConfigurationException
          */
-    public static void startEmbeddedCassandra(File file, String tmpDir, long timeout) throws TTransportException, IOException, ConfigurationException {
+    public static void startEmbeddedCassandra(File file, String tmpDir, long timeout) throws IOException, ConfigurationException {
         if (cassandraDaemon != null) {
             /* nothing to do Cassandra is already started */
             return;
@@ -128,13 +128,10 @@ public class EmbeddedCassandraServerHelper {
         cleanupAndLeaveDirs();
         final CountDownLatch startupLatch = new CountDownLatch(1);
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                cassandraDaemon = new CassandraDaemon();
-                cassandraDaemon.activate();
-                startupLatch.countDown();
-            }
+        executor.execute(() -> {
+            cassandraDaemon = new CassandraDaemon();
+            cassandraDaemon.activate();
+            startupLatch.countDown();
         });
         try {
             if (!startupLatch.await(timeout, MILLISECONDS)) {
@@ -154,12 +151,9 @@ public class EmbeddedCassandraServerHelper {
 
             session = cluster.connect();
 
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    session.close();
-                    cluster.close();
-                }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                session.close();
+                cluster.close();
             }));
         } catch (InterruptedException e) {
             log.error("Interrupted waiting for Cassandra daemon to start:", e);
@@ -282,7 +276,7 @@ public class EmbeddedCassandraServerHelper {
                || INTERNAL_CASSANDRA_TRACES_KEYSPACE.equals(keyspaceName);
     }
     
-    private static void rmdir(String dir) throws IOException {
+    private static void rmdir(String dir) {
         File dirFile = new File(dir);
         if (dirFile.exists()) {
             FileUtils.deleteRecursive(new File(dir));
@@ -319,7 +313,7 @@ public class EmbeddedCassandraServerHelper {
      * @param dir
      * @throws IOException
      */
-    private static void mkdir(String dir) throws IOException {
+    private static void mkdir(String dir) {
         FileUtils.createDirectory(dir);
     }
 
@@ -331,7 +325,7 @@ public class EmbeddedCassandraServerHelper {
         commitLog.resetUnsafe(true); // cleanup screws w/ CommitLog, this brings it back to safe state
     }
 
-    private static void cleanup() throws IOException {
+    private static void cleanup() {
         // clean up commitlog
         String[] directoryNames = {DatabaseDescriptor.getCommitLogLocation(),};
         for (String dirName : directoryNames) {
@@ -386,7 +380,7 @@ public class EmbeddedCassandraServerHelper {
     private static String readYamlFileToString(File yamlFile) throws IOException {
         // using UnicodeReader to read the correct encoding according to BOM
         try (UnicodeReader reader = new UnicodeReader(new FileInputStream(yamlFile))) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             char[] cbuf = new char[1024];
 
             int readden = reader.read(cbuf);

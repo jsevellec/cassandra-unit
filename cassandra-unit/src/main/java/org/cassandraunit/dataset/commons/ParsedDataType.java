@@ -6,5 +6,5 @@ package org.cassandraunit.dataset.commons;
 public enum ParsedDataType {
 
     BytesType, IntegerType, LexicalUUIDType, LongType, TimeUUIDType, UTF8Type, UUIDType, CounterColumnType,
-    AsciiType, BooleanType, DateType, DoubleType, FloatType;
+    AsciiType, BooleanType, DateType, DoubleType, FloatType
 }

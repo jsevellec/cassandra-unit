@@ -29,7 +29,6 @@ public class CassandraUnitCommandLineLoader {
         } else {
             load();
         }
-
     }
 
     protected static boolean parseCommandLine(String[] args) {
@@ -54,7 +53,6 @@ public class CassandraUnitCommandLineLoader {
         }
 
         return exit;
-
     }
 
     protected static void load() {
@@ -105,11 +103,9 @@ public class CassandraUnitCommandLineLoader {
         return false;
     }
 
-
     private static void printUsage(String message) {
         System.out.println(message);
         printUsage();
-
     }
 
     private static void initOptions() {
