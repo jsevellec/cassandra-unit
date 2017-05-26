@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Jeremy Sevellec
@@ -50,8 +51,7 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
 
     @Override
     public List<String> getCQLStatements() {
-        List<String> lines = getLines();
-        return linesToCQLStatements(lines);
+        return linesToCQLStatements(getLines());
     }
 
     private List<String> linesToCQLStatements(List<String> lines) {
@@ -61,18 +61,8 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
 
     public List<String> getLines() {
         InputStream inputStream = getInputDataSetLocation(dataSetLocation);
-        final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        BufferedReader br = new BufferedReader(inputStreamReader);
-        String line;
-        List<String> cqlQueries = new ArrayList<>();
-        try {
-            while ((line = br.readLine()) != null) {
-                if (StringUtils.isNotBlank(line)) {
-                    cqlQueries.add(line);
-                }
-            }
-            br.close();
-            return cqlQueries;
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream))) {
+            return buffer.lines().collect(Collectors.toList());
         } catch (IOException e) {
             throw new ParseException(e);
         }
