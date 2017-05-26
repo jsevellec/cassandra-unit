@@ -12,17 +12,14 @@ public class CQLDataLoadTestWithNoKeyspaceDeletion {
     @Rule
     public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet("cql/simple.cql", true, false, "mykeyspace"));
 
-
     @Test
     public void testCQLDataAreInPlace() throws Exception {
         test();
-
     }
 
     @Test
     public void sameTestToMakeSureMultipleTestsAreFine() throws Exception {
         test();
-
     }
 
     private void test() {
@@ -31,5 +28,4 @@ public class CQLDataLoadTestWithNoKeyspaceDeletion {
         final String val = result.iterator().next().getString("value");
         assertEquals("Cql loaded string", val);
     }
-
 }

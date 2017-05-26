@@ -3,7 +3,6 @@ package org.cassandraunit.utils;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.TableMetadata;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.db.commitlog.CommitLog;
 import org.apache.cassandra.exceptions.ConfigurationException;
@@ -13,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.reader.UnicodeReader;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -21,8 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,8 +56,8 @@ public class EmbeddedCassandraServerHelper {
             INTERNAL_CASSANDRA_AUTH_KEYSPACE, INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE,
             INTERNAL_CASSANDRA_SCHEMA_KEYSPACE, INTERNAL_CASSANDRA_TRACES_KEYSPACE));
 
-    public static Predicate<KeyspaceMetadata> nonSystemKeyspaces() {
-        return metadata -> !systemKeyspaces.contains(metadata.getName());
+    public static Predicate<String> nonSystemKeyspaces() {
+        return keyspace -> !systemKeyspaces.contains(keyspace);
     }
 
     private static CassandraDaemon cassandraDaemon = null;
@@ -261,7 +257,8 @@ public class EmbeddedCassandraServerHelper {
         cluster.getMetadata().getKeyspace(keyspace).getTables().stream()
                 .map(table -> table.getName())
                 .filter(tableName -> !excludedTableList.contains(tableName))
-                .forEach(tableName -> session.execute("truncate table " + keyspace + "." + tableName));
+                .map(tableName -> keyspace + "." + tableName)
+                .forEach(CqlOperations.truncateTable(session));
     }
 
     private static void dropKeyspaces() {
@@ -270,8 +267,9 @@ public class EmbeddedCassandraServerHelper {
 
     private static void dropKeyspacesWithNativeDriver() {
         cluster.getMetadata().getKeyspaces().stream()
+                .map(KeyspaceMetadata::getName)
                 .filter(nonSystemKeyspaces())
-                .forEach(keyspace -> session.execute("DROP KEYSPACE " + keyspace.getName()));
+                .forEach(CqlOperations.dropKeyspace(session));
     }
     
     private static void rmdir(String dir) {

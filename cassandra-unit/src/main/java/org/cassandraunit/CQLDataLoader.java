@@ -2,8 +2,11 @@ package org.cassandraunit;
 
 import com.datastax.driver.core.Session;
 import org.cassandraunit.dataset.CQLDataSet;
+import org.cassandraunit.utils.CqlOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.cassandraunit.utils.CqlOperations.*;
 
 /**
  * @author Marcin Szymaniuk
@@ -28,14 +31,11 @@ public class CQLDataLoader {
         initKeyspaceContext(session, dataSet);
 
         log.debug("loading data");
-        for (String query : dataSet.getCQLStatements()) {
-            log.debug("executing : {}", query);
-            session.execute(query);
-        }
+        dataSet.getCQLStatements().stream()
+                .forEach(execute(session));
 
         if (dataSet.getKeyspaceName() != null) {
-            String useQuery = "use " + dataSet.getKeyspaceName();
-            session.execute(useQuery);
+            use(session).accept(dataSet.getKeyspaceName());
         }
     }
 
@@ -49,18 +49,12 @@ public class CQLDataLoader {
                 dataSet.isKeyspaceDeletion(), dataSet.isKeyspaceCreation(), keyspaceName);
 
         if (dataSet.isKeyspaceDeletion()) {
-            String dropQuery = "DROP KEYSPACE IF EXISTS " + keyspaceName;
-            log.debug("executing : {}", dropQuery);
-            session.execute(dropQuery);
+            dropKeyspace(session).accept(keyspaceName);
         }
 
         if (dataSet.isKeyspaceCreation()) {
-            String createQuery = "CREATE KEYSPACE IF NOT EXISTS " + keyspaceName + " WITH replication={'class' : 'SimpleStrategy', 'replication_factor':1} AND durable_writes = false";
-            log.debug("executing : {}", createQuery);
-            session.execute(createQuery);
-            String useQuery = "USE " + keyspaceName;
-            log.debug("executing : {}", useQuery);
-            session.execute(useQuery);
+            createKeyspace(session).accept(keyspaceName);
+            use(session).accept(keyspaceName);
         }
     }
 }

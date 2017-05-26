@@ -15,23 +15,19 @@ import static org.junit.Assert.assertEquals;
  */
 public class CQLDataLoadTestWithClassInheritance extends AbstractCassandraUnit4CQLTestCase {
 
-
     @Override
     public CQLDataSet getDataSet() {
         return new ClassPathCQLDataSet("cql/simple.cql", "mykeyspace");
     }
 
-
     @Test
 	public void testCQLDataAreInPlace() throws Exception {
         test();
-
 	}
 
     @Test
     public void sameTestToMakeSureMultipleTestsAreFine() throws Exception {
         test();
-
     }
 
     private void test() {
@@ -40,5 +36,4 @@ public class CQLDataLoadTestWithClassInheritance extends AbstractCassandraUnit4C
         String val = result.iterator().next().getString("value");
         assertEquals("Cql loaded string",val);
     }
-
 }
