@@ -17,13 +17,19 @@ import org.yaml.snakeyaml.reader.UnicodeReader;
 
 import java.io.*;
 import java.net.ServerSocket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +54,14 @@ public class EmbeddedCassandraServerHelper {
     private static final String INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE = "system_distributed";
     private static final String INTERNAL_CASSANDRA_SCHEMA_KEYSPACE = "system_schema";
     private static final String INTERNAL_CASSANDRA_TRACES_KEYSPACE = "system_traces";
+
+    private static final Set<String> systemKeyspaces = new HashSet<>(Arrays.asList(INTERNAL_CASSANDRA_KEYSPACE,
+            INTERNAL_CASSANDRA_AUTH_KEYSPACE, INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE,
+            INTERNAL_CASSANDRA_SCHEMA_KEYSPACE, INTERNAL_CASSANDRA_TRACES_KEYSPACE));
+
+    public static Predicate<KeyspaceMetadata> nonSystemKeyspaces() {
+        return metadata -> !systemKeyspaces.contains(metadata.getName());
+    }
 
     private static CassandraDaemon cassandraDaemon = null;
     private static String launchedYamlFile;
@@ -241,15 +255,11 @@ public class EmbeddedCassandraServerHelper {
     }
 
     private static void cleanDataWithNativeDriver(String keyspace, String... excludedTables) {
-        final KeyspaceMetadata keyspaceMetadata = cluster.getMetadata().getKeyspace(keyspace);
-        final Collection<TableMetadata> tables = keyspaceMetadata.getTables();
-        List<String> excludeTableList = Arrays.asList(excludedTables);
-        for (TableMetadata table : tables) {
-            final String tableName = table.getName();
-            if (!excludeTableList.contains(tableName)) {
-                session.execute("truncate table " + keyspace + "." + tableName);
-            }
-        }
+        HashSet<String> excludedTableList = new HashSet<>(Arrays.asList(excludedTables));
+        cluster.getMetadata().getKeyspace(keyspace).getTables().stream()
+                .map(table -> table.getName())
+                .filter(tableName -> !excludedTableList.contains(tableName))
+                .forEach(tableName -> session.execute("truncate table " + keyspace + "." + tableName));
     }
 
     private static void dropKeyspaces() {
@@ -257,25 +267,15 @@ public class EmbeddedCassandraServerHelper {
     }
 
     private static void dropKeyspacesWithNativeDriver() {
-        for (KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
-            if (!isSystemKeyspaceName(keyspace.getName())) {
-                session.execute("DROP KEYSPACE " + keyspace.getName());
-            }
-        }
-    }
-    
-    private static boolean isSystemKeyspaceName(String keyspaceName) {
-        return    INTERNAL_CASSANDRA_KEYSPACE.equals(keyspaceName) 
-               || INTERNAL_CASSANDRA_AUTH_KEYSPACE.equals(keyspaceName)
-               || INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE.equals(keyspaceName)
-               || INTERNAL_CASSANDRA_SCHEMA_KEYSPACE.equals(keyspaceName)
-               || INTERNAL_CASSANDRA_TRACES_KEYSPACE.equals(keyspaceName);
+        cluster.getMetadata().getKeyspaces().stream()
+                .filter(nonSystemKeyspaces())
+                .forEach(keyspace -> session.execute("DROP KEYSPACE " + keyspace.getName()));
     }
     
     private static void rmdir(String dir) {
         File dirFile = new File(dir);
         if (dirFile.exists()) {
-            FileUtils.deleteRecursive(new File(dir));
+            FileUtils.deleteRecursive(dirFile);
         }
     }
 
@@ -289,18 +289,8 @@ public class EmbeddedCassandraServerHelper {
     private static void copy(String resource, String directory) throws IOException {
         mkdir(directory);
         String fileName = resource.substring(resource.lastIndexOf("/") + 1);
-        File file = new File(directory + System.getProperty("file.separator") + fileName);
-        try (
-            InputStream is = EmbeddedCassandraServerHelper.class.getResourceAsStream(resource);
-            OutputStream out = new FileOutputStream(file)
-        ) {
-            byte buf[] = new byte[1024];
-            int len;
-            while ((len = is.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-            out.close();
-        }
+        InputStream from = EmbeddedCassandraServerHelper.class.getResourceAsStream(resource);
+        Files.copy(from, Paths.get(directory + System.getProperty("file.separator") + fileName));
     }
 
     /**
@@ -322,18 +312,10 @@ public class EmbeddedCassandraServerHelper {
     }
 
     private static void cleanup() {
-        // clean up commitlog
-        String[] directoryNames = {DatabaseDescriptor.getCommitLogLocation(),};
-        for (String dirName : directoryNames) {
-            File dir = new File(dirName);
-            if (!dir.exists())
-                throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
-            FileUtils.deleteRecursive(dir);
-        }
-
-        // clean up data directory which are stored as data directory/table/data
-        // files
-        for (String dirName : DatabaseDescriptor.getAllDataFileLocations()) {
+        // clean up commitlog and data directory which are stored as data directory/table/data files
+        List<String> directories = new ArrayList<>(Arrays.asList(DatabaseDescriptor.getAllDataFileLocations()));
+        directories.add(DatabaseDescriptor.getCommitLogLocation());
+        for (String dirName : directories) {
             File dir = new File(dirName);
             if (!dir.exists())
                 throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
