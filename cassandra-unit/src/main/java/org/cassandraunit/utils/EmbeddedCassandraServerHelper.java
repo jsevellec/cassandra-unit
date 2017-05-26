@@ -257,14 +257,10 @@ public class EmbeddedCassandraServerHelper {
     }
 
     private static void dropKeyspacesWithNativeDriver() {
-        List<String> keyspaces = new ArrayList<>();
-        for (com.datastax.driver.core.KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
+        for (KeyspaceMetadata keyspace : cluster.getMetadata().getKeyspaces()) {
             if (!isSystemKeyspaceName(keyspace.getName())) {
-                keyspaces.add(keyspace.getName());
+                session.execute("DROP KEYSPACE " + keyspace.getName());
             }
-        }
-        for (String keyspace : keyspaces) {
-            session.execute("DROP KEYSPACE " + keyspace);
         }
     }
     

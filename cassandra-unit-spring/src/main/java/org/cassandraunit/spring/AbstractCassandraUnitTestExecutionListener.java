@@ -1,6 +1,5 @@
 package org.cassandraunit.spring;
 
-import com.google.common.base.Preconditions;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -16,6 +15,7 @@ import org.springframework.util.ResourceUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -30,8 +30,7 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
     private static boolean initialized = false;
 
     protected void startServer(TestContext testContext) throws Exception {
-        EmbeddedCassandra embeddedCassandra = Preconditions.checkNotNull(
-                AnnotationUtils.findAnnotation(testContext.getTestClass(), EmbeddedCassandra.class),
+        EmbeddedCassandra embeddedCassandra = Objects.requireNonNull(AnnotationUtils.findAnnotation(testContext.getTestClass(), EmbeddedCassandra.class),
                 "CassandraUnitTestExecutionListener must be used with @EmbeddedCassandra on " + testContext.getTestClass());
         if (!initialized) {
             String yamlFile = Optional.ofNullable(embeddedCassandra.configuration()).get();
