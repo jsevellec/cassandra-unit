@@ -1,0 +1,9 @@
+CREATE KEYSPACE mykeyspace WITH placement_strategy = 'SimpleStrategy'
+    AND strategy_options = {replication_factor:1};
+
+USE mykeyspace;
+
+CREATE COLUMN FAMILY shopping_cart
+    WITH key_validation_class='LongType'
+    AND comparator = 'UTF8Type'
+    AND default_validation_class = 'UTF8Type';
