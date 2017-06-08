@@ -68,6 +68,7 @@ public class CassandraUnitCommandLineStarter {
         try (Stream<String> input = Files.lines(cassandraYamlPath);
              PrintWriter output = new PrintWriter(new File(installationFolder, CASSANDRA_YAML), "UTF-8")) {
             input.map(line -> line.replace("9042", port))
+                    .map(line -> line.replace("temp/", installationFolder + "/temp/"))
                     .forEachOrdered(output::println);
         } catch (IOException e) {
             e.printStackTrace();
