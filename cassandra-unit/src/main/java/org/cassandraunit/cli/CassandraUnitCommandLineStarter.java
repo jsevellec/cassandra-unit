@@ -66,7 +66,7 @@ public class CassandraUnitCommandLineStarter {
 
         Path cassandraYamlPath = Paths.get(CASSANDRA_YAML_TEMPLATE.replaceFirst("directory", installationFolder));
         try (Stream<String> input = Files.lines(cassandraYamlPath);
-             PrintWriter output = new PrintWriter(CASSANDRA_YAML, "UTF-8")) {
+             PrintWriter output = new PrintWriter(new File(installationFolder, CASSANDRA_YAML), "UTF-8")) {
             input.map(line -> line.replace("9042", port))
                     .forEachOrdered(output::println);
         } catch (IOException e) {
@@ -75,7 +75,7 @@ public class CassandraUnitCommandLineStarter {
 
 
         try {
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(CASSANDRA_YAML), "temp", Long.parseLong(timeout));
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(installationFolder, CASSANDRA_YAML), "temp", Long.parseLong(timeout));
             if (hasValidValue(schema)) {
                 dataSetLoad(LOCALHOST, port, schema);
             }
