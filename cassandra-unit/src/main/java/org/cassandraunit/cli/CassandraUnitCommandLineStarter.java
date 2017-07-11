@@ -56,7 +56,7 @@ public class CassandraUnitCommandLineStarter {
     protected static void load() {
         System.out.println("Starting Cassandra...");
         String port = commandLine.getOptionValue("p");
-        String schema = commandLine.getOptionValue("s");
+        String schemaOption = commandLine.getOptionValue("s");
         String installationFolder = commandLine.getOptionValue("d");
         String timeout = commandLine.getOptionValue("t");
 
@@ -77,8 +77,11 @@ public class CassandraUnitCommandLineStarter {
 
         try {
             EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(installationFolder, CASSANDRA_YAML), "temp", Long.parseLong(timeout));
-            if (hasValidValue(schema)) {
-                dataSetLoad(LOCALHOST, port, schema);
+            if (hasValidValue(schemaOption)) {
+                String[] schemas = schemaOption.split(",");
+                for (String schema : schemas) {
+                    dataSetLoad(LOCALHOST, port, schema);
+                }
             }
         } catch (TTransportException | IOException e) {
             e.printStackTrace();
