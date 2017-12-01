@@ -46,6 +46,7 @@
                                     <include>com.yammer.metrics:metrics-core</include>
                                     <include>com.addthis.metrics:*</include>
                                     <include>io.netty:*</include>
+                                    <include>org.apache.thrift:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -76,6 +77,10 @@
                                 <relocation>
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>${shade.prefix}.io.netty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.thrift</pattern>
+                                    <shadedPattern>${shade.prefix}.org.apache.thrift</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
