@@ -158,6 +158,7 @@ public class EmbeddedCassandraServerHelper {
                 .addContactPoints(EmbeddedCassandraServerHelper.getHost())
                 .withPort(EmbeddedCassandraServerHelper.getNativeTransportPort())
                 .withQueryOptions(queryOptions)
+                .withoutMetrics()
                 .build();
 
             session = cluster.connect();
