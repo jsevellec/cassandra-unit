@@ -34,8 +34,9 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
                 "CassandraUnitTestExecutionListener must be used with @EmbeddedCassandra on " + testContext.getTestClass());
         if (!initialized) {
             String yamlFile = Optional.ofNullable(embeddedCassandra.configuration()).get();
+            String tmpDir = embeddedCassandra.tmpDir();
             long timeout = embeddedCassandra.timeout();
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra(yamlFile, timeout);
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra(yamlFile, tmpDir, timeout);
             initialized = true;
         }
 
