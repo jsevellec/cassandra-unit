@@ -59,6 +59,7 @@ public class CassandraUnitCommandLineStarter {
         String schemaOption = commandLine.getOptionValue("s");
         String installationFolder = commandLine.getOptionValue("d");
         String timeout = commandLine.getOptionValue("t");
+        String tmpDir = installationFolder + "/temp";
 
         if (!hasValidValue(timeout)) {
             timeout = "20000";
@@ -68,14 +69,14 @@ public class CassandraUnitCommandLineStarter {
         try (Stream<String> input = Files.lines(cassandraYamlPath);
              PrintWriter output = new PrintWriter(new File(installationFolder, CASSANDRA_YAML), "UTF-8")) {
             input.map(line -> line.replace("9042", port))
-                    .map(line -> line.replace("temp/", installationFolder + "/temp/"))
+                    .map(line -> line.replace("temp/", tmpDir + "/"))
                     .forEachOrdered(output::println);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(installationFolder, CASSANDRA_YAML), "temp", Long.parseLong(timeout));
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra(new File(installationFolder, CASSANDRA_YAML), tmpDir, Long.parseLong(timeout));
             if (hasValidValue(schemaOption)) {
                 String[] schemas = schemaOption.split(",");
                 for (String schema : schemas) {
