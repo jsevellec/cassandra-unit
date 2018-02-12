@@ -17,6 +17,7 @@ import org.yaml.snakeyaml.reader.UnicodeReader;
 import java.io.*;
 import java.net.ServerSocket;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,8 +97,7 @@ public class EmbeddedCassandraServerHelper {
         }
 
         rmdir(tmpDir);
-        copy(yamlFile, tmpDir);
-        File file = new File(tmpDir + yamlFile);
+        File file = copy(yamlFile, tmpDir).toFile();
         readAndAdaptYaml(file);
         startEmbeddedCassandra(file, tmpDir, timeout);
     }
@@ -285,11 +285,13 @@ public class EmbeddedCassandraServerHelper {
      * @param directory
      * @throws IOException
      */
-    private static void copy(String resource, String directory) throws IOException {
+    private static Path copy(String resource, String directory) throws IOException {
         mkdir(directory);
         String fileName = resource.substring(resource.lastIndexOf("/") + 1);
         InputStream from = EmbeddedCassandraServerHelper.class.getResourceAsStream(resource);
-        Files.copy(from, Paths.get(directory + System.getProperty("file.separator") + fileName));
+        Path copyName = Paths.get(directory, fileName);
+        Files.copy(from, copyName);
+        return copyName;
     }
 
     /**
