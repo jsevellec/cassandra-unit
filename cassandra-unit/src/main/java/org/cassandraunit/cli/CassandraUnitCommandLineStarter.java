@@ -90,6 +90,7 @@ public class CassandraUnitCommandLineStarter {
     private static void dataSetLoad(String host, String port, String file) {
         Cluster cluster = Cluster.builder()
                 .addContactPoints(host)
+                .withoutJMXReporting()
                 .withPort(Integer.parseInt(port))
                 .build();
         CQLDataLoader dataLoader = new CQLDataLoader(cluster.connect());

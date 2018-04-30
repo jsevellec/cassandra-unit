@@ -157,6 +157,7 @@ public class EmbeddedCassandraServerHelper {
             cluster = com.datastax.driver.core.Cluster.builder()
                 .addContactPoints(EmbeddedCassandraServerHelper.getHost())
                 .withPort(EmbeddedCassandraServerHelper.getNativeTransportPort())
+                .withoutJMXReporting()
                 .withQueryOptions(queryOptions)
                 .build();
 

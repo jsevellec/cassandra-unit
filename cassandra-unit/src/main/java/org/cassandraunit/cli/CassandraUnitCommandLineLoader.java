@@ -76,6 +76,7 @@ public class CassandraUnitCommandLineLoader {
 
         Cluster cluster = com.datastax.driver.core.Cluster.builder()
                 .addContactPoints(host)
+                .withoutJMXReporting()
                 .withPort(Integer.parseInt(port))
                 .build();
 
