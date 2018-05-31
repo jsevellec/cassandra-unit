@@ -24,7 +24,7 @@ public class FileCQLDataSet extends AbstractCQLDataSet implements CQLDataSet {
     }
 
     public FileCQLDataSet(String dataSetLocation, boolean keyspaceCreation) {
-      super(dataSetLocation, true, true, null);
+      super(dataSetLocation, keyspaceCreation, true, null);
     }
 
     public FileCQLDataSet(String dataSetLocation, boolean keyspaceCreation, boolean keyspaceDeletion, String keyspaceName) {
