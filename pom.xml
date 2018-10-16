@@ -38,6 +38,7 @@
         <cu.junit.version>4.12</cu.junit.version>
         <cu.slf4j.version>1.7.12</cu.slf4j.version>
         <cu.cassandra.all.version>3.11.2</cu.cassandra.all.version>
+        <cu.jamm.version>0.3.2</cu.jamm.version>
         <cu.cassandra.driver.version>3.5.0</cu.cassandra.driver.version>
         <cu.spring.version>4.0.2.RELEASE</cu.spring.version>
         <cu.hamcrest.version>1.3</cu.hamcrest.version>
@@ -53,6 +54,17 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.github.jbellis</groupId>
+                <artifactId>jamm</artifactId>
+                <version>${cu.jamm.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <build>
         <plugins>
             <plugin>
