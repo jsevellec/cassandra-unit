@@ -214,6 +214,7 @@ public class EmbeddedCassandraServerHelper {
         if (session == null) {
             DriverConfigLoader configLoader = DriverConfigLoader.programmaticBuilder()
                     .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(0))
+                    .withInt(DefaultDriverOption.METADATA_SCHEMA_MAX_EVENTS, 1)
                     .build();
             session = CqlSession.builder()
                     .addContactPoint(new InetSocketAddress(EmbeddedCassandraServerHelper.getHost(), EmbeddedCassandraServerHelper.getNativeTransportPort()))
