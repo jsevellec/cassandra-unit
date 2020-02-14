@@ -4,7 +4,7 @@
     <artifactId>cassandra-unit-parent</artifactId>
     <packaging>pom</packaging>
     <name>cassandra-unit-parent</name>
-    <version>4.3.1.1-SNAPSHOT</version>
+    <version>4.4.0.0-SNAPSHOT</version>
     <description>Test framework to develop with Cassandra</description>
     <url>https://github.com/jsevellec/cassandra-unit</url>
     <licenses>
@@ -38,7 +38,7 @@
         <cu.junit.version>4.12</cu.junit.version>
         <cu.logback.version>1.2.3</cu.logback.version>
         <cu.cassandra.all.version>3.11.5</cu.cassandra.all.version>
-        <cu.cassandra.driver.version>4.3.1</cu.cassandra.driver.version>
+        <cu.cassandra.driver.version>4.4.0</cu.cassandra.driver.version>
         <cu.spring.version>4.0.2.RELEASE</cu.spring.version>
         <cu.hamcrest.version>1.3</cu.hamcrest.version>
     </properties>
