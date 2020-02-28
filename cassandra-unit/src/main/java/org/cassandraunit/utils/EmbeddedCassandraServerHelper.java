@@ -206,16 +206,25 @@ public class EmbeddedCassandraServerHelper {
     }
 
     public static CqlSession getSession() {
-        initSession();
+        initSession(null);
         return session;
     }
 
-    private static synchronized void initSession() {
+    public static CqlSession getSession(Path confPath) {
+        log.debug("Use CqlSession config: {}", confPath);
+        DriverConfigLoader configLoader = DriverConfigLoader.fromFile(confPath.toFile());
+        initSession(configLoader);
+        return session;
+    }
+
+    private static synchronized void initSession(DriverConfigLoader configLoader) {
         if (session == null) {
-            DriverConfigLoader configLoader = DriverConfigLoader.programmaticBuilder()
-                    .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(0))
-                    .withInt(DefaultDriverOption.METADATA_SCHEMA_MAX_EVENTS, 1)
-                    .build();
+            if (configLoader == null) {
+                configLoader = DriverConfigLoader.programmaticBuilder()
+                        .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(0))
+                        .withInt(DefaultDriverOption.METADATA_SCHEMA_MAX_EVENTS, 1)
+                        .build();
+            }
             session = CqlSession.builder()
                     .addContactPoint(new InetSocketAddress(EmbeddedCassandraServerHelper.getHost(), EmbeddedCassandraServerHelper.getNativeTransportPort()))
                     .withConfigLoader(configLoader)
