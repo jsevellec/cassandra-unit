@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.cassandraunit</groupId>
         <artifactId>cassandra-unit-parent</artifactId>
-        <version>4.3.1.1-SNAPSHOT</version>
+        <version>4.3.1.2-SNAPSHOT</version>
     </parent>
     <artifactId>cassandra-unit-shaded</artifactId>
     <description>Shaded version of cassandra-unit</description>
@@ -45,7 +45,6 @@
                                     <include>org.codehaus.jackson:*</include>
                                     <include>com.yammer.metrics:metrics-core</include>
                                     <include>com.addthis.metrics:*</include>
-                                    <include>io.netty:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -72,10 +71,6 @@
                                 <relocation>
                                     <pattern>com.addthis.metrics</pattern>
                                     <shadedPattern>${shade.prefix}.com.addthis.metrics</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>${shade.prefix}.io.netty</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
