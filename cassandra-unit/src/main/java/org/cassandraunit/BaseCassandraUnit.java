@@ -3,8 +3,6 @@ package org.cassandraunit;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.rules.ExternalResource;
 
-import com.datastax.driver.core.SocketOptions;
-
 /**
  * @author Marcin Szymaniuk
  */
@@ -40,9 +38,4 @@ public abstract class BaseCassandraUnit extends ExternalResource {
 	/**
 	 * Gets a base SocketOptions with an overridden readTimeoutMillis.
 	 */
-	protected SocketOptions getSocketOptions() {
-		SocketOptions socketOptions = new SocketOptions();
-		socketOptions.setReadTimeoutMillis(this.readTimeoutMillis);
-		return socketOptions;
-	}
 }

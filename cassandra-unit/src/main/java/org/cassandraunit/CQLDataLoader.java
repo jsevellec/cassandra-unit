@@ -1,6 +1,6 @@
 package org.cassandraunit;
 
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +16,13 @@ public class CQLDataLoader {
     private static final Logger log = LoggerFactory.getLogger(CQLDataLoader.class);
     public static final String DEFAULT_KEYSPACE_NAME = "cassandraunitkeyspace";
 
-    public Session getSession() {
+    public CqlSession getSession() {
         return session;
     }
 
-    private final Session session;
+    private final CqlSession session;
 
-    public CQLDataLoader(Session session) {
+    public CQLDataLoader(CqlSession session) {
         this.session = session;
     }
 
@@ -38,7 +38,7 @@ public class CQLDataLoader {
         }
     }
 
-    private void initKeyspaceContext(Session session, CQLDataSet dataSet) {
+    private void initKeyspaceContext(CqlSession session, CQLDataSet dataSet) {
         String keyspaceName = DEFAULT_KEYSPACE_NAME;
         if (dataSet.getKeyspaceName() != null) {
             keyspaceName = dataSet.getKeyspaceName();

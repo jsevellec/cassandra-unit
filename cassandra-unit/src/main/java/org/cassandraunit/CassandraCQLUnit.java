@@ -1,10 +1,8 @@
 package org.cassandraunit;
 
+import com.datastax.oss.driver.api.core.CqlSession;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
 
 /**
  * @author Marcin Szymaniuk
@@ -14,8 +12,7 @@ import com.datastax.driver.core.Session;
 public class CassandraCQLUnit extends BaseCassandraUnit {
 
 	private CQLDataSet dataSet;
-	public Session session;
-	public Cluster cluster;
+	public CqlSession session;
 
 	public CassandraCQLUnit(CQLDataSet dataSet) {
 		this.dataSet = dataSet;
@@ -57,7 +54,6 @@ public class CassandraCQLUnit extends BaseCassandraUnit {
 
 	@Override
 	protected void load() {
-		cluster = EmbeddedCassandraServerHelper.getCluster();
 		session = EmbeddedCassandraServerHelper.getSession();
 		CQLDataLoader dataLoader = new CQLDataLoader(session);
 		dataLoader.load(dataSet);
@@ -71,11 +67,7 @@ public class CassandraCQLUnit extends BaseCassandraUnit {
 
 	// Getters for those who do not like to directly access fields
 
-	public Session getSession() {
+	public CqlSession getSession() {
 		return session;
-	}
-
-	public Cluster getCluster() {
-		return cluster;
 	}
 }

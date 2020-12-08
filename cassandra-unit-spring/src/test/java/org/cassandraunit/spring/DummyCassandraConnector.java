@@ -1,7 +1,6 @@
 package org.cassandraunit.spring;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 
 /**
@@ -10,8 +9,7 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 public class DummyCassandraConnector {
 
     private static int instancesCounter;
-    private Session session;
-    private Cluster cluster;
+    private CqlSession session;
 
     public DummyCassandraConnector() {
         instancesCounter++;
@@ -26,7 +24,7 @@ public class DummyCassandraConnector {
     }
 
 
-    public Session getSession() {
+    public CqlSession getSession() {
         return EmbeddedCassandraServerHelper.getSession();
     }
 }

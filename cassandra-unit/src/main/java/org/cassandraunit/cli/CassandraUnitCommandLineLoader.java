@@ -1,11 +1,12 @@
 package org.cassandraunit.cli;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.FileCQLDataSet;
+
+import java.net.InetSocketAddress;
 
 public class CassandraUnitCommandLineLoader {
 
@@ -74,19 +75,20 @@ public class CassandraUnitCommandLineLoader {
 
     private static void otherTypeOfDataSetLoad(String host, String port, String file) {
 
-        Cluster cluster = com.datastax.driver.core.Cluster.builder()
-                .addContactPoints(host)
-                .withoutJMXReporting()
-                .withPort(Integer.parseInt(port))
+        CqlSession session = CqlSession.builder()
+                .addContactPoint(new InetSocketAddress(host, Integer.parseInt(port)))
+                .withLocalDatacenter("datacenter1")
                 .build();
 
-        CQLDataLoader dataLoader = new CQLDataLoader(cluster.connect());
+        CQLDataLoader dataLoader = new CQLDataLoader(session);
         dataLoader.load(new FileCQLDataSet(file));
     }
 
     private static void cqlDataSetLoad(String host, String port, String file) {
-        Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
-        Session session = cluster.connect();
+        CqlSession session = CqlSession.builder()
+                .addContactPoint(new InetSocketAddress(host, Integer.parseInt(port)))
+                .withLocalDatacenter("datacenter1")
+                .build();
         CQLDataLoader dataLoader = new CQLDataLoader(session);
         dataLoader.load(new FileCQLDataSet(file, false));
     }

@@ -1,7 +1,6 @@
 package org.cassandraunit.spring;
 
-import com.datastax.driver.core.ResultSet;
-
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

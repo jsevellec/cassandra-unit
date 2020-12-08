@@ -3,6 +3,7 @@ package org.cassandraunit.spring;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,7 +18,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-import com.datastax.driver.core.ResultSet;
 
 /**
  * @author Gaëtan Le Brun
