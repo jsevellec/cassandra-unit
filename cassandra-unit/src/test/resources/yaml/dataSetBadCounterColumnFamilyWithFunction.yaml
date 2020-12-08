@@ -1,8 +1,0 @@
-name: beautifulKeyspaceName
-columnFamilies:
-- name: columnFamily1
-  defaultColumnValueType: CounterColumnType
-  rows:
-  - key: 01
-    columns:
-    - {name: 02, value: utf8(badValue)}

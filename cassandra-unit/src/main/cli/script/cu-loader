@@ -26,5 +26,5 @@ fi
 
 # Execute cassandraUnit
 $JAVA -ea -cp $CLASSPATH -Xmx256M \
-		-Dlog4j.configuration=log4j-cu-loader.xml \
+		-Dlogging.config=logback-cu-loader.xml \
         org.cassandraunit.cli.CassandraUnitCommandLineLoader "$@"

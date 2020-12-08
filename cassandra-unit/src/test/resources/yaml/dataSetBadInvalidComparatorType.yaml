@@ -1,4 +1,0 @@
-name: beautifulKeyspaceName
-columnFamilies:
-- name: columnFamily1
-  keyType: UNKNOWN

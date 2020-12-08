@@ -1,13 +1,7 @@
 package org.cassandraunit.cli;
 
-import com.datastax.driver.core.Cluster;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import com.datastax.oss.driver.api.core.CqlSession;
+import org.apache.commons.cli.*;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.FileCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -15,6 +9,7 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -96,12 +91,11 @@ public class CassandraUnitCommandLineStarter {
     }
 
     private static void dataSetLoad(String host, String port, String file) {
-        Cluster cluster = Cluster.builder()
-                .addContactPoints(host)
-                .withoutJMXReporting()
-                .withPort(Integer.parseInt(port))
+        CqlSession session = CqlSession.builder()
+                .addContactPoint(new InetSocketAddress(host, Integer.parseInt(port)))
+                .withLocalDatacenter("datacenter1")
                 .build();
-        CQLDataLoader dataLoader = new CQLDataLoader(cluster.connect());
+        CQLDataLoader dataLoader = new CQLDataLoader(session);
         dataLoader.load(new FileCQLDataSet(file));
         System.out.println("Loading completed");
     }

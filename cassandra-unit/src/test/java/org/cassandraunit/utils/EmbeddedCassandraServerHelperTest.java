@@ -1,10 +1,11 @@
 package org.cassandraunit.utils;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.KeyspaceMetadata;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.metadata.schema.KeyspaceMetadata;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.net.InetSocketAddress;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -30,14 +31,13 @@ public class EmbeddedCassandraServerHelperTest {
     }
 
     private void testIfTheEmbeddedCassandraServerIsUpOnHost(String host, int port) {
-        try (Cluster cluster = Cluster.builder()
-                .addContactPoints(host)
-                .withPort(port)
+        try (CqlSession session = CqlSession.builder()
+                .addContactPoint(new InetSocketAddress(host, port))
+                .withLocalDatacenter("datacenter1")
                 .build()) {
-            Session session = cluster.connect();
 
-            assertThat(session.getState().getConnectedHosts().size(), is(1));
-            KeyspaceMetadata system = session.getCluster().getMetadata().getKeyspace("system");
+            assertThat(session.getMetadata().getNodes().size(), is(1));
+            KeyspaceMetadata system = session.getMetadata().getKeyspace("system").get();
             assertThat(system.getTables().size(), not(0));
         }
     }

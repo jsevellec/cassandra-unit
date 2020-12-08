@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.cassandraunit</groupId>
 		<artifactId>cassandra-unit-parent</artifactId>
-        <version>3.5.0.2-SNAPSHOT</version>
+        <version>4.3.1.1-SNAPSHOT</version>
 	</parent>
     <groupId>org.cassandraunit</groupId>
 	<artifactId>cassandra-unit-spring</artifactId>
@@ -54,8 +54,8 @@
 
         <!-- optional clients. The app defines which one to use and in which version -->
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-core</artifactId>
             <version>${cu.cassandra.driver.version}</version>
             <optional>true</optional>
             <exclusions>
@@ -72,26 +72,15 @@
 
         <!-- log -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${cu.slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${cu.slf4j.version}</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${cu.logback.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${cu.slf4j.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${cu.logback.version}</version>
             <scope>test</scope>
         </dependency>
 

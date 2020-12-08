@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.cassandraunit</groupId>
         <artifactId>cassandra-unit-parent</artifactId>
-        <version>3.5.0.2-SNAPSHOT</version>
+        <version>4.3.1.1-SNAPSHOT</version>
     </parent>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit</artifactId>
@@ -84,10 +84,6 @@
                     <groupId>org.antlr</groupId>
                     <artifactId>stringtemplate</artifactId>
                 </exclusion>
-                <exclusion> <!-- is this used at all? -->
-                    <groupId>org.hibernate</groupId>
-                    <artifactId>hibernate-validator</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-all</artifactId>
@@ -102,31 +98,10 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency> <!-- for cassandra-all because maven fails to reliably resolve the conflict with cassandra-driver-core -->
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>21.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.4</version>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-handler</artifactId>
-            <version>4.0.44.Final</version>
-        </dependency>
         <dependency>
             <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
-            <version>0.9.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-codec</groupId>
-                    <artifactId>commons-codec</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>0.12.0</version>
         </dependency>
         <dependency>
             <groupId>net.java.dev.jna</groupId>
@@ -147,10 +122,9 @@
             <version>${cu.hamcrest.version}</version>
         </dependency>
 
-        <!-- optional clients. The app defines which one to use and in which version -->
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-core</artifactId>
             <version>${cu.cassandra.driver.version}</version>
             <optional>true</optional>
         </dependency>
@@ -171,26 +145,15 @@
 
         <!-- log -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${cu.slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${cu.slf4j.version}</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${cu.logback.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${cu.slf4j.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${cu.logback.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
