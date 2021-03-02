@@ -20,7 +20,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build
         run: mvn --batch-mode --update-snapshots compile
-      - name: Build
+      - name: Test
         run: mvn --batch-mode --update-snapshots test
-      - name: Build
+      - name: Package
         run: mvn --batch-mode --update-snapshots package -Dmaven.test.skip=true
