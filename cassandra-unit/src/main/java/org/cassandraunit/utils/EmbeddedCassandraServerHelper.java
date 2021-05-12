@@ -59,10 +59,13 @@ public class EmbeddedCassandraServerHelper {
     private static final String INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE = "system_distributed";
     private static final String INTERNAL_CASSANDRA_SCHEMA_KEYSPACE = "system_schema";
     private static final String INTERNAL_CASSANDRA_TRACES_KEYSPACE = "system_traces";
+    private static final String INTERNAL_CASSANDRA_VIEWS_KEYSPACE = "system_views";
+    private static final String INTERNAL_CASSANDRA_VIRTUAL_SCHEMA_KEYSPACE = "system_virtual_schema";
 
     private static final Set<String> systemKeyspaces = new HashSet<>(Arrays.asList(INTERNAL_CASSANDRA_KEYSPACE,
             INTERNAL_CASSANDRA_AUTH_KEYSPACE, INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE,
-            INTERNAL_CASSANDRA_SCHEMA_KEYSPACE, INTERNAL_CASSANDRA_TRACES_KEYSPACE));
+            INTERNAL_CASSANDRA_SCHEMA_KEYSPACE, INTERNAL_CASSANDRA_TRACES_KEYSPACE,
+            INTERNAL_CASSANDRA_VIEWS_KEYSPACE, INTERNAL_CASSANDRA_VIRTUAL_SCHEMA_KEYSPACE));
 
     public static Predicate<String> nonSystemKeyspaces() {
         return keyspace -> !systemKeyspaces.contains(keyspace);
@@ -240,15 +243,6 @@ public class EmbeddedCassandraServerHelper {
      */
     public static String getHost() {
         return DatabaseDescriptor.getRpcAddress().getHostName();
-    }
-    
-    /**
-     * Get embedded cassandra RPC port.
-     *
-     * @return the cassandra RPC port
-     */
-    public static int getRpcPort() {
-        return DatabaseDescriptor.getRpcPort();
     }
 
     /**
