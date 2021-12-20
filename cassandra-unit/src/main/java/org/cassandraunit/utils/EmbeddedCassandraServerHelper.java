@@ -211,7 +211,7 @@ public class EmbeddedCassandraServerHelper {
     }
 
     private static synchronized void initSession() {
-        if (session == null) {
+        if (session == null || session.isClosed()) {
             DriverConfigLoader configLoader = DriverConfigLoader.programmaticBuilder()
                     .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(0))
                     .withInt(DefaultDriverOption.METADATA_SCHEMA_MAX_EVENTS, 1)
