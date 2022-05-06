@@ -49,7 +49,7 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-library</artifactId>
-            <version>${cu.hamcrest.version}</version>
+            <version>${cu.hamcrest.lib.version}</version>
         </dependency>
 
         <!-- optional clients. The app defines which one to use and in which version -->
