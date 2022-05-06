@@ -287,7 +287,7 @@ start_rpc: true
 # (i.e. it will be based on the configured hostname of the node).
 rpc_address: localhost
 # port for Thrift to listen for clients on
-rpc_port: 0
+#rpc_port: 0
 
 # enable or disable keepalive on rpc connections
 rpc_keepalive: true
@@ -310,7 +310,7 @@ rpc_keepalive: true
 #
 # The default is sync because on Windows hsha is about 30% slower.  On Linux,
 # sync/hsha performance is about the same, with hsha of course using less memory.
-rpc_server_type: sync
+#rpc_server_type: sync
 
 # Uncomment rpc_min|max|thread to set request pool size.
 # You would primarily set max for the sync server to safeguard against
@@ -333,11 +333,11 @@ rpc_server_type: sync
 # Frame size for thrift (maximum field length).
 # 0 disables TFramedTransport in favor of TSocket. This option
 # is deprecated; we strongly recommend using Framed mode.
-thrift_framed_transport_size_in_mb: 15
+#thrift_framed_transport_size_in_mb: 15
 
 # The max length of a thrift message, including all fields and
 # internal thrift overhead.
-thrift_max_message_length_in_mb: 16
+#thrift_max_message_length_in_mb: 16
 
 # Set to true to have Cassandra create a hard link to each sstable
 # flushed or streamed locally in a backups/ subdirectory of the
