@@ -243,15 +243,6 @@ public class EmbeddedCassandraServerHelper {
     }
     
     /**
-     * Get embedded cassandra RPC port.
-     *
-     * @return the cassandra RPC port
-     */
-    public static int getRpcPort() {
-        return DatabaseDescriptor.getRpcPort();
-    }
-
-    /**
      * Get embedded cassandra native transport port.
      *
      * @return the cassandra native transport port.
