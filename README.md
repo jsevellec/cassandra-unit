@@ -14,7 +14,8 @@ CassandraUnit helps you writing isolated JUnit tests in a Test Driven Developmen
 
 Main features :
 ---------------
-- Start an embedded Cassandra.
+- Start an embedded Cassandra 4.
+- Runs on Java 11
 - Create structure (keyspace and Column Families) and load data from an XML, JSON or YAML DataSet.
 - Execute a CQL script.
 
@@ -25,6 +26,13 @@ https://github.com/jsevellec/cassandra-unit/wiki
 
 and you can watch cassandra-unit-examples project.
 https://github.com/jsevellec/cassandra-unit-examples
+
+____________________________________________________
+
+### WARNING Java 11:
+Apache Cassandra requires additional JVM parameters to run on Java 11. For details check [surefire plugin parameters of cassandra-unit](cassandra-unit/pom.xml)
+
+
 
 Mailing List :
 --------------
