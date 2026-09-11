@@ -10,43 +10,6 @@
     <packaging>jar</packaging>
     <name>cassandra-unit</name>
     <description>Test framework to develop with Cassandra</description>
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-            <resource>
-                <directory>src/main/xsd</directory>
-                <includes>
-                    <include>**/*.xsd</include>
-                </includes>
-            </resource>
-        </resources>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2.2</version>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <!-- The configuration of the plugin -->
-                        <configuration>
-                            <!-- Specifies the configuration file of the assembly plugin -->
-                            <descriptors>
-                                <descriptor>src/main/assembly/assembly.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
     <dependencies>
 
@@ -144,16 +107,11 @@
             <version>${cu.junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- The @Rule integration is still JUnit 4, so its tests need the vintage engine -->
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
             <version>${cu.junit.jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${cu.mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- Tests use org.hamcrest.Matchers, which lives in the unified hamcrest artifact -->
@@ -161,12 +119,6 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
             <version>3.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.4</version>
             <scope>test</scope>
         </dependency>
 

@@ -1,6 +1,5 @@
 package org.cassandraunit.spring;
 
-import org.cassandraunit.dataset.DataSetFileExtensionEnum;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -45,8 +44,9 @@ import java.lang.annotation.Target;
 @Inherited
 @Documented
 public @interface CassandraDataSet {
+  /** Classpath locations of the .cql scripts to load. */
   String[] value() default {};
-  // Only needed if CQL
+
+  /** Keyspace the scripts are loaded into, and which is dropped and recreated per dataset. */
   String keyspace() default "cassandra_unit_keyspace";
-  DataSetFileExtensionEnum type() default DataSetFileExtensionEnum.cql;
 }

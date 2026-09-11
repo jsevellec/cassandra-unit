@@ -51,14 +51,17 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
         }
     }
 
+    /** The only dataset format is CQL; @CassandraDataSet used to carry a dead `type` knob. */
+    private static final String DATASET_EXTENSION = "cql";
+
     private List<String> dataSetLocations(TestContext testContext, CassandraDataSet cassandraDataSet) {
         String[] dataset = cassandraDataSet.value();
         if (dataset.length == 0) {
-            String alternativePath = alternativePath(testContext.getTestClass(), true, cassandraDataSet.type().name());
+            String alternativePath = alternativePath(testContext.getTestClass(), true, DATASET_EXTENSION);
             if (testContext.getApplicationContext().getResource(alternativePath).exists()) {
                 dataset = new String[]{alternativePath.replace(ResourceUtils.CLASSPATH_URL_PREFIX + "/", "")};
             } else {
-                alternativePath = alternativePath(testContext.getTestClass(), false, cassandraDataSet.type().name());
+                alternativePath = alternativePath(testContext.getTestClass(), false, DATASET_EXTENSION);
                 if (testContext.getApplicationContext().getResource(alternativePath).exists()) {
                     dataset = new String[]{alternativePath.replace(ResourceUtils.CLASSPATH_URL_PREFIX + "/", "")};
                 } else {
