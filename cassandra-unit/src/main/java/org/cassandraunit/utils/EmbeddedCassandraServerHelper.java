@@ -1,8 +1,10 @@
 package org.cassandraunit.utils;
 
+import com.datastax.oss.driver.api.core.CqlIdentifier;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.db.commitlog.CommitLog;
 import org.apache.cassandra.exceptions.ConfigurationException;
@@ -58,10 +60,14 @@ public class EmbeddedCassandraServerHelper {
     private static final String INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE = "system_distributed";
     private static final String INTERNAL_CASSANDRA_SCHEMA_KEYSPACE = "system_schema";
     private static final String INTERNAL_CASSANDRA_TRACES_KEYSPACE = "system_traces";
+    /** Virtual keyspaces, added in Cassandra 4.0. Not user-modifiable: dropping one fails. */
+    private static final String INTERNAL_CASSANDRA_VIEWS_KEYSPACE = "system_views";
+    private static final String INTERNAL_CASSANDRA_VIRTUAL_SCHEMA_KEYSPACE = "system_virtual_schema";
 
     private static final Set<String> systemKeyspaces = new HashSet<>(Arrays.asList(INTERNAL_CASSANDRA_KEYSPACE,
             INTERNAL_CASSANDRA_AUTH_KEYSPACE, INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE,
-            INTERNAL_CASSANDRA_SCHEMA_KEYSPACE, INTERNAL_CASSANDRA_TRACES_KEYSPACE));
+            INTERNAL_CASSANDRA_SCHEMA_KEYSPACE, INTERNAL_CASSANDRA_TRACES_KEYSPACE,
+            INTERNAL_CASSANDRA_VIEWS_KEYSPACE, INTERNAL_CASSANDRA_VIRTUAL_SCHEMA_KEYSPACE));
 
     public static Predicate<String> nonSystemKeyspaces() {
         return keyspace -> !systemKeyspaces.contains(keyspace);
@@ -242,25 +248,49 @@ public class EmbeddedCassandraServerHelper {
         return DatabaseDescriptor.getNativeTransportPort();
     }
 
-    private static void cleanDataWithNativeDriver(String keyspace, String... excludedTables) {
-        HashSet<String> excludedTableList = new HashSet<>(Arrays.asList(excludedTables));
+    /*
+     * Schema discovery below queries system_schema directly rather than going through
+     * session.getMetadata().
+     *
+     * Not because the metadata is wrong, but because it answers a different question. The
+     * driver's default reference.conf sets
+     *
+     *   refreshed-keyspaces = [ "!system", "!/^system_.*!/", "!/^dse_.*!/", ... ]
+     *
+     * so getKeyspaces() deliberately never reports a system keyspace. That made the
+     * nonSystemKeyspaces() filter redundant, and it meant the set of keyspaces we iterate
+     * depended on driver configuration rather than on the server. Reading system_schema makes
+     * the source of truth the server, and makes the allowlist actually load-bearing.
+     */
 
-        session.getMetadata().getKeyspace(keyspace).get().getTables().values().stream()
-                .map(table -> table.getName())
+    private static void cleanDataWithNativeDriver(String keyspace, String... excludedTables) {
+        Set<String> excludedTableList = new HashSet<>(Arrays.asList(excludedTables));
+
+        session.execute(SimpleStatement.newInstance(
+                        "SELECT table_name FROM system_schema.tables WHERE keyspace_name = ?", keyspace))
+                .all().stream()
+                .map(row -> row.getString("table_name"))
                 .filter(tableName -> !excludedTableList.contains(tableName))
-                .map(tableName -> keyspace + "." + tableName)
+                .map(tableName -> quote(keyspace) + "." + quote(tableName))
                 .forEach(CqlOperations.truncateTable(session));
     }
 
     private static void dropKeyspaces() {
-            dropKeyspacesWithNativeDriver();
+        session.execute("SELECT keyspace_name FROM system_schema.keyspaces")
+                .all().stream()
+                .map(row -> row.getString("keyspace_name"))
+                .filter(nonSystemKeyspaces())
+                .map(EmbeddedCassandraServerHelper::quote)
+                .forEach(CqlOperations.dropKeyspace(session));
     }
 
-    private static void dropKeyspacesWithNativeDriver() {
-        session.getMetadata().getKeyspaces().values().stream()
-                .map(keyspaceMetadata -> keyspaceMetadata.getName().toString())
-                .filter(nonSystemKeyspaces())
-                .forEach(CqlOperations.dropKeyspace(session));
+    /**
+     * Quotes a CQL identifier so that names which are not lower-case, or which collide with a
+     * reserved word, survive being concatenated into a statement. Previously these were
+     * interpolated raw, so a keyspace with an upper-case letter could not be dropped (#222).
+     */
+    private static String quote(String identifier) {
+        return CqlIdentifier.fromInternal(identifier).asCql(true);
     }
 
     private static void deleteRecursive(File dir) {

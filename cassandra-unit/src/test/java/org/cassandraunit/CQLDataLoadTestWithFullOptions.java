@@ -3,13 +3,11 @@ package org.cassandraunit;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-@Ignore("May not start multiple cassandras with different configuration in one JVM")
 public class CQLDataLoadTestWithFullOptions {
 
 	private static final long STARTUP_TIMEOUT_VALUE = 20000L;

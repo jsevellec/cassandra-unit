@@ -131,6 +131,38 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-jdk</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <rules>
+                                <!--
+                                  Cassandra 5.0 runs on JDK 11 or 17 only, and the embedded
+                                  daemon is started in this JVM, so the build JDK is the
+                                  server JDK. Without this check a wrong JDK shows up as
+                                  surefire's "The forked VM terminated without properly
+                                  saying goodbye", which says nothing useful. Note that a
+                                  jenv shim will override JAVA_HOME for mvn - check
+                                  `mvn -v`, not `java -version`.
+
+                                  The upper bound is real, not caution: Cassandra's
+                                  ThreadAwareSecurityManager calls System::setSecurityManager,
+                                  which is terminally deprecated and throws on JDK 24+.
+                                -->
+                                <requireJavaVersion>
+                                    <version>[11,18)</version>
+                                    <message>cassandra-unit must be built with JDK 11 or 17 (17 recommended). Cassandra 5.0 supports no other JDK, and the embedded daemon runs in the build JVM. If this looks wrong, check `mvn -v` - a jenv shim overrides JAVA_HOME.</message>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.4.2</version>
             </plugin>
@@ -162,6 +194,15 @@
                       the daemon with its own configuration.
                     -->
                     <reuseForks>false</reuseForks>
+                    <!--
+                      Surefire's default includes are Test*, *Test, *Tests and *TestCase. Every
+                      CQLDataLoadTestWith* class ends in something else (WithJunitRule,
+                      WithFullOptions, ...), so the whole dataset-loading surface - the actual
+                      point of this library - was silently never executed by the build.
+                    -->
+                    <includes>
+                        <include>**/*Test*.java</include>
+                    </includes>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding} ${cu.cassandra.argLine}</argLine>
                 </configuration>
             </plugin>
