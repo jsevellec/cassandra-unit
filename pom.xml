@@ -88,6 +88,28 @@
     -->
     <dependencyManagement>
         <dependencies>
+            <!--
+              These two MUST come before the import below. cassandra-parent 5.0.8 ships a
+              stale entry in its own dependencyManagement:
+
+                  org.apache.cassandra:cassandra-all = 4.1-alpha2-SNAPSHOT
+
+              a version that was never published. Any module that picks cassandra-all up
+              transitively rather than declaring it (cassandra-unit-spring does) would inherit
+              that and fail to resolve. Maven takes the first matching entry, so declaring the
+              real versions here neutralises it.
+            -->
+            <dependency>
+                <groupId>org.apache.cassandra</groupId>
+                <artifactId>cassandra-all</artifactId>
+                <version>${cu.cassandra.all.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cassandra</groupId>
+                <artifactId>java-driver-core</artifactId>
+                <version>${cu.cassandra.driver.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.cassandra</groupId>
                 <artifactId>cassandra-parent</artifactId>
