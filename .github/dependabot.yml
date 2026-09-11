@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      # cassandra-all pins the supported JDK range and the shape of cu-cassandra.yaml, so it is
+      # upgraded deliberately and never by a bot. 5.1/6.0 will need the yaml revisited and will
+      # change which JDKs work at all.
+      - dependency-name: "org.apache.cassandra:cassandra-all"
+      - dependency-name: "org.apache.cassandra:cassandra-parent"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,8 +35,14 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
     }
 
     public AbstractCQLDataSet(String dataSetLocation, boolean keyspaceCreation, boolean keyspaceDeletion, String keyspaceName) {
-        if (getInputDataSetLocation(dataSetLocation) == null) {
-            throw new ParseException("Dataset not found");
+        // Only opened to check the dataset exists, so close it again - for FileCQLDataSet this
+        // is a real FileInputStream, and it used to be discarded still open.
+        try (InputStream probe = getInputDataSetLocation(dataSetLocation)) {
+            if (probe == null) {
+                throw new ParseException("Dataset not found: " + dataSetLocation);
+            }
+        } catch (IOException e) {
+            throw new ParseException(e);
         }
         this.dataSetLocation = dataSetLocation;
         this.keyspaceCreation = keyspaceCreation;
@@ -59,7 +66,12 @@ public abstract class AbstractCQLDataSet implements CQLDataSet {
 
     public List<String> getLines() {
         InputStream inputStream = getInputDataSetLocation(dataSetLocation);
-        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream))) {
+        if (inputStream == null) {
+            throw new ParseException("Dataset not found: " + dataSetLocation);
+        }
+        // UTF-8 explicitly: the platform default made the same dataset parse differently on
+        // different machines, which is issue #144.
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             return buffer.lines().collect(Collectors.toList());
         } catch (IOException e) {
             throw new ParseException(e);

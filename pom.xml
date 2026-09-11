@@ -4,7 +4,7 @@
     <artifactId>cassandra-unit-parent</artifactId>
     <packaging>pom</packaging>
     <name>cassandra-unit-parent</name>
-    <version>4.3.1.1-SNAPSHOT</version>
+    <version>5.0.0-SNAPSHOT</version>
     <description>Test framework to develop with Cassandra</description>
     <url>https://github.com/jsevellec/cassandra-unit</url>
     <licenses>
@@ -24,7 +24,6 @@
         <connection>scm:git:https://github.com/jsevellec/cassandra-unit.git</connection>
         <developerConnection>scm:git:https://github.com/jsevellec/cassandra-unit.git</developerConnection>
         <url>https://github.com/jsevellec/cassandra-unit.git</url>
-      <tag>cassandra-unit-parent-3.3.0.0</tag>
   </scm>
     <modules>
         <module>cassandra-unit</module>
@@ -119,16 +118,6 @@
         </dependencies>
     </dependencyManagement>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
     <build>
         <plugins>
             <plugin>
@@ -163,7 +152,10 @@
                                 <!--
                                   Cassandra 5.0 runs on JDK 11 or 17 only, and the embedded
                                   daemon is started in this JVM, so the build JDK is the
-                                  server JDK. Without this check a wrong JDK shows up as
+                                  server JDK. We require 17 specifically: maven.compiler.release
+                                  is 17, and spring-test 6.2 needs 17 regardless, so supporting
+                                  11 would mean split release levels across modules for no gain.
+                                  Without this check a wrong JDK shows up as
                                   surefire's "The forked VM terminated without properly
                                   saying goodbye", which says nothing useful. Note that a
                                   jenv shim will override JAVA_HOME for mvn - check
@@ -174,8 +166,8 @@
                                   which is terminally deprecated and throws on JDK 24+.
                                 -->
                                 <requireJavaVersion>
-                                    <version>[11,18)</version>
-                                    <message>cassandra-unit must be built with JDK 11 or 17 (17 recommended). Cassandra 5.0 supports no other JDK, and the embedded daemon runs in the build JVM. If this looks wrong, check `mvn -v` - a jenv shim overrides JAVA_HOME.</message>
+                                    <version>[17,18)</version>
+                                    <message>cassandra-unit must be built and run on JDK 17. Cassandra 5.0 supports only JDK 11 and 17, and this project targets 17 (spring-test 6.2 requires it too). The embedded daemon runs in the build JVM, so this is the server JDK as well. If this looks wrong, check `mvn -v` - a jenv shim overrides JAVA_HOME for mvn.</message>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
@@ -228,14 +220,20 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.3</version>
+                <!--
+                  Publishing goes through the Central Publisher Portal. The previous setup
+                  (distributionManagement pointing at oss.sonatype.org plus
+                  nexus-staging-maven-plugin) cannot work any more: OSSRH was sunset and
+                  oss.sonatype.org now returns 404, so this project had no working release path
+                  at all. Credentials go in settings.xml under the server id below.
+                -->
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.11.0</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>false</autoPublish>
                 </configuration>
             </plugin>
             <plugin>
