@@ -55,14 +55,7 @@ public class CassandraCQLUnit extends BaseCassandraUnit {
 	@Override
 	protected void load() {
 		session = EmbeddedCassandraServerHelper.getSession();
-		CQLDataLoader dataLoader = new CQLDataLoader(session);
-		dataLoader.load(dataSet);
-		session = dataLoader.getSession();
-	}
-
-	@Override
-	protected void after() {
-		super.after();
+		new CQLDataLoader(session).load(dataSet);
 	}
 
 	// Getters for those who do not like to directly access fields

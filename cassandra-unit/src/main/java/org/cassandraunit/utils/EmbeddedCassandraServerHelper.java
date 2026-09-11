@@ -68,9 +68,18 @@ public class EmbeddedCassandraServerHelper {
         return keyspace -> !systemKeyspaces.contains(keyspace);
     }
 
-    private static CassandraDaemon cassandraDaemon = null;
-    private static String launchedYamlFile;
-    private static CqlSession session;
+    /*
+     * One embedded Cassandra per JVM is a permanent design invariant, not something waiting to
+     * be fixed: DatabaseDescriptor, Schema and StorageService hold static state that cannot be
+     * reset in-process. These fields are therefore JVM-global by design. They are volatile
+     * because the daemon is activated on a separate thread, and the "already started" checks
+     * read them from the caller's thread.
+     */
+    private static volatile CassandraDaemon cassandraDaemon = null;
+    private static volatile String launchedYamlFile;
+    private static volatile CqlSession session;
+    /** Zero means no timeout, which is the driver's own encoding. */
+    private static volatile Duration requestTimeout = Duration.ZERO;
 
     public static void startEmbeddedCassandra() throws IOException, InterruptedException, ConfigurationException {
         startEmbeddedCassandra(DEFAULT_STARTUP_TIMEOUT);
@@ -92,7 +101,7 @@ public class EmbeddedCassandraServerHelper {
         startEmbeddedCassandra(yamlFile, tmpDir, DEFAULT_STARTUP_TIMEOUT);
     }
 
-    public static void startEmbeddedCassandra(String yamlFile, String tmpDir, long timeout) throws IOException, ConfigurationException {
+    public static synchronized void startEmbeddedCassandra(String yamlFile, String tmpDir, long timeout) throws IOException, ConfigurationException {
         if (cassandraDaemon != null) {
             /* nothing to do Cassandra is already started */
             return;
@@ -116,7 +125,7 @@ public class EmbeddedCassandraServerHelper {
          * @throws IOException
          * @throws ConfigurationException
          */
-    public static void startEmbeddedCassandra(File file, String tmpDir, long timeout) throws IOException, ConfigurationException {
+    public static synchronized void startEmbeddedCassandra(File file, String tmpDir, long timeout) throws IOException, ConfigurationException {
         if (cassandraDaemon != null) {
             /* nothing to do Cassandra is already started */
             return;
@@ -201,6 +210,20 @@ public class EmbeddedCassandraServerHelper {
             }
     }
 
+    /**
+     * Sets the request timeout applied to the shared session. Has to be called before the
+     * session is first built - there is only one session per JVM, so it cannot be changed
+     * afterwards, and a late call is ignored with a warning rather than silently doing nothing.
+     */
+    public static synchronized void setRequestTimeout(Duration timeout) {
+        if (session != null) {
+            log.warn("The shared CqlSession already exists, so a request timeout of {} cannot be "
+                    + "applied. Set it before the first getSession() call.", timeout);
+            return;
+        }
+        requestTimeout = timeout;
+    }
+
     public static CqlSession getSession() {
         initSession();
         return session;
@@ -209,7 +232,7 @@ public class EmbeddedCassandraServerHelper {
     private static synchronized void initSession() {
         if (session == null) {
             DriverConfigLoader configLoader = DriverConfigLoader.programmaticBuilder()
-                    .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(0))
+                    .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, requestTimeout)
                     .withInt(DefaultDriverOption.METADATA_SCHEMA_MAX_EVENTS, 1)
                     .build();
             session = CqlSession.builder()

@@ -1,9 +1,12 @@
 package org.cassandraunit;
 
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.time.Duration;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,6 +31,19 @@ public class CQLDataLoadTestWithReadTimeout {
 	@Test
 	public void sameTestToMakeSureMultipleTestsAreFine() throws Exception {
 		test();
+	}
+
+	/**
+	 * The constructor's readTimeoutMillis used to be stored and then ignored - the session was
+	 * always built with a hardcoded request timeout of zero - so this test passed without
+	 * testing anything about the timeout at all.
+	 */
+	@Test
+	public void readTimeoutShouldReachTheSession() {
+		Duration configured = cassandraCQLUnit.session.getContext().getConfig()
+				.getDefaultProfile().getDuration(DefaultDriverOption.REQUEST_TIMEOUT);
+
+		assertEquals(Duration.ofMillis(READ_TIMEOUT_VALUE), configured);
 	}
 
 	private void test() {
