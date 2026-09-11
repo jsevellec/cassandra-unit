@@ -15,6 +15,22 @@ Main features:
 - Create the schema and load data from a CQL script.
 - Integrations for JUnit 4 (`@Rule`), JUnit 5 (`Extension`) and Spring Test.
 
+Documentation
+-------------
+
+Full documentation is in **[docs/](docs/)**, versioned alongside the code:
+
+- [Getting started](docs/getting-started.md) — dependency, the mandatory surefire setup, a first test
+- [Datasets](docs/datasets.md) — writing `.cql` scripts, keyspace create/drop control
+- [Embedded server](docs/embedded-server.md) — the `EmbeddedCassandraServerHelper` API
+- [Spring integration](docs/spring.md) — the annotations and listeners
+- [Troubleshooting](docs/troubleshooting.md) — failure modes whose messages hide the cause
+- [Migrating from 4.x](docs/migrating-from-4.md) — everything removed or changed in 5.0.0
+
+The old [project wiki](https://github.com/jsevellec/cassandra-unit/wiki) is **retired**. It had
+drifted to the point of documenting classes and annotation attributes that never existed; its pages
+now point here.
+
 Requirements
 ------------
 
@@ -188,8 +204,8 @@ isolates one test from the next. For a full wipe, call
 Migrating from 4.3.1.0
 ----------------------
 
-5.0.0 deliberately breaks compatibility. See [CHANGELOG.md](CHANGELOG.md) for the full list;
-the highlights:
+5.0.0 deliberately breaks compatibility. [docs/migrating-from-4.md](docs/migrating-from-4.md) is
+the full guide and [CHANGELOG.md](CHANGELOG.md) the release-by-release detail. The highlights:
 
 - **Removed: the `cassandra-unit-shaded` artifact.** It existed to hide old, vulnerable copies
   of guava/netty/jackson. Those versions are gone with the Cassandra 5.0 upgrade, so it has no
@@ -204,6 +220,8 @@ the highlights:
   optional one — that was the cause of the recurring `NoClassDefFoundError` reports.
 - `tmpDir` now genuinely relocates Cassandra's data, commitlog, hints, saved caches and cdc
   directories. It previously relocated nothing but a copy of the yaml.
+- **New: a JUnit 5 extension**, `CassandraUnitExtension`. See
+  [docs/getting-started.md](docs/getting-started.md#junit-5).
 
 License
 -------
