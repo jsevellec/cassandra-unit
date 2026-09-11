@@ -1,0 +1,41 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # JDK 17 only, and this is the complete set. Cassandra 5.0 supports 11 and 17, but
+        # maven.compiler.release is 17 and spring-test 6.2 requires 17 anyway. Do not add 21 or
+        # later: no released Cassandra supports 18-23, and Cassandra's ThreadAwareSecurityManager
+        # calls System::setSecurityManager, which throws on JDK 24+. maven-enforcer-plugin
+        # rejects anything outside [17,18) with a readable message.
+        java: [ '17' ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      # Each test class forks a JVM that starts a real embedded Cassandra, so the suite is
+      # slower than the source size suggests. -B keeps the log readable in CI.
+      - name: Build and test
+        run: mvn -B verify
+
+      - name: Upload surefire reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-java${{ matrix.java }}
+          path: '**/target/surefire-reports/**'
