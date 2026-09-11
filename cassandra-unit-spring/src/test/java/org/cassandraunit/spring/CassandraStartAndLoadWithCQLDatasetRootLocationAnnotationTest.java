@@ -8,8 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Olivier Bazoud
@@ -35,7 +34,7 @@ public class CassandraStartAndLoadWithCQLDatasetRootLocationAnnotationTest {
     CqlSession session = EmbeddedCassandraServerHelper.getSession();
     ResultSet result = session.execute("select * from testCQLTableRootLocation WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570797");
     String val = result.iterator().next().getString("value");
-    assertEquals("Root- Cql loaded string", val);
+    assertThat(val).isEqualTo("Root- Cql loaded string");
   }
 
 }

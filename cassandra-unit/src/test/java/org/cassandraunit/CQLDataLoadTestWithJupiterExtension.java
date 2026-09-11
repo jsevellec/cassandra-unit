@@ -5,9 +5,7 @@ import com.datastax.oss.driver.api.core.cql.ResultSet;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The JUnit 5 counterpart of {@link CQLDataLoadTestWithJunitRule}, asserting the same things
@@ -21,19 +19,19 @@ class CQLDataLoadTestWithJupiterExtension {
 
     @Test
     void shouldResolveTheSessionAsAParameter(CqlSession session) {
-        assertNotNull(session, "the extension should resolve a CqlSession parameter");
-        assertEquals("Cql loaded string", valueOfTestRow(session));
+        assertThat(session).as("the extension should resolve a CqlSession parameter").isNotNull();
+        assertThat(valueOfTestRow(session)).isEqualTo("Cql loaded string");
     }
 
     @Test
     void shouldAlsoExposeTheSessionOnTheExtension() {
-        assertEquals("Cql loaded string", valueOfTestRow(cassandra.getSession()));
+        assertThat(valueOfTestRow(cassandra.getSession())).isEqualTo("Cql loaded string");
     }
 
     /** Reloading the dataset before each test must leave the keyspace usable, not half-dropped. */
     @Test
     void shouldReloadTheDatasetForEachTest() {
-        assertEquals("Cql loaded string", valueOfTestRow(cassandra.getSession()));
+        assertThat(valueOfTestRow(cassandra.getSession())).isEqualTo("Cql loaded string");
     }
 
     private static String valueOfTestRow(CqlSession session) {

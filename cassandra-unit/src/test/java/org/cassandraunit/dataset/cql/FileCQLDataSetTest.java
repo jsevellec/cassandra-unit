@@ -4,10 +4,8 @@ import org.cassandraunit.dataset.AbstractFileDataSetTest;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.cassandraunit.dataset.ParseException;
 import org.junit.Test;
-
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * 
@@ -25,27 +23,19 @@ public class FileCQLDataSetTest extends AbstractFileDataSetTest {
 	public void shouldGetACQLDataSet() {
 
 		CQLDataSet dataSet = new FileCQLDataSet(super.targetDataSetPathFileName);
-		assertThat(dataSet, notNullValue());
+		assertThat(dataSet).isNotNull();
 	}
 
 	@Test
 	public void shouldNotGetACQLDataSetBecauseNull() {
-		try {
-			CQLDataSet dataSet = new FileCQLDataSet(null);
-			fail();
-		} catch (ParseException e) {
-			/* nothing to do, it what we want */
-		}
+		assertThatThrownBy(() -> new FileCQLDataSet(null))
+				.isInstanceOf(ParseException.class);
 	}
 
 	@Test
 	public void shouldNotGetACQLDataSetBecauseOfFileNotFound() {
-		try {
-			CQLDataSet dataSet = new FileCQLDataSet("/notfound.cql");
-			fail();
-		} catch (ParseException e) {
-			/* nothing to do, it what we want */
-		}
+		assertThatThrownBy(() -> new FileCQLDataSet("/notfound.cql"))
+				.isInstanceOf(ParseException.class);
 	}
 
 }

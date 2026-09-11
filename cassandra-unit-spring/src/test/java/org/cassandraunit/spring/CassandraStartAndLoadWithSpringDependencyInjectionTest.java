@@ -12,8 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Olivier Bazoud
@@ -33,8 +32,8 @@ public class CassandraStartAndLoadWithSpringDependencyInjectionTest {
     CqlSession session = EmbeddedCassandraServerHelper.getSession();
     ResultSet result = session.execute("select * from testCQLTable WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570737");
     String val = result.iterator().next().getString("value");
-    assertEquals("Cql loaded string", val);
-    assertEquals("Hello", valueContainer.value);
+    assertThat(val).isEqualTo("Cql loaded string");
+    assertThat(valueContainer.value).isEqualTo("Hello");
   }
 
 }

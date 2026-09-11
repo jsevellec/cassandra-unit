@@ -36,6 +36,7 @@
 
         <cu.junit.version>4.13.2</cu.junit.version>
         <cu.junit.jupiter.version>5.14.4</cu.junit.jupiter.version>
+        <cu.assertj.version>3.27.7</cu.assertj.version>
         <cu.cassandra.all.version>5.0.8</cu.cassandra.all.version>
         <cu.cassandra.driver.version>4.19.3</cu.cassandra.driver.version>
         <cu.spring.version>6.2.19</cu.spring.version>

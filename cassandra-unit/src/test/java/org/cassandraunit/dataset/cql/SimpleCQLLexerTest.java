@@ -1,11 +1,9 @@
 package org.cassandraunit.dataset.cql;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.ArrayList;
-
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SimpleCQLLexerTest {
 
@@ -16,7 +14,7 @@ public class SimpleCQLLexerTest {
 
         final SimpleCQLLexer lexer = new SimpleCQLLexer(inputText);
 
-        assertThat(lexer.getStatements(), Matchers.hasSize(2));
+        assertThat(lexer.getStatements()).hasSize(2);
     }
 
     @Test
@@ -26,6 +24,6 @@ public class SimpleCQLLexerTest {
 
         final SimpleCQLLexer lexer = new SimpleCQLLexer(inputText);
 
-        assertThat(lexer.getStatements(), Matchers.hasSize(2));
+        assertThat(lexer.getStatements()).hasSize(2);
     }
 }

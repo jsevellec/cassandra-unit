@@ -1,10 +1,7 @@
 package org.cassandraunit.utils;
 
 import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Assertions that must hold without an embedded Cassandra running, so this class deliberately
@@ -19,9 +16,9 @@ public class EmbeddedCassandraServerHelperDefaultsTest {
      */
     @Test
     public void defaultTmpDirShouldNotAssumeAMavenLayout() {
-        assertThat(EmbeddedCassandraServerHelper.DEFAULT_TMP_DIR, not(startsWith("target")));
-        assertThat(EmbeddedCassandraServerHelper.DEFAULT_TMP_DIR,
-                startsWith(System.getProperty("java.io.tmpdir")));
+        assertThat(EmbeddedCassandraServerHelper.DEFAULT_TMP_DIR)
+                .doesNotStartWith("target")
+                .startsWith(System.getProperty("java.io.tmpdir"));
     }
 
     /**

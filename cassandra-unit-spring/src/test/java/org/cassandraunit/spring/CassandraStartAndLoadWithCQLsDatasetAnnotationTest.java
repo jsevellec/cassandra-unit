@@ -8,8 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Olivier Bazoud
@@ -36,11 +35,11 @@ public class CassandraStartAndLoadWithCQLsDatasetAnnotationTest {
 
     ResultSet result = session.execute("select * from testCQLTable1 WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570717");
     String val = result.iterator().next().getString("value");
-    assertEquals("1- Cql loaded string", val);
+    assertThat(val).isEqualTo("1- Cql loaded string");
 
     result = session.execute("select * from testCQLTable2 WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570727");
     val = result.iterator().next().getString("value");
-    assertEquals("2- Cql loaded string", val);
+    assertThat(val).isEqualTo("2- Cql loaded string");
   }
 
 }

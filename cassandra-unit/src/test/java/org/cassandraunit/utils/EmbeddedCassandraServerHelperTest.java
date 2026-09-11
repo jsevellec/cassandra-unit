@@ -7,12 +7,7 @@ import org.junit.Test;
 import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests the embedded server on a randomly chosen free port.
@@ -43,7 +38,7 @@ public class EmbeddedCassandraServerHelperTest {
     @Test
     public void shouldStartupOnRandomFreePort() {
         int nativePort = EmbeddedCassandraServerHelper.getNativeTransportPort();
-        assertThat(nativePort, is(greaterThan(0)));
+        assertThat(nativePort).isGreaterThan(0);
 
         // Deliberately not asserting the port differs from the fixed default: the port comes
         // from ServerSocket(0), i.e. the OS ephemeral range, so such an assertion would pass
@@ -58,15 +53,15 @@ public class EmbeddedCassandraServerHelperTest {
                 .withLocalDatacenter("datacenter1")
                 .build()) {
 
-            assertThat(session.getMetadata().getNodes().size(), is(1));
+            assertThat(session.getMetadata().getNodes()).hasSize(1);
             // Deliberately a query and not session.getMetadata().getKeyspace("system"): the
             // driver excludes system keyspaces from schema metadata by default, so the
             // metadata route returns an empty Optional and would assert nothing useful.
-            assertThat(keyspaceNames(session), hasItem("system"));
+            assertThat(keyspaceNames(session)).contains("system");
             long systemTables = session
                     .execute("SELECT table_name FROM system_schema.tables WHERE keyspace_name = 'system'")
                     .all().size();
-            assertThat(systemTables, is(greaterThan(0L)));
+            assertThat(systemTables).isGreaterThan(0L);
         }
     }
 
@@ -81,15 +76,13 @@ public class EmbeddedCassandraServerHelperTest {
 
         session.execute("CREATE KEYSPACE IF NOT EXISTS to_be_dropped WITH replication = "
                 + "{'class':'SimpleStrategy','replication_factor':1}");
-        assertThat(keyspaceNames(session), hasItem("to_be_dropped"));
+        assertThat(keyspaceNames(session)).contains("to_be_dropped");
 
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
 
-        assertThat(keyspaceNames(session), not(hasItem("to_be_dropped")));
+        assertThat(keyspaceNames(session)).doesNotContain("to_be_dropped");
         // The system keyspaces must survive.
-        assertThat(keyspaceNames(session), hasItem("system"));
-        assertThat(keyspaceNames(session), hasItem("system_schema"));
-        assertThat(keyspaceNames(session), hasItem("system_auth"));
+        assertThat(keyspaceNames(session)).contains("system", "system_schema", "system_auth");
     }
 
     @Test
@@ -100,11 +93,11 @@ public class EmbeddedCassandraServerHelperTest {
         // because the identifier was concatenated into the DROP statement unquoted (#222).
         session.execute("CREATE KEYSPACE IF NOT EXISTS \"MixedCase\" WITH replication = "
                 + "{'class':'SimpleStrategy','replication_factor':1}");
-        assertThat(keyspaceNames(session), hasItem("MixedCase"));
+        assertThat(keyspaceNames(session)).contains("MixedCase");
 
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
 
-        assertThat(keyspaceNames(session), not(hasItem("MixedCase")));
+        assertThat(keyspaceNames(session)).doesNotContain("MixedCase");
     }
 
     /**

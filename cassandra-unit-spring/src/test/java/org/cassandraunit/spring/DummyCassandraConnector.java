@@ -23,7 +23,6 @@ public class DummyCassandraConnector {
         return instancesCounter;
     }
 
-
     public CqlSession getSession() {
         return EmbeddedCassandraServerHelper.getSession();
     }

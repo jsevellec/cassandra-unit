@@ -12,8 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gaëtan Le Brun
@@ -46,12 +45,12 @@ public class CassandraStartAndLoadWithCQLDatasetAnnotationAndAutowiredBeanTest {
   private void test() {
     ResultSet result = dummyCassandraConnector.getSession().execute("select * from testCQLTable1 WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570717");
     String val = result.iterator().next().getString("value");
-    assertEquals("1- Cql loaded string", val);
+    assertThat(val).isEqualTo("1- Cql loaded string");
   }
 
   @AfterAll
   public static void afterClass(){
-    assertEquals(1, DummyCassandraConnector.getInstancesCounter());
+    assertThat(DummyCassandraConnector.getInstancesCounter()).isEqualTo(1);
   }
 
   public static class EnsureUniqueContext implements ApplicationContextInitializer<ConfigurableApplicationContext> {

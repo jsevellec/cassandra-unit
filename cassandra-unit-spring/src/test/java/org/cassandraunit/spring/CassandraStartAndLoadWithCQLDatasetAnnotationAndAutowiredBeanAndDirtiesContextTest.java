@@ -1,6 +1,5 @@
 package org.cassandraunit.spring;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 import com.datastax.oss.driver.api.core.cql.ResultSet;
@@ -17,7 +16,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gaëtan Le Brun
@@ -51,12 +50,12 @@ public class CassandraStartAndLoadWithCQLDatasetAnnotationAndAutowiredBeanAndDir
     private void test() {
         ResultSet result = dummyCassandraConnector.getSession().execute("select * from testCQLTable1 WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570717");
         String val = result.iterator().next().getString("value");
-        assertEquals("1- Cql loaded string", val);
+        assertThat(val).isEqualTo("1- Cql loaded string");
     }
 
     @AfterAll
     public static void afterClass(){
-        assertEquals(2, DummyCassandraConnector.getInstancesCounter());
+        assertThat(DummyCassandraConnector.getInstancesCounter()).isEqualTo(2);
     }
 
     public static class EnsureUniqueContext implements ApplicationContextInitializer<ConfigurableApplicationContext> {
