@@ -312,7 +312,15 @@
                                     <goal>jar</goal>
                                 </goals>
                                 <configuration>
-                                    <additionalparam>-Xdoclint:none</additionalparam>
+                                    <!--
+                                      doclint is the maven-javadoc-plugin 3.x spelling. This was
+                                      <additionalparam>-Xdoclint:none</additionalparam>, a 2.x
+                                      parameter that 3.x ignores with only a warning - so the
+                                      release profile, which nothing in CI exercises, had been
+                                      silently failing to build the javadoc jar that Central
+                                      requires.
+                                    -->
+                                    <doclint>none</doclint>
                                 </configuration>
                             </execution>
                         </executions>

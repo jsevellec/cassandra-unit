@@ -9,33 +9,39 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>This class should be used as follows :</p>
- * <blockquote><pre>
- * @RunWith(SpringJUnit4ClassRunner.class)
- * @ContextConfiguration
- * @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class, CassandraUnitTestExecutionListener.class })
- * @EmbeddedCassandra
- * @CassandraDataSet
- * public class MyClassTest {
- * @Test
- * public void xxx_xxx() throws Exception {
- * }
- * }
- * </pre></blockquote>
+ * Declares the CQL dataset(s) to load before each test.
+ * <p>
+ * Annotations inside {@code {@literal @}code} below are escaped on purpose: an unescaped
+ * {@code @RunWith} at the start of a javadoc line is parsed as a javadoc tag, which is what
+ * used to break the javadoc build.
  *
- * or if you use convention over configuration:
- * <blockquote><pre>
- * @RunWith(SpringJUnit4ClassRunner.class)
+ * <pre>{@code
+ * @ExtendWith(SpringExtension.class)
  * @ContextConfiguration
- * @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class, CassandraUnitTestExecutionListener.class })
+ * @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
+ *                           CassandraUnitTestExecutionListener.class })
+ * @EmbeddedCassandra
+ * @CassandraDataSet("cql/dataset.cql")
+ * class MyClassTest {
+ *     @Test
+ *     void xxx_xxx() { }
+ * }
+ * }</pre>
+ *
+ * Or, relying on convention over configuration, where the dataset is found at
+ * {@code <TestClassName>-dataset.cql} on the classpath:
+ *
+ * <pre>{@code
+ * @ExtendWith(SpringExtension.class)
+ * @ContextConfiguration
+ * @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
+ *                           CassandraUnitTestExecutionListener.class })
  * @CassandraUnit
- * public class MyClassTest {
- * @Test
- * public void xxx_xxx() throws Exception {
+ * class MyClassTest {
+ *     @Test
+ *     void xxx_xxx() { }
  * }
- * }
- * </pre></blockquote>
- * `class`-dataset.xml
+ * }</pre>
  *
  * @author Olivier Bazoud
  */

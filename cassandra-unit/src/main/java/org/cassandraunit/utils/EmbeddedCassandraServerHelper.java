@@ -45,7 +45,17 @@ public class EmbeddedCassandraServerHelper {
     private static Logger log = LoggerFactory.getLogger(EmbeddedCassandraServerHelper.class);
 
     public static final long DEFAULT_STARTUP_TIMEOUT = 20000;
-    public static final String DEFAULT_TMP_DIR = "target/embeddedCassandra";
+    /**
+     * Where the embedded server keeps its data when no tmpDir is given.
+     * <p>
+     * Resolved against {@code java.io.tmpdir} rather than the previous
+     * {@code "target/embeddedCassandra"}, which hardcoded Maven's layout into the library and
+     * was simply wrong anywhere else - Gradle uses {@code build/}, and a CWD-relative path is
+     * wrong whenever tests are not run from the module directory. The directory is deleted at
+     * the start of every run, so it does not accumulate.
+     */
+    public static final String DEFAULT_TMP_DIR =
+            Paths.get(System.getProperty("java.io.tmpdir"), "cassandra-unit").toString();
     /** Default configuration file. Starts embedded cassandra under the well known ports */
     public static final String DEFAULT_CASSANDRA_YML_FILE = "cu-cassandra.yaml";
     /** Configuration file which starts the embedded cassandra on a random free port */
@@ -153,7 +163,12 @@ public class EmbeddedCassandraServerHelper {
         final CountDownLatch startupLatch = new CountDownLatch(1);
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
-            cassandraDaemon = new CassandraDaemon();
+            // runManaged=true is essential. CassandraDaemon.deactivate() ends with
+            // `if (!runManaged) System.exit(0)`, and activate() likewise exits the JVM on a
+            // startup error. With the default constructor, calling stopEmbeddedCassandra()
+            // terminated the whole test JVM - surefire just reported the fork vanishing - and a
+            // configuration error killed the build instead of throwing something diagnosable.
+            cassandraDaemon = new CassandraDaemon(true);
             cassandraDaemon.activate();
             startupLatch.countDown();
         });
@@ -182,14 +197,31 @@ public class EmbeddedCassandraServerHelper {
     }
 
     /**
-     * Now deprecated, previous version was not fully operating.
-     * This is now an empty method, will be pruned in future versions.
+     * Deactivates the embedded daemon, stopping the native transport.
+     * <p>
+     * Read this before calling it. It does <strong>not</strong> return the JVM to a state where
+     * another embedded Cassandra can be started: Cassandra's {@code DatabaseDescriptor},
+     * {@code Schema} and {@code StorageService} keep static state that cannot be reset
+     * in-process, so there is no "stop and start again with a different configuration". If that
+     * is what you are after, give each configuration its own JVM - surefire's
+     * {@code reuseForks=false} does it.
+     * <p>
+     * Calling this is almost never necessary: the daemon dies with the JVM, and every test class
+     * in a fresh fork gets a fresh daemon anyway.
+     * <p>
+     * The previous javadoc claimed this was "an empty method". It was not. The body dereferenced
+     * the daemon, so it threw NullPointerException when nothing had been started, and when
+     * something had been started it terminated the JVM outright, because the daemon was created
+     * unmanaged and {@code CassandraDaemon.deactivate()} ends in {@code System.exit(0)}. The
+     * daemon is now created with {@code runManaged=true}, so this returns normally.
      */
-    @Deprecated
-    public static void stopEmbeddedCassandra() {
-        log.warn("EmbeddedCassandraServerHelper.stopEmbeddedCassandra() is now deprecated, " +
-                "previous version was not fully operating");
-        cassandraDaemon.deactivate();
+    public static synchronized void stopEmbeddedCassandra() {
+        CassandraDaemon daemon = cassandraDaemon;
+        if (daemon == null) {
+            log.warn("stopEmbeddedCassandra() called but no embedded Cassandra was started; ignoring.");
+            return;
+        }
+        daemon.deactivate();
     }
 
     /**

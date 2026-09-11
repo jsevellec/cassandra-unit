@@ -19,8 +19,18 @@ import java.lang.annotation.Target;
 @Inherited
 @Documented
 public @interface EmbeddedCassandra {
-  // cassandra configuration file
+
+  /** Classpath name of the Cassandra yaml to start with. */
   String configuration() default EmbeddedCassandraServerHelper.DEFAULT_CASSANDRA_YML_FILE;
-  String tmpDir() default EmbeddedCassandraServerHelper.DEFAULT_TMP_DIR;
+
+  /**
+   * Directory for the node's data, commitlog, hints, saved caches and cdc files.
+   * <p>
+   * Empty means {@link EmbeddedCassandraServerHelper#DEFAULT_TMP_DIR}. It cannot be the default
+   * value here: annotation defaults must be compile-time constants, and DEFAULT_TMP_DIR is
+   * resolved at runtime against {@code java.io.tmpdir} rather than being a literal.
+   */
+  String tmpDir() default "";
+
   long timeout() default EmbeddedCassandraServerHelper.DEFAULT_STARTUP_TIMEOUT;
 }
