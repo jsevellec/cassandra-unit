@@ -28,20 +28,75 @@
   </scm>
     <modules>
         <module>cassandra-unit</module>
-        <module>cassandra-unit-shaded</module>
         <module>cassandra-unit-spring</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>17</maven.compiler.release>
 
-        <cu.junit.version>4.12</cu.junit.version>
-        <cu.logback.version>1.2.3</cu.logback.version>
-        <cu.cassandra.all.version>3.11.5</cu.cassandra.all.version>
-        <cu.cassandra.driver.version>4.3.1</cu.cassandra.driver.version>
-        <cu.spring.version>4.0.2.RELEASE</cu.spring.version>
-        <cu.hamcrest.version>1.3</cu.hamcrest.version>
+        <cu.junit.version>4.13.2</cu.junit.version>
+        <cu.junit.jupiter.version>5.14.4</cu.junit.jupiter.version>
+        <cu.cassandra.all.version>5.0.8</cu.cassandra.all.version>
+        <cu.cassandra.driver.version>4.19.3</cu.cassandra.driver.version>
+        <cu.spring.version>6.2.19</cu.spring.version>
+        <cu.mockito.version>5.23.0</cu.mockito.version>
+
+        <!--
+          Cassandra 5.0 reaches deep into the JDK, so an embedded daemon needs the same JVM
+          flags a real node gets. These are copied verbatim from conf/jvm17-server.options at
+          tag cassandra-5.0.8, plus the jamm memory-meter agent. The agent path is resolved by
+          maven-dependency-plugin's `properties` goal, so no version is hardcoded in a path.
+          Consumers of this library must apply the same argLine - see README.
+        -->
+        <cu.cassandra.argLine>
+            -javaagent:${com.github.jbellis:jamm:jar}
+            -Djdk.attach.allowAttachSelf=true
+            -Dio.netty.tryReflectionSetAccessible=true
+            --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+            --add-exports java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED
+            --add-exports java.management/com.sun.jmx.remote.security=ALL-UNNAMED
+            --add-exports java.rmi/sun.rmi.registry=ALL-UNNAMED
+            --add-exports java.rmi/sun.rmi.server=ALL-UNNAMED
+            --add-exports java.sql/java.sql=ALL-UNNAMED
+            --add-exports java.base/java.lang.ref=ALL-UNNAMED
+            --add-exports jdk.unsupported/sun.misc=ALL-UNNAMED
+            --add-opens java.base/java.lang.module=ALL-UNNAMED
+            --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
+            --add-opens java.base/jdk.internal.ref=ALL-UNNAMED
+            --add-opens java.base/jdk.internal.reflect=ALL-UNNAMED
+            --add-opens java.base/jdk.internal.math=ALL-UNNAMED
+            --add-opens java.base/jdk.internal.module=ALL-UNNAMED
+            --add-opens java.base/jdk.internal.util.jar=ALL-UNNAMED
+            --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
+            --add-opens java.base/sun.nio.ch=ALL-UNNAMED
+            --add-opens java.base/java.io=ALL-UNNAMED
+            --add-opens java.base/java.lang.reflect=ALL-UNNAMED
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/java.util=ALL-UNNAMED
+            --add-opens java.base/java.nio=ALL-UNNAMED
+        </cu.cassandra.argLine>
     </properties>
+
+    <!--
+      Import Cassandra's own dependencyManagement so that everything we share with the
+      embedded server (guava, snakeyaml, jackson, netty, logback, slf4j, commons-lang3, jamm)
+      is pinned to exactly what cassandra-all was built and tested against. This is what
+      clears the CVE backlog inherited from the 3.11.5 era: at 5.0.8 it resolves guava
+      32.0.1-jre, snakeyaml 2.1, jackson-databind 2.19.2, logback 1.5.18, netty 4.1.130.Final.
+      Pinning these ourselves would risk NoSuchMethodError against the server.
+    -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.cassandra</groupId>
+                <artifactId>cassandra-parent</artifactId>
+                <version>${cu.cassandra.all.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <distributionManagement>
         <snapshotRepository>
@@ -58,54 +113,56 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
                 <executions>
                     <execution>
-                        <id>copy-dependencies</id>
-                        <phase>package</phase>
+                        <!-- Resolves ${com.github.jbellis:jamm:jar} for the surefire argLine -->
+                        <id>resolve-agent-paths</id>
+                        <phase>initialize</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>properties</goal>
                         </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
+                <version>3.13.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
+                <version>3.4.2</version>
             </plugin>
 
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>2.4.1</version>
+                <version>3.4.0</version>
             </plugin>
             <plugin>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.5</version>
+                <version>3.1.3</version>
             </plugin>
             <plugin>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>2.3.1</version>
+                <version>3.1.3</version>
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.4.3</version>
+                <version>3.3.1</version>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.7.2</version>
+                <version>3.6.0</version>
                 <configuration>
-                    <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
+                    <!--
+                      One embedded Cassandra per JVM is a permanent design invariant: Cassandra's
+                      DatabaseDescriptor / Schema / StorageService hold static state that cannot be
+                      reset in-process. Forks are therefore NOT reused, so each test class can start
+                      the daemon with its own configuration.
+                    -->
+                    <reuseForks>false</reuseForks>
+                    <argLine>-Dfile.encoding=${project.build.sourceEncoding} ${cu.cassandra.argLine}</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -122,7 +179,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.5</version>
+                <version>3.1.1</version>
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <useReleaseProfile>false</useReleaseProfile>
@@ -140,7 +197,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
+                        <version>3.3.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -153,7 +210,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.9.1</version>
+                        <version>3.11.1</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -169,7 +226,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>3.2.7</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
