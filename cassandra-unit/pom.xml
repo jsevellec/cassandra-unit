@@ -50,11 +50,27 @@
 
     <dependencies>
 
+        <!--
+          JUnit 4 and JUnit 5 are both optional: this module ships an integration for each
+          (CassandraCQLUnit as a @Rule, CassandraUnitExtension as an Extension) and the
+          consumer's own test platform decides which one is on the classpath. Prior versions
+          declared JUnit 4 at compile scope, which leaked it onto every consumer.
+        -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${cu.junit.version}</version>
-        </dependency> 
+            <!-- Scope is explicit: the imported cassandra-parent BOM manages junit to test
+                 scope, which would take it off this module's own compile classpath. -->
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${cu.junit.jupiter.version}</version>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-all</artifactId>
@@ -84,56 +100,67 @@
                     <groupId>org.antlr</groupId>
                     <artifactId>stringtemplate</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-all</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.thrift</groupId>
-                    <artifactId>libthrift</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.java.dev.jna</groupId>
-                    <artifactId>jna</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.apache.thrift</groupId>
-            <artifactId>libthrift</artifactId>
-            <version>0.12.0</version>
-        </dependency>
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>4.1.0</version>
-        </dependency>
 
-        <!-- hamcrest could be moved to the test-scope. But as the examples do not declare hamcrest-deps in their pom, 
-             better leave them in compile-scope --> 
-        <dependency> <!-- dont mix self-contained hamcrest-all and hamcrest-submodules -->
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>${cu.hamcrest.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-            <version>${cu.hamcrest.version}</version>
-        </dependency>
+        <!--
+          The driver is a REQUIRED dependency: CqlSession is imported unconditionally by the
+          helper, the loader and the rule. Declaring it <optional> (as prior versions did) is
+          what produced the NoClassDefFoundError reports in issues #276 and #304.
 
+          Note the coordinates: the DataStax coordinates (com.datastax.oss) are frozen at
+          4.17.0. The driver was donated to Apache and now releases as
+          org.apache.cassandra:java-driver-core. The Java packages are unchanged
+          (com.datastax.oss.driver.*), so this is a coordinate change only.
+        -->
         <dependency>
-            <groupId>com.datastax.oss</groupId>
+            <groupId>org.apache.cassandra</groupId>
             <artifactId>java-driver-core</artifactId>
             <version>${cu.cassandra.driver.version}</version>
-            <optional>true</optional>
+        </dependency>
+
+        <!--
+          Direct compile dependencies that used to arrive transitively via cassandra-all.
+          Versions are managed by the cassandra-parent BOM imported above, so they stay in
+          lockstep with whatever cassandra-all itself was built against.
+        -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
 
         <!-- test -->
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${cu.junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${cu.junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.10.19</version>
+            <version>${cu.mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Tests use org.hamcrest.Matchers, which lives in the unified hamcrest artifact -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>3.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -147,13 +174,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${cu.logback.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${cu.logback.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

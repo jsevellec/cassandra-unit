@@ -53,7 +53,6 @@ public class EmbeddedCassandraServerHelper {
     public static final String DEFAULT_CASSANDRA_YML_FILE = "cu-cassandra.yaml";
     /** Configuration file which starts the embedded cassandra on a random free port */
     public static final String CASSANDRA_RNDPORT_YML_FILE = "cu-cassandra-rndport.yaml";
-    public static final String DEFAULT_LOG4J_CONFIG_FILE = "/log4j-embedded-cassandra.properties";
     private static final String INTERNAL_CASSANDRA_KEYSPACE = "system";
     private static final String INTERNAL_CASSANDRA_AUTH_KEYSPACE = "system_auth";
     private static final String INTERNAL_CASSANDRA_DISTRIBUTED_KEYSPACE = "system_distributed";
@@ -132,15 +131,7 @@ public class EmbeddedCassandraServerHelper {
         cassandraConfigFilePath = (cassandraConfigFilePath.startsWith("/") ? "file://" : "file:/") + cassandraConfigFilePath;
         System.setProperty("cassandra.config", cassandraConfigFilePath);
         System.setProperty("cassandra-foreground", "true");
-        System.setProperty("cassandra.native.epoll.enabled", "false"); // JNA doesnt cope with relocated netty
         System.setProperty("cassandra.unsafesystem", "true"); // disable fsync for a massive speedup on old platters
-
-        // If there is no log4j config set already, set the default config
-        if (System.getProperty("log4j.configuration") == null) {
-            copy(DEFAULT_LOG4J_CONFIG_FILE, tmpDir);
-            String log4jConfiguration = "file:/" + tmpDir + DEFAULT_LOG4J_CONFIG_FILE;
-            System.setProperty("log4j.configuration", log4jConfiguration);
-        }
 
         DatabaseDescriptor.daemonInitialization();
 
@@ -243,15 +234,6 @@ public class EmbeddedCassandraServerHelper {
     }
     
     /**
-     * Get embedded cassandra RPC port.
-     *
-     * @return the cassandra RPC port
-     */
-    public static int getRpcPort() {
-        return DatabaseDescriptor.getRpcPort();
-    }
-
-    /**
      * Get embedded cassandra native transport port.
      *
      * @return the cassandra native transport port.
@@ -296,7 +278,9 @@ public class EmbeddedCassandraServerHelper {
         try {
             Files.delete(dir.toPath());
         } catch (Throwable t) {
-            throw new FSWriteError(t, dir);
+            // Note: FSWriteError's File overload takes org.apache.cassandra.io.util.File as of
+            // Cassandra 4.1, not java.io.File. Pass the Path to stay off that moving target.
+            throw new FSWriteError(t, dir.toPath());
         }
     }
     
