@@ -6,10 +6,7 @@ import org.junit.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Verifies that the {@code tmpDir} argument actually relocates Cassandra's storage.
@@ -35,11 +32,11 @@ public class EmbeddedCassandraTmpDirTest {
     public void shouldPlaceEveryStorageDirectoryUnderTheGivenTmpDir() {
         String root = tmpDir.toAbsolutePath().toString();
 
-        assertThat(DatabaseDescriptor.getAllDataFileLocations().length, is(1));
-        assertThat(DatabaseDescriptor.getAllDataFileLocations()[0], startsWith(root));
-        assertThat(DatabaseDescriptor.getCommitLogLocation(), startsWith(root));
-        assertThat(DatabaseDescriptor.getSavedCachesLocation(), startsWith(root));
-        assertThat(DatabaseDescriptor.getHintsDirectory().toString(), startsWith(root));
+        assertThat(DatabaseDescriptor.getAllDataFileLocations()).hasSize(1);
+        assertThat(DatabaseDescriptor.getAllDataFileLocations()[0]).startsWith(root);
+        assertThat(DatabaseDescriptor.getCommitLogLocation()).startsWith(root);
+        assertThat(DatabaseDescriptor.getSavedCachesLocation()).startsWith(root);
+        assertThat(DatabaseDescriptor.getHintsDirectory().toString()).startsWith(root);
     }
 
     @Test
@@ -53,9 +50,6 @@ public class EmbeddedCassandraTmpDirTest {
         // Cassandra creates a <keyspace>-<tableid> directory under the data location when a
         // table is created, so its presence proves the relocated path is the one in use.
         Path data = Path.of(DatabaseDescriptor.getAllDataFileLocations()[0]);
-        assertThat(Files.isDirectory(data), is(true));
-        try (var entries = Files.list(data)) {
-            assertThat(entries.anyMatch(p -> p.getFileName().toString().startsWith("tmpdir_probe")), is(true));
-        }
+        assertThat(data).isDirectoryContaining(p -> p.getFileName().toString().startsWith("tmpdir_probe"));
     }
 }

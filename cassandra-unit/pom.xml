@@ -111,11 +111,15 @@
             <version>${cu.junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Tests use org.hamcrest.Matchers, which lives in the unified hamcrest artifact -->
+        <!--
+          AssertJ is the single assertion API for the whole suite. It is deliberately not tied
+          to a test engine: the @Rule tests run on JUnit 4 via the vintage engine and the rest on
+          Jupiter, and both use the same assertions.
+        -->
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>3.0</version>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${cu.assertj.version}</version>
             <scope>test</scope>
         </dependency>
 

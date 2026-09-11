@@ -5,8 +5,7 @@ import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CQLDataLoadTestWithFullOptions {
 
@@ -24,6 +23,6 @@ public class CQLDataLoadTestWithFullOptions {
 				.execute("select * from testCQLTable WHERE id=1690e8da-5bf8-49e8-9583-4dff8a570737");
 
 		String val = result.iterator().next().getString("value");
-		assertEquals("Cql loaded string", val);
+		assertThat(val).isEqualTo("Cql loaded string");
 	}
 }

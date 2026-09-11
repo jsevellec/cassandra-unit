@@ -3,11 +3,8 @@ package org.cassandraunit.dataset.cql;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.cassandraunit.dataset.ParseException;
 import org.junit.Test;
-
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Jeremy Sevellec
@@ -18,57 +15,48 @@ public class ClasspathCQLDataSetTest {
     public void shouldGetACQLDataSet() {
 
         CQLDataSet dataSet = new ClassPathCQLDataSet("cql/simple.cql");
-        assertThat(dataSet, notNullValue());
+        assertThat(dataSet).isNotNull();
     }
 
     @Test
     public void shouldNotGetACQLDataSetBecauseNull() {
-        try {
-            CQLDataSet dataSet = new ClassPathCQLDataSet(null);
-            fail();
-        } catch (ParseException e) {
-            /* nothing to do, it what we want */
-        }
+        assertThatThrownBy(() -> new ClassPathCQLDataSet(null))
+                .isInstanceOf(ParseException.class);
     }
 
     @Test
     public void shouldNotGetACQLDataSetBecauseItNotExist() {
-        try {
-            CQLDataSet dataSet = new ClassPathCQLDataSet("cql/unknownDataSet.cql");
-            fail();
-        } catch (ParseException e) {
-            /* nothing to do, it what we want */
-        }
+        assertThatThrownBy(() -> new ClassPathCQLDataSet("cql/unknownDataSet.cql"))
+                .isInstanceOf(ParseException.class);
     }
 
     @Test
     public void shouldGetCQLQueries() {
         CQLDataSet dataSet = new ClassPathCQLDataSet("cql/simple.cql");
-        assertThat(dataSet.getCQLStatements(), notNullValue());
-        assertThat(dataSet.getCQLStatements().isEmpty(), is(false));
-        assertThat(dataSet.getCQLStatements().size(),is(4));
-        assertThat(dataSet.getCQLStatements().get(0), is("CREATE TABLE IF NOT EXISTS testCQLTable (id uuid, value varchar, PRIMARY KEY(id));"));
-        assertThat(dataSet.getCQLStatements().get(1),is("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570737,'Cql loaded string');"));
-        assertThat(dataSet.getCQLStatements().get(2),is("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570738,'BLA2');"));
-        assertThat(dataSet.getCQLStatements().get(3),is("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570739,'BLA1');"));
+        assertThat(dataSet.getCQLStatements()).isNotNull();
+        assertThat(dataSet.getCQLStatements()).isNotEmpty();
+        assertThat(dataSet.getCQLStatements()).hasSize(4);
+        assertThat(dataSet.getCQLStatements().get(0)).isEqualTo("CREATE TABLE IF NOT EXISTS testCQLTable (id uuid, value varchar, PRIMARY KEY(id));");
+        assertThat(dataSet.getCQLStatements().get(1)).isEqualTo("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570737,'Cql loaded string');");
+        assertThat(dataSet.getCQLStatements().get(2)).isEqualTo("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570738,'BLA2');");
+        assertThat(dataSet.getCQLStatements().get(3)).isEqualTo("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570739,'BLA1');");
     }
-
 
     @Test
     public void shouldGetDefinedTestKeyspaceName() {
         CQLDataSet dataSet = new ClassPathCQLDataSet("cql/simple.cql", "mykeyspace");
-        assertThat(dataSet.getKeyspaceName(),is("mykeyspace"));
+        assertThat(dataSet.getKeyspaceName()).isEqualTo("mykeyspace");
     }
 
     @Test
     public void shouldGetCQLQueriesFromMultiLineCQLScript() {
         CQLDataSet dataSet = new ClassPathCQLDataSet("cql/multiLineStatements.cql");
-        assertThat(dataSet.getCQLStatements(), notNullValue());
-        assertThat(dataSet.getCQLStatements().isEmpty(), is(false));
-        assertThat(dataSet.getCQLStatements().size(),is(4));
-        assertThat(dataSet.getCQLStatements().get(0),is("CREATE TABLE testCQLTable ( id uuid, value varchar, PRIMARY KEY(id) );"));
-        assertThat(dataSet.getCQLStatements().get(1),is("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570737,'Cql loaded string');"));
-        assertThat(dataSet.getCQLStatements().get(2),is("INSERT INTO testCQLTable( id,value ) values( 1690e8da-5bf8-49e8-9583-4dff8a570738, 'BLA2' );"));
-        assertThat(dataSet.getCQLStatements().get(3),is("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570739,'BLA1');"));
+        assertThat(dataSet.getCQLStatements()).isNotNull();
+        assertThat(dataSet.getCQLStatements()).isNotEmpty();
+        assertThat(dataSet.getCQLStatements()).hasSize(4);
+        assertThat(dataSet.getCQLStatements().get(0)).isEqualTo("CREATE TABLE testCQLTable ( id uuid, value varchar, PRIMARY KEY(id) );");
+        assertThat(dataSet.getCQLStatements().get(1)).isEqualTo("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570737,'Cql loaded string');");
+        assertThat(dataSet.getCQLStatements().get(2)).isEqualTo("INSERT INTO testCQLTable( id,value ) values( 1690e8da-5bf8-49e8-9583-4dff8a570738, 'BLA2' );");
+        assertThat(dataSet.getCQLStatements().get(3)).isEqualTo("INSERT INTO testCQLTable(id, value) values(1690e8da-5bf8-49e8-9583-4dff8a570739,'BLA1');");
     }
 }
