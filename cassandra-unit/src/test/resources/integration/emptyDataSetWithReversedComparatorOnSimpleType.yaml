@@ -1,4 +1,0 @@
-name: reversedKeyspace
-columnFamilies:
-- name: columnFamilyWithReversedComparatorOnSimpleType
-  comparatorType: UTF8Type(reversed=true)

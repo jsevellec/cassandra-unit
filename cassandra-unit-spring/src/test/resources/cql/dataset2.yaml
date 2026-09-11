@@ -1,7 +1,0 @@
-name: mykeyspacename
-columnFamilies:
-- name: testcqltabley2
-  rows:
-  - key: 02
-    columns:
-    - {name: 03, value: 04}

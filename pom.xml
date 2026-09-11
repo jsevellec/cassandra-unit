@@ -40,7 +40,6 @@
         <cu.cassandra.all.version>5.0.8</cu.cassandra.all.version>
         <cu.cassandra.driver.version>4.19.3</cu.cassandra.driver.version>
         <cu.spring.version>6.2.19</cu.spring.version>
-        <cu.mockito.version>5.23.0</cu.mockito.version>
 
         <!--
           Cassandra 5.0 reaches deep into the JDK, so an embedded daemon needs the same JVM

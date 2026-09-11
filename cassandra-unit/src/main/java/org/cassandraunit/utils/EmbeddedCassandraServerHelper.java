@@ -5,7 +5,9 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import org.apache.cassandra.config.Config;
 import org.apache.cassandra.config.DatabaseDescriptor;
+import org.apache.cassandra.config.YamlConfigurationLoader;
 import org.apache.cassandra.db.commitlog.CommitLog;
 import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.cassandra.io.FSWriteError;
@@ -13,15 +15,10 @@ import org.apache.cassandra.service.CassandraDaemon;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.reader.UnicodeReader;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.nio.file.Files;
@@ -37,8 +34,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -109,7 +104,6 @@ public class EmbeddedCassandraServerHelper {
 
         rmdir(tmpDir);
         File file = copy(yamlFile, tmpDir).toFile();
-        readAndAdaptYaml(file);
         startEmbeddedCassandra(file, tmpDir, timeout);
     }
 
@@ -133,13 +127,18 @@ public class EmbeddedCassandraServerHelper {
         log.debug("Starting cassandra...");
         log.debug("Initialization needed");
 
-        String cassandraConfigFilePath = file.getAbsolutePath();
-        cassandraConfigFilePath = (cassandraConfigFilePath.startsWith("/") ? "file://" : "file:/") + cassandraConfigFilePath;
-        System.setProperty("cassandra.config", cassandraConfigFilePath);
+        System.setProperty("cassandra.config", file.toPath().toUri().toString());
         System.setProperty("cassandra-foreground", "true");
         System.setProperty("cassandra.unsafesystem", "true"); // disable fsync for a massive speedup on old platters
 
-        DatabaseDescriptor.daemonInitialization();
+        // Load the yaml, then relocate the storage directories and resolve any request for a
+        // random port, by mutating the Config object rather than by rewriting the file as text.
+        DatabaseDescriptor.daemonInitialization(() -> {
+            Config config = new YamlConfigurationLoader().loadConfig();
+            relocateStorageDirectories(config, tmpDir);
+            assignFreePorts(config);
+            return config;
+        });
 
         cleanupAndLeaveDirs();
         final CountDownLatch startupLatch = new CountDownLatch(1);
@@ -359,9 +358,9 @@ public class EmbeddedCassandraServerHelper {
         List<String> directories = new ArrayList<>(Arrays.asList(DatabaseDescriptor.getAllDataFileLocations()));
         directories.add(DatabaseDescriptor.getCommitLogLocation());
         for (String dirName : directories) {
-            File dir = new File(dirName);
-            if (!dir.exists())
-                throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
+            // A directory that is not there is already in the state this method wants it in.
+            // Throwing here meant a fresh tmpDir could fail the startup it was meant to enable
+            // (#316); deleteRecursive is a no-op for a path that does not exist.
             rmdir(dirName);
         }
     }
@@ -370,53 +369,46 @@ public class EmbeddedCassandraServerHelper {
         DatabaseDescriptor.createAllDirectories();
     }
 
-    private static void readAndAdaptYaml(File cassandraConfig) throws IOException {
-        String yaml = readYamlFileToString(cassandraConfig);
-
-        // read the ports and replace them if zero. dump back the changed string, preserving comments (thus no snakeyaml)
-        Pattern portPattern = Pattern.compile("^([a-z_]+)_port:\\s*([0-9]+)\\s*$", Pattern.MULTILINE);
-        Matcher portMatcher = portPattern.matcher(yaml);
-        StringBuffer sb = new StringBuffer();
-        boolean replaced = false;
-        while (portMatcher.find()) {
-            String portName = portMatcher.group(1);
-            int portValue = Integer.parseInt(portMatcher.group(2));
-            String replacement;
-            if (portValue == 0) {
-                portValue = findUnusedLocalPort();
-                replacement = portName + "_port: " + portValue;
-                replaced = true;
-            } else {
-                replacement = portMatcher.group(0);
-            }
-            portMatcher.appendReplacement(sb, replacement);
-        }
-        portMatcher.appendTail(sb);
-
-        if (replaced) {
-            writeStringToYamlFile(cassandraConfig, sb.toString());
-        }
-    }
-    
-    private static String readYamlFileToString(File yamlFile) throws IOException {
-        // using UnicodeReader to read the correct encoding according to BOM
-        try (UnicodeReader reader = new UnicodeReader(new FileInputStream(yamlFile))) {
-            StringBuilder sb = new StringBuilder();
-            char[] cbuf = new char[1024];
-
-            int readden = reader.read(cbuf);
-            while(readden >= 0) {
-                sb.append(cbuf, 0, readden);
-                readden = reader.read(cbuf);
-            }
-            return sb.toString();
-        }
+    /**
+     * Points every storage directory at {@code tmpDir}.
+     * <p>
+     * This is what makes the {@code tmpDir} argument mean something. Previously the yaml was
+     * rewritten as text with a regex that only matched lines of the form
+     * {@code ^([a-z_]+)_port:}, so the data, commitlog, saved_caches, hints and cdc paths kept
+     * whatever the shipped yaml said - {@code target/embeddedCassandra/*} - and passing a
+     * tmpDir relocated nothing but the copy of the yaml itself (issues #265, #316).
+     */
+    private static void relocateStorageDirectories(Config config, String tmpDir) {
+        Path root = Paths.get(tmpDir).toAbsolutePath();
+        config.data_file_directories = new String[]{ root.resolve("data").toString() };
+        config.commitlog_directory = root.resolve("commitlog").toString();
+        config.saved_caches_directory = root.resolve("saved_caches").toString();
+        config.hints_directory = root.resolve("hints").toString();
+        config.cdc_raw_directory = root.resolve("cdc_raw").toString();
     }
 
-    private static void writeStringToYamlFile(File yamlFile, String yaml) throws IOException {
-        // write utf-8 without BOM
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(yamlFile), "utf-8")) {
-            writer.write(yaml);
+    /**
+     * Replaces any port set to 0 with a free one, which is how cu-cassandra-rndport.yaml asks
+     * for a random port. All four are handled - ssl_storage_port used to be left at its fixed
+     * value, so the "random port" configuration could still collide.
+     * <p>
+     * Note this is inherently racy: the port is probed by opening and closing a socket, and is
+     * only bound later when the daemon starts. Nothing can fully close that window short of
+     * Cassandra accepting a pre-bound socket.
+     */
+    private static void assignFreePorts(Config config) {
+        try {
+            if (config.storage_port == 0) {
+                config.storage_port = findUnusedLocalPort();
+            }
+            if (config.ssl_storage_port == 0) {
+                config.ssl_storage_port = findUnusedLocalPort();
+            }
+            if (config.native_transport_port == 0) {
+                config.native_transport_port = findUnusedLocalPort();
+            }
+        } catch (IOException e) {
+            throw new ConfigurationException("Could not find a free port for the embedded Cassandra", e);
         }
     }
 

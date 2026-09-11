@@ -1,4 +1,0 @@
-name: reversedKeyspace
-columnFamilies:
-- name: columnFamilyWithReversedComparatorOnCompTypes
-  comparatorType: CompositeType(LongType(reversed=true),IntegerType,UTF8Type(reversed=true))
