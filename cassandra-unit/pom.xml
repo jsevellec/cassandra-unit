@@ -23,9 +23,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${cu.junit.version}</version>
-            <!-- Scope is explicit: the imported cassandra-parent BOM manages junit to test
-                 scope, which would take it off this module's own compile classpath. -->
-            <scope>compile</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -126,11 +123,13 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
+            <version>${cu.logback.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+            <version>${cu.logback.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

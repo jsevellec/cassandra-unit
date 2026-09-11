@@ -39,6 +39,8 @@
         <cu.cassandra.all.version>5.0.8</cu.cassandra.all.version>
         <cu.cassandra.driver.version>4.19.3</cu.cassandra.driver.version>
         <cu.spring.version>6.2.19</cu.spring.version>
+        <!-- Must stay compatible with the logback-core the embedded Cassandra brings in -->
+        <cu.logback.version>1.5.18</cu.logback.version>
 
         <!--
           Cassandra 5.0 reaches deep into the JDK, so an embedded daemon needs the same JVM
@@ -77,43 +79,75 @@
     </properties>
 
     <!--
-      Import Cassandra's own dependencyManagement so that everything we share with the
-      embedded server (guava, snakeyaml, jackson, netty, logback, slf4j, commons-lang3, jamm)
-      is pinned to exactly what cassandra-all was built and tested against. This is what
-      clears the CVE backlog inherited from the 3.11.5 era: at 5.0.8 it resolves guava
-      32.0.1-jre, snakeyaml 2.1, jackson-databind 2.19.2, logback 1.5.18, netty 4.1.130.Final.
-      Pinning these ourselves would risk NoSuchMethodError against the server.
+      Versions for the three compile dependencies this project declares directly and shares with
+      the embedded server. They must match what cassandra-all was built against, or we risk a
+      NoSuchMethodError against Cassandra itself - these are the values cassandra-parent 5.0.8
+      resolves. Everything else (guava, netty, jackson, logback) arrives transitively from
+      cassandra-all at the version its own parent pins, so it does not need managing here.
+
+      Deliberately NOT importing org.apache.cassandra:cassandra-parent as a BOM, even though it
+      is where those values come from. The released pom manages
+      org.apache.cassandra:cassandra-all to 4.1-alpha2-SNAPSHOT, a version that was never
+      published, so importing it broke resolution for any module that picks cassandra-all up
+      transitively rather than declaring it - cassandra-unit-spring did. Pinning three versions
+      by hand is less fragile than working around that.
+
+      Note for anyone chasing it: the "'dependencies.dependency.systemPath' ... ${jmc5.path}"
+      model-validation errors Maven prints are NOT caused by this, and dropping the import does
+      not silence them. Maven reads cassandra-parent anyway, as cassandra-all's parent pom, and
+      that pom declares system-scoped JMC and VisualVM artifacts with unresolved properties.
+      They are noisy but harmless, and only upstream Cassandra can fix them.
     -->
     <dependencyManagement>
         <dependencies>
             <!--
-              These two MUST come before the import below. cassandra-parent 5.0.8 ships a
-              stale entry in its own dependencyManagement:
-
-                  org.apache.cassandra:cassandra-all = 4.1-alpha2-SNAPSHOT
-
-              a version that was never published. Any module that picks cassandra-all up
-              transitively rather than declaring it (cassandra-unit-spring does) would inherit
-              that and fail to resolve. Maven takes the first matching entry, so declaring the
-              real versions here neutralises it.
+              Patched netty and jackson, ahead of what cassandra-all 5.0.8 pins. Cassandra pins
+              netty 4.1.130 and jackson 2.19.2, both of which still carry published advisories;
+              these are the nearest fixed versions. netty stays inside 4.1.x, which netty keeps
+              binary compatible, and jackson stays inside 2.x. Both are imported as BOMs so the
+              whole family moves together rather than mixing versions within netty or jackson.
+              Revisit on every cassandra-all upgrade: if Cassandra catches up, delete these.
             -->
             <dependency>
-                <groupId>org.apache.cassandra</groupId>
-                <artifactId>cassandra-all</artifactId>
-                <version>${cu.cassandra.all.version}</version>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>4.1.137.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>org.apache.cassandra</groupId>
-                <artifactId>java-driver-core</artifactId>
-                <version>${cu.cassandra.driver.version}</version>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.22.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!--
+              lz4-java 1.10.1 (what cassandra-all pins) can crash the JVM from invalid byte
+              array ranges in its native XXHash path - CVE-2026-59949, fixed in 1.11.1. Same
+              deal as netty and jackson above: drop it when Cassandra catches up.
+            -->
+            <dependency>
+                <groupId>at.yawk.lz4</groupId>
+                <artifactId>lz4-java</artifactId>
+                <version>1.11.2</version>
             </dependency>
 
             <dependency>
-                <groupId>org.apache.cassandra</groupId>
-                <artifactId>cassandra-parent</artifactId>
-                <version>${cu.cassandra.all.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.18.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>2.0.17</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -19,10 +19,23 @@ a test JVM. It is not intended for production use, and the embedded node is deli
 configured for convenience rather than safety: authentication is off, durability is reduced, and
 `cassandra.unsafesystem` is set to skip fsync. Do not point it at real data or expose its ports.
 
-Because the node runs in-process, the versions of guava, netty, jackson, snakeyaml and logback
-are dictated by the embedded Cassandra release. They are pinned via Cassandra's own
-`cassandra-parent` dependencyManagement rather than chosen here, so the way to pick up fixes in
-those libraries is a `cassandra-all` upgrade.
+Because the node runs in-process, the versions of guava, netty, jackson, snakeyaml and lz4 are
+largely dictated by the embedded Cassandra release, so the usual way to pick up fixes in them is
+a `cassandra-all` upgrade.
+
+As of 5.0.0 the compile/runtime dependency set (96 artifacts across both modules) has **no
+known advisories** per [OSV](https://osv.dev). Reaching zero needed three versions pinned ahead
+of what `cassandra-all` 5.0.8 itself resolves, each verified against the full test suite:
+
+| Artifact | Cassandra pins | We pin | Why |
+|---|---|---|---|
+| `io.netty:*` (via `netty-bom`) | 4.1.130.Final | 4.1.137.Final | 5 advisories in 4.1.130 |
+| `com.fasterxml.jackson:*` (via `jackson-bom`) | 2.19.2 | 2.22.1 | 5 advisories in 2.19.2 |
+| `at.yawk.lz4:lz4-java` | 1.10.1 | 1.11.2 | CVE-2026-59949 (JVM crash via native XXHash) |
+
+These overrides are a maintenance liability, not a permanent arrangement: they should be
+re-checked on every `cassandra-all` upgrade and deleted once Cassandra catches up. Note also
+that "no known advisories" is a statement about published data on a given day, not a guarantee.
 
 ## Reporting a vulnerability
 

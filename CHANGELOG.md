@@ -68,6 +68,13 @@ This release deliberately breaks compatibility with 4.3.1.0.
 - Publishing moves to the Central Publisher Portal. The previous configuration pointed at
   `oss.sonatype.org`, which no longer exists — the project had no working release path.
 - Version scheme now follows the embedded Cassandra major.
+- The compile/runtime dependency set carries **no known OSV advisories**, down from roughly 60
+  across 15 artifacts in 4.3.1.0. Most of that came free with the Cassandra 5.0 upgrade (guava
+  18 to 32.0.1-jre, snakeyaml 1.11 to 2.1, commons-lang3 3.1 to 3.18.0, and the removal of
+  libthrift, jna 4.1.0, ant, httpclient, hibernate-validator and the codehaus jackson entirely).
+  Three artifacts needed pinning ahead of what Cassandra itself resolves - netty to
+  4.1.137.Final, jackson to 2.22.1 and lz4-java to 1.11.2 - each verified against the full test
+  suite. See SECURITY.md; they should be dropped when Cassandra catches up.
 
 ### Fixed
 
