@@ -145,6 +145,13 @@ The first load creates the keyspace, the second must not drop it. Getting this b
 usual cause of "my data disappeared" — the second dataset dropped the keyspace the first had
 populated.
 
+Note *why* the second load lands in the right keyspace: `CQLDataLoader.load` issues `USE` at the
+end, so the first load leaves the session pointing at `mykeyspace` and the second inherits it. It
+follows that a second dataset naming a **different** keyspace, with `keyspaceCreation` off, would
+run its statements against whatever keyspace was current — see
+[issue #160](https://github.com/jsevellec/cassandra-unit/issues/160). Qualify table names as
+`keyspace.table` in any dataset that does not create its own keyspace.
+
 ## Truncating instead of dropping
 
 Dropping and recreating a keyspace per test is simple but not free. To keep the schema and empty
