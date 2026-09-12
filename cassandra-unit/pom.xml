@@ -60,6 +60,17 @@
                     <groupId>org.antlr</groupId>
                     <artifactId>stringtemplate</artifactId>
                 </exclusion>
+                <!--
+                  cassandra-all drags in the legacy shaded 3.12.1 driver, which exposes the old
+                  com.datastax.driver.core.* API. Different coordinates from java-driver-core, so
+                  Maven never mediates between the two and both would reach the consumer's compile
+                  classpath - two CQL driver APIs, silently. Nothing on the embedded-daemon path
+                  needs it: the full suite passes with it excluded.
+                -->
+                <exclusion>
+                    <groupId>org.apache.cassandra</groupId>
+                    <artifactId>cassandra-driver-core</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 

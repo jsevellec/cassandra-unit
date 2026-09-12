@@ -64,6 +64,51 @@ full suite afterwards.
   why this codebase looks the way it does.
 - CI runs `mvn verify` on JDK 17.
 
+## Versioning
+
+**`<cassandra-major>.<cassandra-unit-minor>.<cassandra-unit-patch>`.** The major is the embedded
+Apache Cassandra major. The minor and patch are cassandra-unit's own, by ordinary semver. The
+driver version never appears in the number.
+
+| Release | Embedded C* | What moved |
+|---|---|---|
+| `5.0.0` | 5.0.8 | first Cassandra 5 release |
+| `5.0.1` | 5.0.8 | a cassandra-unit bugfix |
+| `5.1.0` | 5.0.9 | a cassandra-unit feature, plus a C* patch |
+| `5.2.0` | 5.1.x | C* **minor** bump |
+| `6.0.0` | 6.0.x | C* **major** bump |
+
+The bump rules, in full:
+
+- Embedded Cassandra **major** bump → cassandra-unit **major** bump.
+- Embedded Cassandra **minor** bump → at least a cassandra-unit **minor** bump. The server
+  changed behaviour underneath the user; that is not a patch.
+- Embedded Cassandra **patch** bump → no bump is owed by itself. Ride along with whatever
+  cassandra-unit release is next.
+- A breaking change to **cassandra-unit's own** API → **minor** bump within the current Cassandra
+  line, called out in the CHANGELOG. The major is spent on Cassandra, so it is not available to
+  signal this. That is the accepted cost of the scheme: a known trade, not an oversight.
+- **The driver floats.** It is picked for compatibility and recorded in the README matrix, never
+  encoded in the version. `.github/dependabot.yml` ignores `cassandra-all` but deliberately does
+  not ignore the driver, which is exactly this policy expressed in config.
+
+### Why this is enforced by the build
+
+`mvn validate` fails if the project version does not lead with `cu.cassandra.all.version`'s major
+(the `enforce-version-scheme` rule in the root pom). The check exists because the project has
+gone wrong here before, twice:
+
+- Between `3.0.0.1` (2016) and `4.3.1.0` (2020) the number tracked the **DataStax driver**, not
+  Cassandra. `4.3.1.0` is driver 4.3.1 on Cassandra **3.11.5** — it looks like Cassandra 4 and
+  never was.
+- On 2019-05-09 the scheme flipped mid-flight: `3.11.2.0` was released, then commit `716dcf0`
+  renumbered the identical code and `3.7.1.0` went out seventeen minutes later. A **lower**
+  version shipped after a higher one, so nobody who had resolved `3.11.2.0` could be moved
+  forward by any version range.
+
+When the embedded Cassandra major changes, bump `cu.cassandra.all.version` and the project version
+together — the build will not let you forget.
+
 ## Releasing
 
 Releases are cut by the **release** workflow in GitHub Actions, never from a laptop. It runs
@@ -72,7 +117,7 @@ Releases are cut by the **release** workflow in GitHub Actions, never from a lap
 
 | Input | Example | Notes |
 |---|---|---|
-| `releaseVersion` | `5.0.0` | one version for all three artifacts — neither module declares its own |
+| `releaseVersion` | `5.0.0` | one version for the parent and both jars — neither module declares its own. Must lead with the embedded Cassandra major; see [Versioning](#versioning) |
 | `developmentVersion` | `5.0.1-SNAPSHOT` | what `main` is bumped to afterwards |
 | `dryRun` | `true` | **leave it on the first time**: rehearses everything, pushes and uploads nothing |
 | `autoPublish` | `false` | `false` leaves the deployment sitting in the Portal for you to inspect and publish by hand |

@@ -3,8 +3,18 @@
 5.0.0 deliberately breaks compatibility. This page lists what changed and what to do about it;
 [CHANGELOG.md](../CHANGELOG.md) has the same ground organised by release.
 
-The version number now tracks the **embedded Cassandra major**, not the driver version. 5.0.0
+## The version number changed meaning
+
+From 5.0.0 the version tracks the **embedded Cassandra major**, not the driver version. 5.0.0
 embeds Cassandra 5.0.
+
+This is why `4.3.1.0 → 5.0.0` is not the jump it looks like. `4.3.1.0` was named after the
+DataStax **driver** 4.3.1; the Cassandra it embedded was **3.11.5**. So you are not moving from
+Cassandra 4 to Cassandra 5 — you are moving from 3.11.5 to 5.0.8, which is why this page is as
+long as it is.
+
+The [compatibility matrix](../README.md#version-compatibility) lists what every past release
+actually embedded.
 
 ## Things that will stop your build
 

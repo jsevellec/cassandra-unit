@@ -36,7 +36,7 @@ Requirements
 
 | | |
 |---|---|
-| Apache Cassandra | 5.0.8 (embedded, pulled in transitively) |
+| Apache Cassandra | embedded, pulled in transitively — see [Version compatibility](#version-compatibility) for the exact version |
 | **JDK** | **17 — nothing else** |
 | Maven | 3.9+ |
 
@@ -53,6 +53,60 @@ That is not a recommendation, it is the whole supported set:
 The build enforces this, so a wrong JDK fails with a clear message rather than a confusing
 crash. If the message surprises you, check `mvn -v` rather than `java -version` — tools like
 `jenv` install a shim that overrides `JAVA_HOME` for `mvn` only.
+
+Version compatibility
+---------------------
+
+**From 5.0.0, the version number leads with the embedded Apache Cassandra major.** The minor and
+patch are cassandra-unit's own, by ordinary semver. The driver version never appears in the
+number — it is a compatibility fact, listed below. The full policy is in
+[CONTRIBUTING.md](CONTRIBUTING.md#versioning).
+
+| cassandra-unit | Embedded Cassandra | CQL driver | JDK |
+|---|---|---|---|
+| `5.0.x` | 5.0.8 | `org.apache.cassandra:java-driver-core` 4.19.3 | 17 |
+| `4.3.1.0` | 3.11.5 | `com.datastax.oss:java-driver-core` 4.3.1 *(optional)* | 8 |
+| `3.7.1.0` | 3.11.4 | `com.datastax.cassandra:cassandra-driver-core` 3.7.1 *(optional)* | 8 |
+| `3.11.2.0` | 3.11.4 | same — identical code to 3.7.1.0, see below | 8 |
+| `3.5.0.1` | 3.11.2 | `com.datastax.cassandra:cassandra-driver-core` 3.5.0 *(optional)* | 8 |
+| `3.3.0.2` | 3.11.0 | `com.datastax.cassandra:cassandra-driver-core` 3.3.0 *(optional)* | 8 |
+| `3.1.3.2` | 3.9 | `com.datastax.cassandra:cassandra-driver-core` 3.1.3 *(optional)* | 7 |
+| `2.2.2.1` | 2.2.2 | `com.datastax.cassandra:cassandra-driver-core` 2.1.9 *(optional)* | 7 |
+
+Every release before 5.0.0 also put a **second** CQL driver on your classpath: `cassandra-all`
+carries a shaded `cassandra-driver-core` exposing the older `com.datastax.driver.core.*` API, and
+nothing excluded it. 5.0.0 does, so you now get exactly one driver.
+
+Two rows need explaining, because they are the reason this section exists:
+
+- **`4.3.1.0` tracked the driver, not Cassandra.** It embeds Cassandra **3.11.5**. Everyone who
+  read it as "Cassandra 4" read it the obvious way and was wrong — between 3.0.0.1 and 4.3.1.0
+  the number followed the DataStax driver, while `cassandra-all` moved independently.
+- **`3.11.2.0` and `3.7.1.0` are the same code**, released seventeen minutes apart on 2019-05-09
+  while the scheme was being reverted to driver-tracking. `3.7.1.0` is the intended one, even
+  though it sorts *lower* than the release it replaced.
+
+### Using a different driver version
+
+The driver is deliberately not managed in this project's `dependencyManagement`, so you can pick
+your own 4.x:
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.cassandra</groupId>
+            <artifactId>java-driver-core</artifactId>
+            <version>4.18.1</version>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+Setting a `cu.cassandra.driver.version` property in your own pom does **not** work, and this
+trips people up. The published pom carries the literal `${cu.cassandra.driver.version}`, which
+Maven resolves against *cassandra-unit's* parent, never yours. Use `dependencyManagement` above,
+or declare `java-driver-core` directly.
 
 Setup
 -----

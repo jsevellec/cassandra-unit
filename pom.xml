@@ -207,6 +207,28 @@
                             </rules>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>enforce-version-scheme</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <rules>
+                                <!--
+                                  The project version leads with the embedded Cassandra major.
+                                  This is checked rather than merely documented because the
+                                  project has already shipped a release numbered after the
+                                  driver instead: 4.3.1.0 is driver 4.3.1 on Cassandra 3.11.5,
+                                  and on 2019-05-09 the scheme flipped mid-flight, releasing
+                                  3.11.2.0 and then the same code as 3.7.1.0 seventeen minutes
+                                  later - a lower version, which no range could resolve past.
+                                  See CONTRIBUTING.md, "Versioning".
+                                -->
+                                <evaluateBeanshell>
+                                    <condition>"${project.version}".split("[.\\-]")[0].equals("${cu.cassandra.all.version}".split("\\.")[0])</condition>
+                                    <message>Project version ${project.version} must lead with the embedded Cassandra major (cu.cassandra.all.version is ${cu.cassandra.all.version}). The version number tracks Cassandra, never the driver - see the Versioning section in CONTRIBUTING.md.</message>
+                                </evaluateBeanshell>
+                            </rules>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>

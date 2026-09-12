@@ -6,7 +6,7 @@
 |---|---|
 | **JDK** | **17 — and only 17** |
 | Maven | 3.9+ |
-| Apache Cassandra | 5.0.8, embedded, pulled in transitively |
+| Apache Cassandra | embedded, pulled in transitively — [Version compatibility](../README.md#version-compatibility) has the exact version |
 
 JDK 17 is the entire supported set, not a recommendation:
 

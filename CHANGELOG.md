@@ -63,6 +63,11 @@ This release deliberately breaks compatibility with 4.3.1.0.
 - **The driver is a required dependency instead of `<optional>true</optional>`.** `CqlSession` was
   always imported unconditionally, so declaring it optional is what produced the recurring
   `NoClassDefFoundError` reports (#276, #304).
+- **Only one CQL driver reaches your classpath now.** `cassandra-all` 5.0.8 pulls in the legacy
+  shaded `cassandra-driver-core` 3.12.1, which exposes the old `com.datastax.driver.core.*` API.
+  Its coordinates differ from `java-driver-core`, so Maven never mediated between the two and
+  both landed on the consumer's compile classpath — two driver APIs, no warning. It is now
+  excluded.
 - **JUnit 4 and Hamcrest are no longer compile-scope**, so this library no longer forces JUnit 4
   onto every consumer's classpath. Spring moved from 4.0.2.RELEASE compile-scope to 6.2.19
   `provided`. Declare whichever test framework and Spring version you use.
@@ -72,7 +77,14 @@ This release deliberately breaks compatibility with 4.3.1.0.
   `YamlConfigurationLoader` rejects outright.
 - Publishing moves to the Central Publisher Portal. The previous configuration pointed at
   `oss.sonatype.org`, which no longer exists — the project had no working release path.
-- Version scheme now follows the embedded Cassandra major.
+- **Version scheme is now `<cassandra-major>.<cassandra-unit-minor>.<cassandra-unit-patch>`**, and
+  the build enforces it. The major is the embedded Cassandra major; minor and patch are
+  cassandra-unit's own, by semver; the driver version never appears in the number. This reverses
+  the 2016-2020 scheme, under which `4.3.1.0` meant *driver* 4.3.1 on Cassandra 3.11.5 — and
+  under which `3.11.2.0` and `3.7.1.0` shipped identical code seventeen minutes apart, the second
+  one numbered lower. The README now carries a [compatibility
+  matrix](README.md#version-compatibility) for every release back to 2.2.2.1, and CONTRIBUTING.md
+  states the bump rules.
 - The compile/runtime dependency set carries **no known OSV advisories**, down from roughly 60
   across 15 artifacts in 4.3.1.0. Most of that came free with the Cassandra 5.0 upgrade (guava
   18 to 32.0.1-jre, snakeyaml 1.11 to 2.1, commons-lang3 3.1 to 3.18.0, and the removal of
