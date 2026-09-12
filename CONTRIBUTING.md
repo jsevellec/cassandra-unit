@@ -63,3 +63,84 @@ full suite afterwards.
 - Explain *why* in the commit message, not just what. The history is the main documentation of
   why this codebase looks the way it does.
 - CI runs `mvn verify` on JDK 17.
+
+## Releasing
+
+Releases are cut by the **release** workflow in GitHub Actions, never from a laptop. It runs
+`maven-release-plugin`, signs the artifacts, and uploads them to the
+[Central Publisher Portal](https://central.sonatype.com). Actions → *release* → *Run workflow*:
+
+| Input | Example | Notes |
+|---|---|---|
+| `releaseVersion` | `5.0.0` | one version for all three artifacts — neither module declares its own |
+| `developmentVersion` | `5.0.1-SNAPSHOT` | what `main` is bumped to afterwards |
+| `dryRun` | `true` | **leave it on the first time**: rehearses everything, pushes and uploads nothing |
+| `autoPublish` | `false` | `false` leaves the deployment sitting in the Portal for you to inspect and publish by hand |
+
+The job declares `environment: central`, so it pauses for an approval before it can do anything.
+
+Every run, dry or not, begins with a **pre-flight** `mvn -Prelease verify`. That is what exercises
+GPG signing, the source jar and the javadoc jar Central requires, and it exists because
+`useReleaseProfile=false` plus `releaseProfiles=release` means the `release` profile is otherwise
+active only during `release:perform` — that is, *after* `main` has been bumped and the tag pushed.
+Without the pre-flight, a bad signing key costs you a burnt version number and some git surgery.
+
+**Dry-run first anyway.** On top of the pre-flight it rehearses the version arithmetic and the
+commit-and-tag steps, writing `pom.xml.tag` / `pom.xml.next` and stopping there — nothing pushed,
+nothing uploaded.
+
+Then run for real with `autoPublish=false`, check the deployment reached state **VALIDATED** in
+the Portal, and press Publish there. Dropping a deployment is free; publishing is permanent and
+the version number cannot be reused.
+
+### Secrets
+
+| Where | Name | What |
+|---|---|---|
+| repository | `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` | Central Portal *user token* (View Account → Generate User Token), not the Portal login. Repo-level because the snapshot deploy needs them on every push to `main`. |
+| environment `central` | `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE` | `gpg --armor --export-secret-keys <KEYID>`, and its passphrase. |
+
+The **public** half of the GPG key must be on a keyserver (`gpg --keyserver keys.openpgp.org
+--send-keys <KEYID>`). Central rejects a signature whose key it cannot find, and signing locally
+succeeds regardless — so forgetting this fails late, during upload.
+
+### Namespace ownership
+
+Publishing requires that the Portal account owns the `org.cassandraunit` namespace. It came from
+OSSRH, which was shut down on 2025-06-30 with its namespaces migrated, so it should already be
+there — but confirm it before the first release, because there is no way to check from the command
+line: the Publisher API exposes `upload`, `status`, `deployment/<id>` and download paths, and no
+namespace endpoint.
+
+Sign in at [central.sonatype.com/publishing/namespaces](https://central.sonatype.com/publishing/namespaces)
+**with the account that was used for OSSRH**. If `org.cassandraunit` appears under an *OSSRH
+Namespaces* heading with a *Migrate Namespace* button, press it; self-service migration covers a
+namespace with no parent or child and three or fewer publishers.
+
+Note what the public metadata does *not* tell you. This:
+
+```
+curl -s https://repo1.maven.org/maven2/org/cassandraunit/cassandra-unit/maven-metadata.xml
+```
+
+shows `<release>4.3.1.0</release>` from January 2020, which proves only that the namespace is taken
+— not who holds it now.
+
+The practical check is the snapshot deploy below: it authenticates with the same token and fails
+the same way on an unowned namespace (`401` for a bad token, `403` for the namespace), but nothing
+about it is permanent and no version number is spent. Do that before attempting a release.
+
+### Snapshots
+
+Every push to `main` deploys the current `-SNAPSHOT` to Central's snapshot repository, so the
+unreleased version is usable without building from source:
+
+```xml
+<repository>
+    <id>central-snapshots</id>
+    <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+</repository>
+```
+
+That step skips anything whose pom carries a non-snapshot version, and skips
+`[maven-release-plugin]` commits, so a release in progress cannot leak out through it.

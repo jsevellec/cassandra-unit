@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
   workflow_dispatch:
 
@@ -27,11 +27,48 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.java }}
           cache: maven
+          # Writes ~/.m2/settings.xml with a <server> matching the pom's
+          # <publishingServerId>central</publishingServerId>, so the snapshot deploy below has
+          # credentials. Harmless on pull requests, where that step does not run.
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
 
       # Each test class forks a JVM that starts a real embedded Cassandra, so the suite is
       # slower than the source size suggests. -B keeps the log readable in CI.
       - name: Build and test
         run: mvn -B verify
+
+      # Publishes SNAPSHOTs from main so the unreleased version is usable without building from
+      # source. Reuses the build that just passed rather than running a second one.
+      #
+      # Both guards are load-bearing. release:prepare pushes a commit whose pom carries the
+      # *release* version, and without them this step would push an unsigned, unapproved release
+      # to Central. Releases go through .github/workflows/release.yml, which signs them and waits
+      # for a human.
+      #
+      # No -Prelease: Central does not require signatures on snapshots, so this stays fast and
+      # needs no GPG key - which is why those secrets live in the gated `central` environment
+      # instead of at repo level.
+      - name: Deploy snapshot
+        if: >
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          !contains(github.event.head_commit.message, '[maven-release-plugin]')
+        run: |
+          version=$(mvn -B -q -DforceStdout -Dexpression=project.version \
+            org.apache.maven.plugins:maven-help-plugin:3.5.1:evaluate)
+          case "$version" in
+            *-SNAPSHOT)
+              echo "Deploying $version to the Central snapshot repository"
+              mvn -B -DskipTests deploy
+              ;;
+            *)
+              echo "Version $version is not a snapshot - skipping. Releases go through release.yml."
+              ;;
+          esac
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
 
       - name: Upload surefire reports on failure
         if: failure()

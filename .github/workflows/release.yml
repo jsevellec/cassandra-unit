@@ -1,0 +1,137 @@
+name: release
+
+# Releases are cut here, not from a laptop. The job declares `environment: central`, so it stops
+# and waits for a human to approve before it can touch Maven Central.
+#
+# Order of operations matters and is not obvious: `useReleaseProfile=false` plus
+# `releaseProfiles=release` in the pom means the `release` profile - source jar, javadoc jar, gpg
+# signing - is only active during `release:perform`, while `release:prepare` runs a plain
+# `clean verify`. So a bad GPG key or a javadoc error would surface only *after* main had been
+# bumped and the tag pushed. The pre-flight step below runs the release profile first, with
+# nothing pushed, so those failures cost nothing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: 'Version to release, e.g. 5.0.0'
+        required: true
+      developmentVersion:
+        description: 'Next development version, e.g. 5.0.1-SNAPSHOT'
+        required: true
+      dryRun:
+        description: 'Rehearse only: no commit, no tag, no upload'
+        type: boolean
+        default: true
+      autoPublish:
+        description: 'Publish to Central automatically instead of leaving the deployment VALIDATED for a manual Publish click'
+        type: boolean
+        default: false
+
+# Two releases at once would fight over the tag and the version bump.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # release:prepare pushes two commits and a tag to main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: central
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # release:prepare commits on top of the branch, so the full history is wanted.
+          # persist-credentials stays at its default: checkout writes an http.extraheader into
+          # the local git config, and maven-scm's `git push <developerConnection url>` picks it
+          # up because the URL prefix matches. That is what authenticates the push.
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          # Writes ~/.m2/settings.xml with a <server> whose id matches the pom's
+          # <publishingServerId>central</publishingServerId>. Do not switch to an explicit
+          # `-s some/settings.xml`: release:perform forks a fresh Maven inside target/checkout,
+          # and that fork reads the default settings location.
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      # Everything that can fail, failing while nothing has been pushed: gpg signing, the javadoc
+      # jar Central requires, the source jar, and the full test suite.
+      - name: Pre-flight (release profile, nothing published)
+        run: mvn -B -Prelease verify
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      # Rehearsal. Writes pom.xml.tag / pom.xml.next next to the poms and stops there.
+      - name: Dry run
+        if: ${{ inputs.dryRun }}
+        run: |
+          mvn -B release:clean release:prepare \
+            -DdryRun=true \
+            -DpushChanges=false \
+            -DreleaseVersion=${{ inputs.releaseVersion }} \
+            -DdevelopmentVersion=${{ inputs.developmentVersion }}
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      # The real thing. prepare: set version, run `clean verify`, commit, tag, push, bump to the
+      # next snapshot, push. perform: clone the tag, build it with -Prelease, upload to Central.
+      #
+      # -DskipTests during perform is deliberate. By that point the suite has run twice on this
+      # exact version - once in the pre-flight above, once inside release:prepare - and a third
+      # run of an embedded-Cassandra suite costs about five minutes and proves nothing new.
+      - name: Release
+        if: ${{ !inputs.dryRun }}
+        run: |
+          mvn -B release:clean release:prepare release:perform \
+            -DreleaseVersion=${{ inputs.releaseVersion }} \
+            -DdevelopmentVersion=${{ inputs.developmentVersion }} \
+            -Darguments="-DskipTests -DautoPublish=${{ inputs.autoPublish }}"
+        env:
+          # settings.xml written by setup-java resolves these by name; release:perform forks
+          # a fresh Maven in target/checkout, which inherits this environment.
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Upload surefire reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-release
+          path: '**/target/surefire-reports/**'
+
+      - name: How to recover
+        if: failure() && !inputs.dryRun
+        run: |
+          cat <<'EOF'
+          The release failed. Check, in this order:
+
+            git log --oneline origin/main -3     # did prepare push its two commits?
+            git ls-remote --tags origin          # did it push cassandra-unit-parent-<version>?
+            https://central.sonatype.com         # is there a deployment, and in what state?
+
+          If prepare pushed but perform failed, the version number is still recoverable only if
+          nothing was published. Undo with:
+
+            mvn release:rollback                 # reverts the version commits (needs the local clone)
+            git push --delete origin cassandra-unit-parent-<version>
+
+          A deployment left sitting in the Portal can be dropped from the Deployments page at no
+          cost. A *published* version cannot be removed or reused.
+          EOF
