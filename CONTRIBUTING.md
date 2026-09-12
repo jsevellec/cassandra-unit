@@ -13,8 +13,21 @@ rather than `java -version`. Tools like `jenv` install a shim that overrides `JA
 `mvn` only, which otherwise shows up as surefire's unhelpful
 `The forked VM terminated without properly saying goodbye`.
 
-The suite takes a few minutes: `reuseForks=false` means every test class starts its own
-embedded Cassandra (about 3 seconds each). That is deliberate, see below.
+The suite takes a couple of minutes. Starting Cassandra costs about three seconds, and one
+Cassandra per JVM is a hard constraint (see below), so the suite is split into two surefire
+executions:
+
+- **`default-test`** runs everything that uses the default `cu-cassandra.yaml` in a **single**
+  JVM, sharing one Cassandra.
+- **`isolated-config-tests`** runs, with `reuseForks=false`, the handful of classes that cannot
+  share: those starting Cassandra with their own yaml, plus two that assert JVM-global state
+  (`EmbeddedCassandraServerHelperDefaultsTest` checks `stopEmbeddedCassandra()` when nothing was
+  started, and `CQLDataLoadTestWithReadTimeout` asserts the session request timeout, which the
+  first caller in a JVM wins).
+
+That is 7 Cassandra startups rather than 22. **If you add a test that needs its own Cassandra
+configuration, or that asserts JVM-global state, add it to the isolated execution in `pom.xml`** —
+otherwise it will either fail or, worse, break the tests that run after it in the shared JVM.
 
 ## Things worth knowing before you change anything
 
@@ -22,8 +35,8 @@ embedded Cassandra (about 3 seconds each). That is deliberate, see below.
 `Schema` and `StorageService` hold static state that cannot be reset in-process. Please do not
 send patches that try to restart the daemon with a different configuration, or that add
 `stopEmbeddedCassandra`-then-start logic — it cannot be made to work without per-instance
-classloader isolation of the kind Cassandra's own in-JVM dtest framework uses. `reuseForks=false`
-is the supported answer.
+classloader isolation of the kind Cassandra's own in-JVM dtest framework uses. A separate fork per
+configuration is the supported answer — see the two surefire executions described above.
 
 **Name test classes so they actually run.** Surefire's default includes are `Test*`, `*Test`,
 `*Tests` and `*TestCase`. Nine classes in this repository were silently never executed for years

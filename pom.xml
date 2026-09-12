@@ -236,13 +236,6 @@
                 <version>3.6.0</version>
                 <configuration>
                     <!--
-                      One embedded Cassandra per JVM is a permanent design invariant: Cassandra's
-                      DatabaseDescriptor / Schema / StorageService hold static state that cannot be
-                      reset in-process. Forks are therefore NOT reused, so each test class can start
-                      the daemon with its own configuration.
-                    -->
-                    <reuseForks>false</reuseForks>
-                    <!--
                       Surefire's default includes are Test*, *Test, *Tests and *TestCase. Every
                       CQLDataLoadTestWith* class ends in something else (WithJunitRule,
                       WithFullOptions, ...), so the whole dataset-loading surface - the actual
@@ -253,6 +246,61 @@
                     </includes>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding} ${cu.cassandra.argLine}</argLine>
                 </configuration>
+                <!--
+                  Starting Cassandra costs about three seconds, and one Cassandra per JVM is a hard
+                  constraint: DatabaseDescriptor / Schema / StorageService hold static state that
+                  cannot be reset in-process, so a JVM is pinned to the first configuration it
+                  starts. Running every class in its own fork therefore works, but pays that three
+                  seconds 22 times.
+
+                  Only a handful of classes actually ask for a non-default configuration. So the
+                  suite is split: everything that uses the default cu-cassandra.yaml shares a
+                  single JVM and a single Cassandra, and only the classes needing their own
+                  configuration get their own fork.
+                -->
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <configuration>
+                            <reuseForks>true</reuseForks>
+                            <forkCount>1</forkCount>
+                            <excludes>
+                                <exclude>**/CQLDataLoadTestWithRandomPort.java</exclude>
+                                <exclude>**/CQLDataLoadTestWithFullOptions.java</exclude>
+                                <exclude>**/EmbeddedCassandraTmpDirTest.java</exclude>
+                                <exclude>**/EmbeddedCassandraServerHelperTest.java</exclude>
+                                <exclude>**/EmbeddedCassandraServerHelperDefaultsTest.java</exclude>
+                                <exclude>**/CQLDataLoadTestWithReadTimeout.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>isolated-config-tests</id>
+                        <goals><goal>test</goal></goals>
+                        <configuration>
+                            <!--
+                              Each of these needs a JVM to itself, for one of three reasons:
+                                - it starts Cassandra with its own yaml (random ports, relocated
+                                  tmpDir), and a JVM is pinned to the first configuration it starts;
+                                - EmbeddedCassandraServerHelperDefaultsTest asserts the behaviour of
+                                  stopEmbeddedCassandra() when nothing was started, so it must run
+                                  where nothing has started - sharing a JVM would make it stop the
+                                  server everyone else is using;
+                                - CQLDataLoadTestWithReadTimeout asserts the session request
+                                  timeout, which is JVM-global and set by whichever test runs first.
+                            -->
+                            <reuseForks>false</reuseForks>
+                            <includes>
+                                <include>**/CQLDataLoadTestWithRandomPort.java</include>
+                                <include>**/CQLDataLoadTestWithFullOptions.java</include>
+                                <include>**/EmbeddedCassandraTmpDirTest.java</include>
+                                <include>**/EmbeddedCassandraServerHelperTest.java</include>
+                                <include>**/EmbeddedCassandraServerHelperDefaultsTest.java</include>
+                                <include>**/CQLDataLoadTestWithReadTimeout.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <!--

@@ -131,10 +131,39 @@ Usually one of:
 
 ## The suite is slow
 
-Expect ~3 seconds per embedded startup. With `reuseForks=false` that is once per test class, which
-is the cost of isolation. To trade isolation for speed, allow fork reuse and let tests share one
-node — then every class must use the same configuration. If neither trade-off is acceptable, the
-in-process design is probably the wrong tool.
+Expect ~3 seconds per embedded startup. With `reuseForks=false` that is once per test class.
+
+**`reuseForks=false` is usually applied far more widely than it needs to be.** It is only required
+for classes that cannot share a JVM — ones starting Cassandra with a *different* configuration, or
+asserting JVM-global state. Everything using the same configuration can share a single JVM and a
+single Cassandra. Splitting surefire into two executions along that line is worth doing:
+
+```xml
+<executions>
+  <execution>
+    <id>default-test</id>
+    <configuration>
+      <reuseForks>true</reuseForks>
+      <excludes><exclude>**/NeedsItsOwnConfigTest.java</exclude></excludes>
+    </configuration>
+  </execution>
+  <execution>
+    <id>isolated-config-tests</id>
+    <goals><goal>test</goal></goals>
+    <configuration>
+      <reuseForks>false</reuseForks>
+      <includes><include>**/NeedsItsOwnConfigTest.java</include></includes>
+    </configuration>
+  </execution>
+</executions>
+```
+
+This project does exactly that, and it took its own suite from 22 Cassandra startups to 7, roughly
+halving the build. Watch for two traps when classes start sharing a JVM: a test calling
+`stopEmbeddedCassandra()` stops the server for everything after it, and a test asserting a
+JVM-global setting such as the session request timeout will see whatever the first caller set.
+
+If neither trade-off is acceptable, the in-process design is probably the wrong tool.
 
 ---
 
