@@ -225,5 +225,4 @@ the full guide and [CHANGELOG.md](CHANGELOG.md) the release-by-release detail. T
 
 License
 -------
-This project is licensed under LGPL V3.0:
-http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+This project is licensed under the MIT License - see [LICENSE.txt](LICENSE.txt) for details.

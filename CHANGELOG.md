@@ -7,6 +7,11 @@ Cassandra major rather than the driver version.
 
 This release deliberately breaks compatibility with 4.3.1.0.
 
+### License
+
+- **The license changed from LGPL-3.0 to MIT.** Previously published 4.x artifacts keep their
+  LGPL-3.0 metadata and are unaffected; the change applies from 5.0.0 onward.
+
 ### Requirements
 
 - Embedded Cassandra is now **5.0.8** (was 3.11.5).

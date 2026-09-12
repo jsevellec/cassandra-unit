@@ -9,8 +9,8 @@
     <url>https://github.com/jsevellec/cassandra-unit</url>
     <licenses>
         <license>
-            <name>GNU LESSER GENERAL PUBLIC LICENSE V3.0</name>
-            <url>http://www.gnu.org/licenses/lgpl-3.0-standalone.html</url>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
