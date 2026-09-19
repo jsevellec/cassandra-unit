@@ -1,7 +1,8 @@
 # Datasets
 
-A dataset is a file CassandraUnit loads into the embedded node before your test runs. There are two
-kinds, and most projects end up using both:
+A dataset is what CassandraUnit loads into the embedded node before your test runs — usually a file,
+but a row dataset can also be [built in Java](#in-java-with-no-file). There are two kinds, and most
+projects end up using both:
 
 | | **CQL script** | **Row dataset** |
 |---|---|---|
@@ -30,6 +31,9 @@ their natural form, so there is no quoting to get wrong. CSV in particular lets 
 straight out of a spreadsheet or a production export.
 
 **If in doubt, use a CQL script.** It is the simpler thing and it can do everything.
+
+**For a handful of rows, skip the file.** [A builder](#in-java-with-no-file) produces the same row
+dataset in Java, next to the test that needs it.
 
 ## A first pair
 
@@ -192,7 +196,8 @@ The practical consequence is the one that used to be a bug: a `text` column hold
 string `"1"`. It does not become the number 1.
 
 All four formats share one model — tables, rows, and values — so the rules below about null, about
-collections and about type conversion apply to every one of them. Only the syntax differs.
+collections and about type conversion apply to every one of them. Only the syntax differs. So does
+[the builder](#in-java-with-no-file), which is the same model with no file at all.
 
 ### null, and the absence of a value
 
@@ -220,8 +225,8 @@ Values are converted against the column's real type, so you write them in their 
 | `blob` | a `0x`-prefixed hex string — **quote it in YAML**, or YAML reads it as a number |
 | `list`, `set` | a list. A single bare value counts as a list of one. |
 | `map` | a map |
-| UDT | a map keyed by field name |
-| tuple | the CQL literal, e.g. `"(1, 'a')"` |
+| UDT | a map keyed by field name — or, from a builder, a `UdtValue` of that type |
+| tuple | the CQL literal, e.g. `"(1, 'a')"` — or, from a builder, a `TupleValue` |
 
 A conversion that cannot be made fails with a message naming the dataset, the table, the column and
 its type — not a bare server error.
@@ -312,6 +317,75 @@ It is declared `optional` by `cassandra-unit`, so you only pay for it if you use
 XML need nothing. Loading a `.csv` dataset without it fails immediately, with a message saying
 exactly this.
 
+### In Java, with no file
+
+For a handful of rows a file is a lot of ceremony, and it puts the fixture somewhere other than the
+test that depends on it. A builder produces the same row dataset in code:
+
+```java
+RowsCQLDataSet fixtures = CQLDataSetFactory.builder("mykeyspace")
+        .table("widget").columns("id", "label", "quantity")
+            .row(id1, "one", 42)
+            .row(id2, "two", 7)
+            .row(id3, null, 0)
+        .table("event").columns("day", "at", "kind")
+            .row("2026-09-19", Instant.parse("2026-09-19T12:00:00Z"), "start")
+        .build();
+
+new CQLDataLoader(session).load(fixtures);
+```
+
+It is **not a second way of loading rows**. `build()` returns an ordinary `RowsCQLDataSet`, so from
+there on everything is the code a file goes through: the column types still come from the live
+schema, the values still go through the same converter, and the keyspace handling, the isolation
+modes, the extensions and the JUnit 4 rule all behave identically. A test in the suite builds
+`rows/assertion-data.yaml` in code and checks each direction against the other, so the two cannot
+drift.
+
+**Hand over the object you already have.** This is the one thing a file cannot do — a `UUID`, an
+`Instant`, a `Set<String>` are passed straight through when the column's codec already accepts them,
+and so are a `UdtValue` and a `TupleValue` of that exact type, which no file could express at all.
+The written forms still work, converted exactly as a CSV file's would be, so a fixture can mix the
+two.
+
+**Columns are declared once per table**, and the values of each `row(...)` line up with them.
+Returning to a table appends rows and keeps its columns, which is what lets a loop add to a table it
+opened earlier:
+
+```java
+        .table("widget")
+            .row(id4, "four", 1)
+```
+
+**A row of a different shape names its own columns.** Rows in one dataset do not have to agree on
+which columns they set — absent still means unset — so the escape hatch is a map:
+
+```java
+        .table("widget")
+            .row(Map.of("id", id5, "tags", Set.of("alpha")))
+```
+
+Note that `Map.of` rejects null values. An explicit null — the tombstone — needs either the
+positional form, as `id3` above, or a `LinkedHashMap`.
+
+**Keyspace creation and deletion default to off**, unlike `fromClassPath`. A builder describes rows
+and never schema, so dropping its keyspace would destroy the tables its own inserts need.
+`builder(keyspace, true, true)` is there for the rare fixture that really should own its keyspace.
+
+**Name it if you have several.** `describe()` prefixes every parse error and every assertion
+failure, and a file shows its path there. A built dataset says `a dataset built in code` unless
+`named("the shipping fixture")` gives it something better.
+
+The same object can also state the expectation, because an expected dataset is a row dataset read
+the other way round — see [Asserting with a dataset file](assertions.md):
+
+```java
+ExpectedDataSetFactory.of(fixtures, "mykeyspace").verify(session);
+```
+
+Declare the variable as `RowsCQLDataSet` rather than `CQLDataSet` if you want both uses from one
+object: `ExpectedDataSetFactory.of` is typed on the concrete class.
+
 ### What a row dataset cannot do
 
 Counters (they need `UPDATE ... SET c = c + n`), `USING TTL`, `USING TIMESTAMP`, `DELETE`, and any
@@ -321,7 +395,7 @@ schema change. Use a CQL script for those — that is what the pair is for.
 
 These apply to `.cql` scripts only. The parser is deliberately small — a lexer that strips comments
 and splits on semicolons, not a CQL grammar. The exact rules, from
-[`SimpleCQLLexer`](../cassandra-unit/src/main/java/org/cassandraunit/dataset/cql/SimpleCQLLexer.java):
+[`SimpleCQLLexer`](../cassandra-unit-dataset/src/main/java/org/cassandraunit/dataset/cql/SimpleCQLLexer.java):
 
 **Statements are separated by semicolons.** The final one may omit its semicolon — whatever is left
 over at end of file is executed as a statement — but terminate every statement anyway, so that

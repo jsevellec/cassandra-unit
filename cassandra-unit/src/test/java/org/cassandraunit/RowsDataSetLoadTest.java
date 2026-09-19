@@ -4,6 +4,7 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.data.TupleValue;
 import com.datastax.oss.driver.api.core.data.UdtValue;
+import com.datastax.oss.driver.api.core.type.DataTypes;
 import org.cassandraunit.dataset.CQLDataSetFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -135,6 +136,33 @@ class RowsDataSetLoadTest {
         // a string and a number respectively.
         assertThat(addr.getString("street")).isEqualTo("1 Main St");
         assertThat(addr.getInt("zip")).isEqualTo(75001);
+    }
+
+    /**
+     * A dataset built in code can hand over the value it already has, and the two structured types
+     * are the ones where that is not free: a UDT would otherwise be rejected for not being a map,
+     * and a tuple for not being a CQL literal. Tested here rather than in {@code BuiltDataSetTest}
+     * because this is the schema with a UDT and a tuple in it.
+     */
+    @Test
+    void aBuilderShouldPassRealUdtAndTupleValuesStraightThrough(CqlSession session) {
+        UUID id = UUID.fromString("1690e8da-5bf8-49e8-9583-4dff8a570d99");
+        UdtValue address = session.getMetadata().getKeyspace("rowskeyspace").orElseThrow()
+                .getUserDefinedType("address").orElseThrow()
+                .newValue().setString("street", "2 Other St").setInt("zip", 75002);
+        TupleValue coordinate = DataTypes.tupleOf(DataTypes.INT, DataTypes.TEXT)
+                .newValue().setInt(0, 2).setString(1, "south");
+
+        new CQLDataLoader(session).load(CQLDataSetFactory.builder("rowskeyspace")
+                .table("place").columns("id", "addr", "coord")
+                    .row(id, address, coordinate)
+                .build());
+
+        Row place = session.execute("SELECT * FROM rowskeyspace.place WHERE id = " + id).one();
+        assertThat(place.getUdtValue("addr").getString("street")).isEqualTo("2 Other St");
+        assertThat(place.getUdtValue("addr").getInt("zip")).isEqualTo(75002);
+        assertThat(place.getTupleValue("coord").getInt(0)).isEqualTo(2);
+        assertThat(place.getTupleValue("coord").getString(1)).isEqualTo("south");
     }
 
     @Test

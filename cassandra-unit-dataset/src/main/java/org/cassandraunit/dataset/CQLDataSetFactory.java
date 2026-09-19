@@ -27,6 +27,9 @@ import java.util.function.Supplier;
  * Supported: {@code .cql} (statements, the original format), and {@code .yaml} / {@code .yml} /
  * {@code .json} / {@code .xml} / {@code .csv} (rows, loaded against a schema that already exists -
  * see {@link RowsCQLDataSet}).
+ * <p>
+ * {@link #builder(String)} is the sixth format and the one with no file at all: the same rows,
+ * written in Java next to the test that needs them - see {@link CQLDataSetBuilder}.
  *
  * @author Jeremy Sevellec
  */
@@ -93,6 +96,42 @@ public final class CQLDataSetFactory {
                 .map(location -> fromClassPath(location, false, false, keyspaceName))
                 .collect(Collectors.toList());
         return new CompositeCQLDataSet(dataSets, recreateKeyspace, recreateKeyspace, keyspaceName);
+    }
+
+    /**
+     * Fixture rows written in Java rather than read from a file - the sixth format, and the only
+     * one that lives in the test that needs it:
+     * <pre>{@code
+     * RowsCQLDataSet fixtures = CQLDataSetFactory.builder("mykeyspace")
+     *         .table("widget").columns("id", "label", "quantity")
+     *             .row(id1, "one", 42)
+     *             .row(id2, "two", 7)
+     *         .build();
+     * }</pre>
+     * Keyspace creation and deletion default to off, as they do for
+     * {@link #rowsFromClassPath(String, String)} and for the same reason: a builder describes rows
+     * and never schema, so dropping the keyspace would destroy the tables its own inserts need.
+     * <p>
+     * The result is a {@link RowsCQLDataSet}, so it can also state the expectation - see
+     * {@link CQLDataSetBuilder}.
+     */
+    public static CQLDataSetBuilder builder(String keyspaceName) {
+        return new CQLDataSetBuilder(keyspaceName, false, false);
+    }
+
+    /** As {@link #builder(String)}, against whatever keyspace the session is already using. */
+    public static CQLDataSetBuilder builder() {
+        return builder(null);
+    }
+
+    /**
+     * As {@link #builder(String)}, with the keyspace flags spelled out - for the rare fixture that
+     * really should own its keyspace. Anything the builder inserts needs tables that already
+     * exist, so {@code keyspaceCreation} here creates an empty keyspace and nothing else.
+     */
+    public static CQLDataSetBuilder builder(String keyspaceName, boolean keyspaceCreation,
+                                            boolean keyspaceDeletion) {
+        return new CQLDataSetBuilder(keyspaceName, keyspaceCreation, keyspaceDeletion);
     }
 
     public static CQLDataSet fromFile(String location) {

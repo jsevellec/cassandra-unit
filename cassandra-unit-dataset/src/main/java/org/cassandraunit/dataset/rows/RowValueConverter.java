@@ -111,6 +111,15 @@ public final class RowValueConverter {
                 return converted;
             }
             if (type instanceof UserDefinedType userType) {
+                // A UdtValue already of this exact type is passed through. That is not the raw-type
+                // guess the comment above warns about: a UdtValue carries its own full type, and
+                // UserDefinedType.equals compares the keyspace, the name and every field name and
+                // type - so this either matches exactly or falls through to the map form. No parser
+                // can produce one; a dataset built in code can, and handing over the value you
+                // already have is the point of it.
+                if (value instanceof UdtValue udt && userType.equals(udt.getType())) {
+                    return udt;
+                }
                 return convertUdt(userType, value, table, column);
             }
             return convertScalar(type, value);

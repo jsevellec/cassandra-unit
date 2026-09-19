@@ -42,6 +42,42 @@
 
   See [Asserting in code](docs/assertions-fluent.md).
 
+- **A Java builder, as a sixth dataset format.** A dataset had to be a file - YAML, JSON, XML, CSV
+  or CQL. For a handful of rows that is a file's worth of ceremony, and it puts the fixture
+  somewhere other than the test that depends on it.
+
+  ```java
+  RowsCQLDataSet fixtures = CQLDataSetFactory.builder("mykeyspace")
+          .table("widget").columns("id", "label", "quantity")
+              .row(id1, "one", 42)
+              .row(id2, "two", 7)
+              .row(id3, null, 0)
+          .table("event").columns("day", "at", "kind")
+              .row("2026-09-19", Instant.parse("2026-09-19T12:00:00Z"), "start")
+          .build();
+
+  new CQLDataLoader(session).load(fixtures);
+  ```
+
+  **It is not a second way of loading rows.** `build()` returns an ordinary `RowsCQLDataSet`, so
+  the column types still come from the live schema, the values still go through the same converter,
+  and the keyspace handling, isolation modes, extensions and JUnit 4 rule are untouched. A test
+  builds `rows/assertion-data.yaml` in code and checks each direction against the other, so the
+  builder and the parsers cannot drift.
+
+  Because it returns a row dataset, the same object also states the expectation -
+  `ExpectedDataSetFactory.of(fixtures, "mykeyspace")` - with no new assertion API.
+
+  Values are real Java objects: a `UUID`, an `Instant`, a `Set<String>` are passed through when the
+  column's codec accepts them, and their written forms still convert. A `UdtValue` or `TupleValue`
+  of the column's exact type is passed through too - no file can express one, so the converter
+  previously had no reason to accept it. `null` is an explicit null, as
+  in a file. `row(Map)` covers a row whose columns differ from the rest, and returning to a table
+  appends rows while keeping its columns. Keyspace creation and deletion default to **off**, unlike
+  `fromClassPath`: a builder describes rows and never schema.
+
+  See [Datasets](docs/datasets.md#in-java-with-no-file).
+
 ### Dependencies
 
 - `assertj-core` is now a dependency of `cassandra-unit-dataset`, declared

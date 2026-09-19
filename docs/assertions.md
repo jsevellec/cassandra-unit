@@ -186,6 +186,19 @@ ExpectedDataSetFactory.fromClassPath("rows/expected-widget.yaml", "mykeyspace")
         .verify(session);
 ```
 
+**From a builder, with no file at all** — an expectation is a row dataset read the other way round,
+so one [built in Java](datasets.md#in-java-with-no-file) states it just as well. Everything on this
+page applies unchanged:
+
+```java
+RowsCQLDataSet fixtures = CQLDataSetFactory.builder("mykeyspace")
+        .table("widget").columns("id", "label")
+            .row(widgetId, "dispatched")
+        .build();
+
+ExpectedDataSetFactory.of(fixtures, "mykeyspace").verify(session);
+```
+
 ## Not supported
 
 - **TTL and writetime.** Not expressible in the row format, and adding them would mean inventing
