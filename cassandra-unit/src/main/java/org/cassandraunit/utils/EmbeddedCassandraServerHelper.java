@@ -1,10 +1,8 @@
 package org.cassandraunit.utils;
 
-import com.datastax.oss.driver.api.core.CqlIdentifier;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import org.apache.cassandra.config.Config;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.config.YamlConfigurationLoader;
@@ -237,9 +235,9 @@ public class EmbeddedCassandraServerHelper {
      * truncate data in keyspace, except specified tables
      */
     public static void cleanDataEmbeddedCassandra(String keyspace, String... excludedTables) {
-            if (session != null) {
-                cleanDataWithNativeDriver(keyspace, excludedTables);
-            }
+        if (session != null) {
+            CqlOperations.truncateKeyspace(session, keyspace, excludedTables);
+        }
     }
 
     /**
@@ -317,34 +315,13 @@ public class EmbeddedCassandraServerHelper {
      * the source of truth the server, and makes the allowlist actually load-bearing.
      */
 
-    private static void cleanDataWithNativeDriver(String keyspace, String... excludedTables) {
-        Set<String> excludedTableList = new HashSet<>(Arrays.asList(excludedTables));
-
-        session.execute(SimpleStatement.newInstance(
-                        "SELECT table_name FROM system_schema.tables WHERE keyspace_name = ?", keyspace))
-                .all().stream()
-                .map(row -> row.getString("table_name"))
-                .filter(tableName -> !excludedTableList.contains(tableName))
-                .map(tableName -> quote(keyspace) + "." + quote(tableName))
-                .forEach(CqlOperations.truncateTable(session));
-    }
-
     private static void dropKeyspaces() {
         session.execute("SELECT keyspace_name FROM system_schema.keyspaces")
                 .all().stream()
                 .map(row -> row.getString("keyspace_name"))
                 .filter(nonSystemKeyspaces())
-                .map(EmbeddedCassandraServerHelper::quote)
+                .map(CqlOperations::quote)
                 .forEach(CqlOperations.dropKeyspace(session));
-    }
-
-    /**
-     * Quotes a CQL identifier so that names which are not lower-case, or which collide with a
-     * reserved word, survive being concatenated into a statement. Previously these were
-     * interpolated raw, so a keyspace with an upper-case letter could not be dropped (#222).
-     */
-    private static String quote(String identifier) {
-        return CqlIdentifier.fromInternal(identifier).asCql(true);
     }
 
     private static void deleteRecursive(File dir) {
