@@ -1,4 +1,4 @@
-# Getting started
+# Your first test
 
 ## Requirements
 

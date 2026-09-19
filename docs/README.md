@@ -30,7 +30,7 @@ Pick the one that matches what you already have:
 | | |
 |---|---|
 | **I already have a Cassandra** — Testcontainers, a local node, ScyllaDB, Astra | [Using your own Cassandra](with-your-own-cassandra.md) — the `cassandra-unit-dataset` artifact. No embedded server, no JVM flags, no JDK ceiling. |
-| **I want one started for me, in-process** | [Getting started](getting-started.md) — the `cassandra-unit` artifact. **Read the surefire section first**: an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
+| **I want one started for me, in-process** | [Your first test](getting-started.md) — the `cassandra-unit` artifact. **Read the surefire section first**: an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
 
 Either way, two pages matter most. [Datasets](datasets.md) is one: the two dataset kinds — `.cql`
 scripts, and row datasets written as YAML/JSON/XML/CSV or built in Java — how values are converted,

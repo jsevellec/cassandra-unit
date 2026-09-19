@@ -16,7 +16,7 @@ Spring itself is a **`provided`** dependency: your application decides the Sprin
 module is compiled against Spring 6.2 and also runs on Spring 7 — every `spring-test` API it uses
 is still present there.
 
-You still need the surefire configuration from [Getting started](getting-started.md#2-configure-surefire-mandatory).
+You still need [the surefire configuration](getting-started.md#2-configure-surefire-mandatory).
 It is not optional here either.
 
 ## Annotations

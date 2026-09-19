@@ -16,7 +16,7 @@ order of likelihood.
 **1. The surefire `argLine` is missing.** An embedded Cassandra 5.0 needs the JPMS
 `--add-exports` / `--add-opens` flags and the `jamm` agent; without them the JVM fails during
 startup. This is the most common first-run problem. See
-[Getting started](getting-started.md#2-configure-surefire-mandatory).
+[the surefire section](getting-started.md#2-configure-surefire-mandatory).
 
 **2. You are on the wrong JDK.** Check with **`mvn -v`**, not `java -version` — see below.
 

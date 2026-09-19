@@ -118,7 +118,7 @@ and asserts through any `CqlSession` you hand it:
 | | |
 |---|---|
 | **I already have one** — a container, a local node, ScyllaDB, Astra | [Using your own Cassandra](docs/with-your-own-cassandra.md) — no embedded server, no JVM flags, no JDK ceiling. |
-| **Start one for me, in-process** | [Getting started](docs/getting-started.md) — `cassandra-unit`, the embedded server above. |
+| **Start one for me, in-process** | [Your first test](docs/getting-started.md) — `cassandra-unit`, the embedded server above. |
 
 Against a container, the whole setup is one extension:
 
@@ -177,7 +177,7 @@ Full documentation is published at
 from [docs/](docs/) and so versioned alongside the code:
 
 - [Using your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply
-- [Getting started](docs/getting-started.md) — the embedded server: dependency, the mandatory surefire setup, a first test
+- [Your first test](docs/getting-started.md) — the embedded server in five steps: dependency, the mandatory surefire setup, dataset, test, run
 - [Datasets](docs/datasets.md) — `.cql` scripts, YAML/JSON/XML/CSV row datasets, the Java builder, keyspace create/drop control
 - [Asserting with a dataset file](docs/assertions.md) — `@ExpectedCassandraDataSet`, and the comparison rules Cassandra forces
 - [Asserting in code](docs/assertions-fluent.md) — the fluent `CqlAssertions` API, for a single value or row count
@@ -491,7 +491,7 @@ the full guide and [CHANGELOG.md](CHANGELOG.md) the release-by-release detail. T
 - `tmpDir` now genuinely relocates Cassandra's data, commitlog, hints, saved caches and cdc
   directories. It previously relocated nothing but a copy of the yaml.
 - **New: a JUnit 5 extension**, `CassandraUnitExtension`. See
-  [docs/getting-started.md](docs/getting-started.md#junit-5).
+  [the JUnit 5 section](docs/getting-started.md#junit-5).
 
 License
 -------
