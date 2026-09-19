@@ -19,7 +19,7 @@ import java.util.List;
  * <p>
  * That means two datasets, and the second must not drop what the first created:
  * <pre>{@code
- * CQLDataLoader loader = new CQLDataLoader(EmbeddedCassandraServerHelper.getSession());
+ * CQLDataLoader loader = new CQLDataLoader(session);
  * loader.load(new ClassPathCQLDataSet("cql/schema.cql", true, true, "mykeyspace"));
  * loader.load(CQLDataSetFactory.fromClassPath("data/widget.yaml", false, false, "mykeyspace"));
  * }</pre>

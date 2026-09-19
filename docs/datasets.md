@@ -128,7 +128,7 @@ rows to a keyspace something else already built.
 If you load through `CQLDataLoader` yourself, you own the keyspace flags:
 
 ```java
-CQLDataLoader loader = new CQLDataLoader(EmbeddedCassandraServerHelper.getSession());
+CQLDataLoader loader = new CQLDataLoader(session);   // embedded, Testcontainers, anything
 loader.load(CQLDataSetFactory.fromClassPath("cql/schema.cql", true,  true,  "mykeyspace"));
 loader.load(CQLDataSetFactory.fromClassPath("data/widget.yaml", false, false, "mykeyspace"));
 ```
@@ -379,12 +379,20 @@ Dropping and recreating a keyspace per test is simple but not free. To keep the 
 only the rows:
 
 ```java
-EmbeddedCassandraServerHelper.cleanDataEmbeddedCassandra("mykeyspace");
-EmbeddedCassandraServerHelper.cleanDataEmbeddedCassandra("mykeyspace", "reference_data");
+CqlOperations.truncateKeyspace(session, "mykeyspace");
+CqlOperations.truncateKeyspace(session, "mykeyspace", "reference_data");
 ```
 
-The second form truncates every table *except* the ones named. See [Embedded
-server](embedded-server.md).
+The second form truncates every table *except* the ones named. This works against any session, so
+it is available on the `cassandra-unit-dataset` path too. With the embedded server,
+`EmbeddedCassandraServerHelper.cleanDataEmbeddedCassandra("mykeyspace", "reference_data")` is the
+same thing against the shared session — see [Embedded server](embedded-server.md).
 
-This pairs well with a row dataset: load the schema once, truncate between tests, and load only the
-rows each time.
+This pairs well with a row dataset: load the schema once — `CQLDataLoader.loadIfKeyspaceAbsent`
+does exactly that, and reports whether it loaded — truncate between tests, and load only the rows
+each time.
+
+> **`TRUNCATE` snapshots first unless the server sets `auto_snapshot: false`.** The yaml files
+> shipped with the embedded server set it. A stock `cassandra:5.0` image does **not**, so on a
+> Testcontainers node this writes a snapshot per truncate, which is slow and fills the container's
+> disk. Override the configuration if you truncate between tests there.

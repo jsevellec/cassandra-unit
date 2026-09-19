@@ -1,5 +1,76 @@
 # Changelog
 
+## 5.2.0 (unreleased)
+
+### Added
+
+- **`cassandra-unit-dataset`, the fixture layer without the embedded server.** Closes
+  [#243](https://github.com/jsevellec/cassandra-unit/issues/243), open since 2017.
+
+  The dataset code never needed the embedded server: nothing under `org.cassandraunit.dataset`
+  references `org.apache.cassandra.*`, and `CQLDataLoader` has always taken a `CqlSession` from its
+  caller. But it shipped inside an artifact depending on `cassandra-all`, so using the loader meant
+  pulling in a Cassandra distribution, configuring the 25-line JPMS `argLine` and the jamm
+  javaagent, and accepting JDK 17 forever.
+
+  The new artifact carries the loader, the dataset types and the parsers, and depends on
+  `java-driver-core`, `jackson-databind`, `snakeyaml` and `slf4j-api`. It works against any
+  `CqlSession` - a Testcontainers container, a local node, ScyllaDB, Astra - needs no surefire
+  configuration, and has no JDK ceiling.
+
+  ```xml
+  <dependency>
+      <groupId>org.cassandraunit</groupId>
+      <artifactId>cassandra-unit-dataset</artifactId>
+      <version>5.2.0</version>
+      <scope>test</scope>
+  </dependency>
+  ```
+
+  **Nothing changes for existing users.** Package and class names are unchanged, and
+  `cassandra-unit` depends on the new module at compile scope, so every import resolves as before.
+  The set of artifacts a `cassandra-unit` consumer resolves is identical to 5.1.0's, plus
+  `cassandra-unit-dataset` itself. `jackson-dataformat-csv` moves to the new pom, where the CSV
+  parser now lives; it was optional before and is optional now, so it reaches no consumer either
+  way.
+
+- **`CqlDataSetExtension`**, a JUnit 5 extension that loads datasets through a session you supply
+  rather than starting one. See [Using your own Cassandra](docs/with-your-own-cassandra.md).
+
+  The session comes from a lazily-called supplier rather than being passed in, and that is
+  deliberate: Jupiter runs declaratively-registered `beforeAll` callbacks - which is how
+  `@Testcontainers` registers - before `@RegisterExtension` ones, and `@BeforeAll` *methods* after
+  all callbacks. A `static CqlSession` populated in a `@BeforeAll` method is still null when the
+  extension starts. The extension never closes a session it did not create; `closingSession()`
+  opts in.
+
+- **`CQLDataLoader.loadIfKeyspaceAbsent(dataSet)`** - loads only if the keyspace is not already
+  there, and reports whether it did. Backs the extension's `schemaOnce`. It asks
+  `system_schema.keyspaces` rather than remembering in a field, because several test classes
+  routinely share one JVM and one session.
+
+- **`CqlOperations.truncateKeyspace(session, keyspace, excludedTables...)`** and
+  **`CqlOperations.quote(identifier)`**, promoted from private methods on
+  `EmbeddedCassandraServerHelper`. Both are pure driver code that was reachable only by starting an
+  embedded node. `cleanDataEmbeddedCassandra` now delegates to the first; its behaviour is
+  unchanged.
+
+  Note that `TRUNCATE` snapshots first unless the server sets `auto_snapshot: false`. The yaml
+  files shipped here do; a stock `cassandra:5.0` image does not.
+
+- **`RowValueConverter`** and **`TableNames`**, extracted from the package-private `RowBinder`. The
+  conversion ladder was already a pure function of `(DataType, value, CodecRegistry)` but was
+  reachable only from the write path. Extracting it makes it testable with no node running, and
+  gives a future read-back path the same ladder to use.
+
+- `Automatic-Module-Name` manifest entries on both jars.
+
+### Changed
+
+- The JDK requirement is now per-artifact. `cassandra-unit` is still **JDK 17 and nothing else** -
+  Cassandra's `ThreadAwareSecurityManager` calls `System::setSecurityManager`, so 24+ can never
+  work. `cassandra-unit-dataset` needs **17 or later with no upper bound**.
+
 ## 5.1.0 (unreleased)
 
 ### Added
