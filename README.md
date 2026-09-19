@@ -1,29 +1,106 @@
-WELCOME to CassandraUnit
-========================
+# CassandraUnit
 
-What is it?
------------
-Like other \*Unit projects, CassandraUnit is a Java utility test tool.
-It helps you create your Java Application with [Apache Cassandra](http://cassandra.apache.org) Database backend.
-CassandraUnit is for Cassandra what DBUnit is for Relational Databases.
+**Test fixtures and assertions for Apache Cassandra**, with an embedded server if you want one.
 
-CassandraUnit helps you writing isolated JUnit tests in a Test Driven Development style.
+[![Maven Central](https://img.shields.io/maven-central/v/org.cassandraunit/cassandra-unit)](https://central.sonatype.com/artifact/org.cassandraunit/cassandra-unit)
+[![build](https://github.com/jsevellec/cassandra-unit/actions/workflows/build.yml/badge.svg)](https://github.com/jsevellec/cassandra-unit/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
+![JDK 17+](https://img.shields.io/badge/JDK-17%2B-blue)
 
-CassandraUnit is two things, and you can take either.
+CassandraUnit does three things. Take all of them, or just the one you need.
 
-**The fixture loader** (`cassandra-unit-dataset`) turns a YAML, JSON, XML, CSV or CQL file into rows
-in a real keyspace, converting every value with the column's actual type read from the live schema —
-so a `text` column holding `"1"` stays the string `"1"`, and `uuid`, `timestamp`, `blob`,
-collections and UDTs need no hand-formatted CQL literals. It loads through **any `CqlSession` you
-hand it**: a Testcontainers container, a local node, ScyllaDB, Astra. No embedded server, no JVM
-flags, no JDK ceiling.
+1. **Load test data.** A YAML, JSON, XML, CSV or CQL file becomes rows in a real keyspace, with
+   every value converted using the column's actual type, read from the live schema.
+2. **Assert what the database holds.** Fluent and AssertJ-native for a single value or row count,
+   or a dataset file for *every* row a table should hold.
+3. **Start a Cassandra.** A real Apache Cassandra node inside your test JVM, for when you want one
+   and would rather not run Docker.
 
-**The embedded server** (`cassandra-unit`) starts a real Cassandra node inside your test JVM, for
-when you want one and would rather not run Docker. It includes the fixture loader.
+The first two work against **any `CqlSession`** — a container, a local node, ScyllaDB, Astra. Only
+the third starts a server, and it is optional.
 
-| I already have a Cassandra | I want one started for me |
+# Load test data
+
+```yaml
+# widget.yaml — data only; the schema stays in a .cql script
+widget:
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570701
+    label: "1"                       # stays the string "1", never the number
+    tags: [alpha, beta]
+    created: "2026-09-19T10:00:00Z"
+    status: pending
+```
+
+```java
+new CQLDataLoader(session).load(
+        CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/schema.cql", "widget.yaml"));
+```
+
+Every value is converted using the column's **actual type, read from the live schema** — so `uuid`,
+`timestamp`, `blob`, collections and UDTs need no hand-formatted CQL literals, and a `text` column
+holding `"1"` stays text rather than becoming the number 1.
+
+YAML, JSON, XML, CSV, or a plain `.cql` script. See [Datasets](docs/datasets.md).
+
+# Assert what the database holds
+
+```java
+import static org.cassandraunit.assertion.CqlAssertions.assertThat;
+
+@Test
+void shipping_marks_it_dispatched(CqlSession session) {
+    new ShippingService(session).ship(widgetId);
+
+    assertThat(session).keyspace("mykeyspace")
+            .table("widget").row("id", widgetId)
+                .hasValue("status", "dispatched")
+                .hasNull("held_until");
+}
+```
+
+Fluent and AssertJ-native, with nothing to register — static methods over a session, so they work
+under any framework or none. See [Asserting in code](docs/assertions-fluent.md).
+
+For the stricter version, point a dataset file at the result with `@ExpectedCassandraDataSet` and it
+checks **every** row, catching the write that landed in the wrong partition — the failure a
+hand-written `SELECT` never looks for. See
+[Asserting with a dataset file](docs/assertions.md).
+
+# Start a Cassandra
+
+```java
+class WidgetTest {
+
+    @RegisterExtension
+    static final CassandraUnitExtension cassandra = new CassandraUnitExtension(
+            CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/schema.cql", "widget.yaml"));
+
+    @Test
+    void readsTheFixture(CqlSession session) {   // injected by the extension
+        ...
+    }
+}
+```
+
+A real Apache Cassandra node, in your test JVM, with the schema and rows already loaded. Roughly
+three seconds of startup, once per JVM, and no Docker.
+
+It is one node per JVM, your test JVM needs the JVM flags a Cassandra server needs, and your JDK is
+the server's JDK — **read [the surefire section](docs/getting-started.md#2-configure-surefire-mandatory)
+before your first run**, because skipping it fails confusingly.
+
+Against a Cassandra you already have
+------------------------------------
+
+Loading and asserting need no embedded server. The driver-only `cassandra-unit-dataset` artifact loads
+and asserts through any `CqlSession` you hand it:
+
+| | |
 |---|---|
-| [Using your own Cassandra](docs/with-your-own-cassandra.md) | [Getting started](docs/getting-started.md) |
+| **I already have one** — a container, a local node, ScyllaDB, Astra | [Using your own Cassandra](docs/with-your-own-cassandra.md) — no embedded server, no JVM flags, no JDK ceiling. |
+| **Start one for me, in-process** | [Getting started](docs/getting-started.md) — `cassandra-unit`, the embedded server above. |
+
+Against a container, the whole setup is one extension:
 
 ```java
 @Testcontainers
@@ -46,46 +123,27 @@ class WidgetIT {
             .build();
 
     @Test
-    void readsTheFixture(CqlSession session) {    // resolved by the extension
+    void readsTheFixture(CqlSession session) {
         ...
     }
 }
 ```
 
-Testcontainers gives you the node; `withInitScript` is the whole of its data API, one CQL file.
-The snippet above is the rest.
+The container supplies the node; the extension supplies the schema and the rows.
 
-**And the other direction.** A dataset can also state what a table should hold *after* a test —
-`@ExpectedCassandraDataSet` — which is the half of the DBUnit comparison this project has been
-missing since 2010, and which no other Cassandra test library has at all:
+Runnable examples
+-----------------
 
-```java
-@Test
-@ExpectedCassandraDataSet(value = "rows/expected-widget.yaml", keyspace = "mykeyspace")
-void shipping_a_widget_marks_it_dispatched() {
-    service.ship(widgetId);
-}
-```
+**[cassandra-unit-examples](https://github.com/jsevellec/cassandra-unit-examples)** is a standalone
+Maven project you can clone and `mvn test`. It covers the JUnit 5 extension and the JUnit 4 rule,
+`CqlDataSetExtension` against a session you supply, all four row formats, both ways of asserting,
+isolation between tests, the Spring integration, and starting on a random port or a custom
+`cassandra.yaml`.
 
-Rows are matched on the primary key, order across partitions is never compared, and the failure
-report names the row and column that differ. See
-[Asserting with a dataset file](docs/assertions.md).
+They are executable JUnit tests rather than snippets, so they either pass or tell you they do not.
 
-**Or in code, when a file is overkill.** The same comparison, fluent and AssertJ-native, with
-nothing to register — it is static methods over a session, so it works under any framework or none:
-
-```java
-assertThat(session).keyspace("mykeyspace")
-        .table("widget")
-            .hasRowCount(3)
-            .row("id", widgetId)
-                .hasValue("label", "one")
-                .hasNull("created");
-```
-
-See [Asserting in code](docs/assertions-fluent.md).
-
-Other features:
+Also in the box
+---------------
 
 - Create the schema from a CQL script.
 - Integrations for JUnit 4 (`@Rule`), JUnit 5 (`Extension`) and Spring Test.
@@ -105,6 +163,9 @@ Full documentation is in **[docs/](docs/)**, versioned alongside the code:
 - [Spring integration](docs/spring.md) — the annotations and listeners
 - [Troubleshooting](docs/troubleshooting.md) — failure modes whose messages hide the cause
 - [Migrating from 4.x](docs/migrating-from-4.md) — everything removed or changed in 5.0.0
+
+Working code lives in a separate repository:
+**[cassandra-unit-examples](https://github.com/jsevellec/cassandra-unit-examples)**.
 
 The old [project wiki](https://github.com/jsevellec/cassandra-unit/wiki) is **retired**. It had
 drifted to the point of documenting classes and annotation attributes that never existed; its pages
