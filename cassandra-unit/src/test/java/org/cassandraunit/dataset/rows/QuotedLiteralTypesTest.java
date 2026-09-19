@@ -21,9 +21,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Checks {@link RowBinder}'s idea of which types have a quoted CQL literal against the driver's own.
+ * Checks {@link RowValueConverter}'s idea of which types have a quoted CQL literal against the driver's own.
  * <p>
- * {@code RowBinder} has to quote a raw string from CSV or XML before {@link TypeCodec#parse} will
+ * {@code RowValueConverter} has to quote a raw string from CSV or XML before {@link TypeCodec#parse} will
  * take it - but only for the types whose literal form is quoted, and it carries a hardcoded set.
  * A hardcoded set written from memory is a guess. {@link TypeCodec#format} is the exact inverse of
  * {@code parse}, so asking the driver to format a sample value says authoritatively whether that
@@ -62,19 +62,19 @@ class QuotedLiteralTypesTest {
         TypeCodec<Object> codec = REGISTRY.codecFor(type);
         boolean driverQuotesIt = codec.format(sample).startsWith("'");
 
-        assertThat(RowBinder.needsQuoting(type))
+        assertThat(RowValueConverter.needsQuoting(type))
                 .as("%s formats as %s", type.asCql(true, true), codec.format(sample))
                 .isEqualTo(driverQuotesIt);
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("samples")
-    void quotingTheWayRowBinderDoesShouldSurviveARoundTrip(DataType type, Object sample) {
+    void quotingTheWayTheConverterDoesShouldSurviveARoundTrip(DataType type, Object sample) {
         TypeCodec<Object> codec = REGISTRY.codecFor(type);
         // What a CSV field or an XML element looks like: the value with no CQL syntax around it.
         String raw = unquoted(codec.format(sample));
 
-        Object parsed = codec.parse(RowBinder.needsQuoting(type) ? RowBinder.quote(raw) : raw);
+        Object parsed = codec.parse(RowValueConverter.needsQuoting(type) ? RowValueConverter.quote(raw) : raw);
 
         assertThat(parsed).isEqualTo(sample);
     }

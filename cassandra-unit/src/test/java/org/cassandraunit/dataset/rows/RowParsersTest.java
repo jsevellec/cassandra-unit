@@ -126,7 +126,7 @@ class RowParsersTest {
                 """), null, "test");
 
         Map<String, Object> first = tables.get(0).rows().get(0);
-        // Everything XML produces is a string; RowBinder is what turns "1" into whatever the
+        // Everything XML produces is a string; RowValueConverter is what turns "1" into whatever the
         // column actually is.
         assertThat(first).containsEntry("id", "1").containsEntry("label", "1");
         assertThat(first.get("tags")).isEqualTo(List.of("a", "b"));

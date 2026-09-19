@@ -7,7 +7,7 @@ import java.util.List;
  * Turns a dataset's bytes into rows, without knowing anything about Cassandra.
  * <p>
  * Parsers are deliberately type-blind: they report what the file literally said, and
- * {@link RowBinder} converts it against the live schema. A parser that guessed at types would be
+ * {@link RowValueConverter} converts it against the live schema. A parser that guessed at types would be
  * guessing without the one piece of information that settles the question.
  *
  * @author Jeremy Sevellec
