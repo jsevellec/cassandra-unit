@@ -74,12 +74,19 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       # Rehearsal. Writes pom.xml.tag / pom.xml.next next to the poms and stops there.
+      #
+      # -Darguments reaches the Maven that release:prepare forks for its `clean verify`, so this
+      # skips the suite there. The pre-flight above already ran it against this commit, and the
+      # only thing prepare changes is the version string in the pom, which cannot change a test
+      # outcome. Everything a dry run exists to rehearse still runs: compile, enforcer, packaging
+      # and the pom transformation. Without this the job tests twice and takes about twice as long.
       - name: Dry run
         if: ${{ inputs.dryRun }}
         run: |
           mvn -B release:clean release:prepare \
             -DdryRun=true \
             -DpushChanges=false \
+            -Darguments="-DskipTests" \
             -DreleaseVersion=${{ inputs.releaseVersion }} \
             -DdevelopmentVersion=${{ inputs.developmentVersion }}
         env:
@@ -88,9 +95,10 @@ jobs:
       # The real thing. prepare: set version, run `clean verify`, commit, tag, push, bump to the
       # next snapshot, push. perform: clone the tag, build it with -Prelease, upload to Central.
       #
-      # -DskipTests during perform is deliberate. By that point the suite has run twice on this
-      # exact version - once in the pre-flight above, once inside release:prepare - and a third
-      # run of an embedded-Cassandra suite costs about five minutes and proves nothing new.
+      # -Darguments is passed to the Maven that *both* goals fork, so it skips the suite in
+      # prepare's `clean verify` as well as in perform's build. That is deliberate: the pre-flight
+      # above is the one run of the suite for this commit, and repeating an embedded-Cassandra
+      # suite that takes a couple of minutes proves nothing the pre-flight did not already prove.
       - name: Release
         if: ${{ !inputs.dryRun }}
         run: |
