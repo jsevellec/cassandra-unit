@@ -27,6 +27,7 @@
     <tag>HEAD</tag>
   </scm>
     <modules>
+        <module>cassandra-unit-dataset</module>
         <module>cassandra-unit</module>
         <module>cassandra-unit-spring</module>
     </modules>

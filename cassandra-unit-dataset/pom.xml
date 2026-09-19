@@ -1,0 +1,194 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.cassandraunit</groupId>
+        <artifactId>cassandra-unit-parent</artifactId>
+        <version>5.1.0-SNAPSHOT</version>
+    </parent>
+    <groupId>org.cassandraunit</groupId>
+    <artifactId>cassandra-unit-dataset</artifactId>
+    <name>cassandra-unit-dataset</name>
+    <description>Load CQL and YAML/JSON/XML/CSV test fixtures into any Cassandra, through a CqlSession you supply</description>
+
+    <!--
+      The fixture layer, with no embedded server.
+
+      Everything here talks to a CqlSession the caller hands it, so it works against whatever the
+      caller already has: a Testcontainers node, a local Cassandra, ScyllaDB, Astra. That means it
+      needs the driver and three parsers and nothing else - no cassandra-all, no jamm agent, and
+      none of the add-opens/add-exports set that cassandra-unit's consumers must configure.
+
+      It also has no JDK ceiling. The embedded module is pinned to exactly 17, and can never run on
+      24+ because Cassandra's ThreadAwareSecurityManager calls System::setSecurityManager. This one
+      compiles to 17 and runs on any later JDK.
+
+      cassandra-unit depends on this at compile scope, so everything here stays on the classpath of
+      anyone who depends on cassandra-unit and nobody has to change an import.
+    -->
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.cassandra</groupId>
+            <artifactId>java-driver-core</artifactId>
+            <version>${cu.cassandra.driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!--
+          CSV is the only format needing a dependency the driver does not already drag in, and most
+          datasets are not CSV. Optional keeps it off everyone else's classpath; CQLDataSetFactory
+          probes for it and explains what to add if a .csv is loaded without it.
+        -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-csv</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+          For CqlDataSetExtension. Optional for the same reason cassandra-unit declares both JUnits
+          optional: a consumer brings their own test framework, and this module must not put one on
+          their classpath. Anyone not using the extension never loads the class.
+        -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${cu.junit.jupiter.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${cu.junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${cu.assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${cu.logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${cu.logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>org.cassandraunit.dataset</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <!--
+                      The parent requires JDK 17 exactly, because the embedded daemon runs in the
+                      build JVM and Cassandra 5.0 supports nothing else. This module starts no
+                      daemon, so that bound does not apply to it - and applying it would make it
+                      impossible to prove the point by testing this module on a later JDK.
+                    -->
+                    <execution>
+                        <id>enforce-jdk</id>
+                        <phase>none</phase>
+                    </execution>
+
+                    <!--
+                      The whole claim of this artifact, checked rather than asserted. If any of
+                      these ever appears in the tree, the JPMS flags and the JDK ceiling come back
+                      with it and consumers find out at runtime instead of here.
+                    -->
+                    <execution>
+                        <id>no-embedded-server-on-the-classpath</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>org.apache.cassandra:cassandra-all</exclude>
+                                        <exclude>org.apache.cassandra:cassandra-thrift</exclude>
+                                        <exclude>com.github.jbellis:jamm</exclude>
+                                    </excludes>
+                                    <message>cassandra-unit-dataset must resolve without the embedded server. Something has pulled cassandra-all (or the jamm agent) onto its classpath, which would drag the JPMS --add-opens set and the JDK 17-only ceiling along with it. That is exactly what this artifact exists to avoid.</message>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <!--
+                      Resolves the jamm agent path for the parent's argLine. jamm arrives only via
+                      cassandra-all, so here there is nothing to resolve and nothing that needs it.
+                    -->
+                    <execution>
+                        <id>resolve-agent-paths</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!--
+                      A plain JVM: no jamm javaagent, no add-opens, no add-exports.
+
+                      This is not a tidy-up, it is the artifact's central claim expressed in the
+                      build. The parent's ${cu.cassandra.argLine} is 25 lines of JPMS flags plus
+                      -javaagent:${com.github.jbellis:jamm:jar}, and that property is only resolved
+                      by the dependency-plugin execution disabled above. Inheriting it would launch
+                      surefire with the literal unexpanded string and the fork would die with
+                      "The forked VM terminated without properly saying goodbye".
+
+                      That these tests pass without any of it is the standing proof that the fixture
+                      code needs no embedded server.
+                    -->
+                    <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
+                </configuration>
+                <executions>
+                    <!-- Nothing here needs its own Cassandra configuration; there is no Cassandra. -->
+                    <execution>
+                        <id>isolated-config-tests</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
