@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+  <img alt="CassandraUnit" src="docs/assets/logo.svg" width="340">
+</picture>
+
 # CassandraUnit
 
 **Test fixtures and assertions for Apache Cassandra**, with an embedded server if you want one.
