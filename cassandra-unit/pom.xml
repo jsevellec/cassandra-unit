@@ -14,6 +14,23 @@
     <dependencies>
 
         <!--
+          The fixture layer: CQLDataLoader, the dataset types and the parsers.
+
+          Compile scope, not runtime, and that is deliberate: everything it exports stays on the
+          compile classpath of anyone depending on cassandra-unit, so org.cassandraunit.dataset.*
+          and CQLDataLoader resolve exactly as they did when they lived here and no consumer has to
+          touch an import.
+
+          It carries java-driver-core, jackson-databind, snakeyaml, slf4j-api and the optional
+          jackson-dataformat-csv, which is why those are no longer declared below.
+        -->
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit-dataset</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!--
           JUnit 4 and JUnit 5 are both optional: this module ships an integration for each
           (CassandraCQLUnit as a @Rule, CassandraUnitExtension as an Extension) and the
           consumer's own test platform decides which one is on the classpath. Prior versions
@@ -91,58 +108,29 @@
         </dependency>
 
         <!--
-          Direct compile dependencies that used to arrive transitively via cassandra-all.
-          Versions are managed by the cassandra-parent BOM imported above, so they stay in
-          lockstep with whatever cassandra-all itself was built against.
+          Direct compile dependencies of EmbeddedCassandraServerHelper that used to arrive
+          transitively via cassandra-all.
         -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
-            <!--
-              Also the YAML dataset parser. It was already here for cassandra-all's sake, so YAML
-              datasets cost no new dependency.
-            -->
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
+        <!-- test -->
         <!--
-          The JSON dataset parser. Declared rather than used transitively: java-driver-core has a
-          hard, non-optional dependency on jackson-core and jackson-databind, so this adds nothing
-          to the classpath - but code here imports it, and a dependency you compile against belongs
-          in the pom. Version comes from the jackson-bom imported by the parent.
-        -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
-        <!--
-          The CSV dataset parser, and the only dependency the dataset formats add that is not
-          already present. Optional on purpose: CSV is the least used of the formats, and this
-          project has a history of dependency-clash reports (#307, #314, #336, #248, #202) that
-          ended with cassandra-unit-shaded being deleted - the lesson being to put nothing on a
-          consumer's classpath that they did not ask for. CQLDataSetFactory probes for it and says
-          what to add if a CSV dataset is loaded without it.
-
-          Its own dependencies are jackson-databind and jackson-annotations, both already here, so
-          adding it pulls in exactly one jar and no new transitive tree. XML deliberately does NOT
-          use jackson-dataformat-xml, which would pull woodstox and stax2-api; the JDK parser does
-          that job for nothing.
+          Optional in cassandra-unit-dataset, so it is not transitive. CQLDataSetFactoryTest and
+          RowsDataSetFormatsLoadTest both load .csv datasets, which is exactly the situation a
+          consumer using CSV is in - so exercising it at test scope here is the right shape.
         -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-csv</artifactId>
-            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
-
-        <!-- test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -182,4 +170,28 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <!--
+                              org.cassandraunit and org.cassandraunit.utils are split across this
+                              jar and cassandra-unit-dataset. That is inert on the classpath, and
+                              this jar can never be on the module path anyway - it needs
+                              add-opens=...=ALL-UNNAMED, a self-attaching agent and
+                              jdk.internal.* reflection. Naming the module is still worth doing so
+                              the name is ours rather than derived from the filename.
+                            -->
+                            <Automatic-Module-Name>org.cassandraunit</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

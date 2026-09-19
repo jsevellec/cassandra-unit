@@ -1,14 +1,14 @@
 package org.cassandraunit.dataset.cql;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SimpleCQLLexerTest {
+class SimpleCQLLexerTest {
 
     @Test
-    public void canRecognizeEscapedSingleQuotes() {
+    void canRecognizeEscapedSingleQuotes() {
         ArrayList<String> inputText = new ArrayList<>();
         inputText.add("INSERT INTO table ('some''thing'); INSERT INTO table ('somethingElse');");
 
@@ -18,7 +18,7 @@ public class SimpleCQLLexerTest {
     }
 
     @Test
-    public void canRecognizeEscapedDoubleQuotes() {
+    void canRecognizeEscapedDoubleQuotes() {
         ArrayList<String> inputText = new ArrayList<>();
         inputText.add("INSERT INTO \"table \"\"A\" ('some''thing'); INSERT INTO \"table \"\"B\" ('somethingElse');");
 
