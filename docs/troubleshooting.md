@@ -66,6 +66,24 @@ Cassandra per JVM and that is permanent — see
 </configuration>
 ```
 
+## Which artifact am I using?
+
+`cassandra-unit-dataset` is the fixture layer alone; `cassandra-unit` is that plus the embedded
+server, and depends on it. If `EmbeddedCassandraServerHelper` or `CassandraUnitExtension` will not
+resolve, you have the dataset artifact and want `cassandra-unit` — see
+[Using your own Cassandra](with-your-own-cassandra.md) for which is which.
+
+You never need both: `cassandra-unit` brings the other in at compile scope, with identical package
+and class names.
+
+### "Package org.cassandraunit in both module ..."
+
+`org.cassandraunit` and `org.cassandraunit.utils` are split across the two jars. That is invisible
+on the classpath, which is where surefire puts test dependencies, and it is only an error when both
+jars are on the **module path** at once. `cassandra-unit` can never go there anyway — it needs
+`add-opens ...=ALL-UNNAMED`, a self-attaching javaagent and `jdk.internal.*` reflection. If you hit
+this, put them on the classpath.
+
 ## Address already in use / `BindException`
 
 The default configuration uses storage 7010, ssl storage 7011 and native transport 9142 — chosen to

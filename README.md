@@ -9,20 +9,65 @@ CassandraUnit is for Cassandra what DBUnit is for Relational Databases.
 
 CassandraUnit helps you writing isolated JUnit tests in a Test Driven Development style.
 
-Main features:
+CassandraUnit is two things, and you can take either.
 
-- Start an embedded Cassandra.
+**The fixture loader** (`cassandra-unit-dataset`) turns a YAML, JSON, XML, CSV or CQL file into rows
+in a real keyspace, converting every value with the column's actual type read from the live schema —
+so a `text` column holding `"1"` stays the string `"1"`, and `uuid`, `timestamp`, `blob`,
+collections and UDTs need no hand-formatted CQL literals. It loads through **any `CqlSession` you
+hand it**: a Testcontainers container, a local node, ScyllaDB, Astra. No embedded server, no JVM
+flags, no JDK ceiling.
+
+**The embedded server** (`cassandra-unit`) starts a real Cassandra node inside your test JVM, for
+when you want one and would rather not run Docker. It includes the fixture loader.
+
+| I already have a Cassandra | I want one started for me |
+|---|---|
+| [Using your own Cassandra](docs/with-your-own-cassandra.md) | [Getting started](docs/getting-started.md) |
+
+```java
+@Testcontainers
+class WidgetIT {
+
+    @Container
+    static final CassandraContainer cassandra =
+            new CassandraContainer("cassandra:5.0").withReuse(true);
+
+    @RegisterExtension
+    static final CqlDataSetExtension fixtures = CqlDataSetExtension
+            .using(() -> CqlSession.builder()
+                    .addContactPoint(cassandra.getContactPoint())
+                    .withLocalDatacenter(cassandra.getLocalDatacenter())
+                    .build())
+            .closingSession()
+            .schemaOnce(CQLDataSetFactory.fromClassPath("cql/schema.cql", "mykeyspace"))
+            .rowsPerTest(CQLDataSetFactory.fromClassPath(
+                    "data/widget.yaml", false, false, "mykeyspace"))
+            .build();
+
+    @Test
+    void readsTheFixture(CqlSession session) {    // resolved by the extension
+        ...
+    }
+}
+```
+
+Testcontainers gives you the node; `withInitScript` is the whole of its data API, one CQL file.
+The snippet above is the rest.
+
+Other features:
+
 - Create the schema from a CQL script.
-- Load fixture data from a CQL script, or declaratively from YAML, JSON, XML or CSV — values are
-  converted using the real column types, so there are no CQL literals to hand-format.
 - Integrations for JUnit 4 (`@Rule`), JUnit 5 (`Extension`) and Spring Test.
+- `truncateKeyspace` to empty tables between tests without dropping the schema.
 
 Documentation
 -------------
 
 Full documentation is in **[docs/](docs/)**, versioned alongside the code:
 
-- [Getting started](docs/getting-started.md) — dependency, the mandatory surefire setup, a first test
+- [Using your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply
+- [Getting started](docs/getting-started.md) — the embedded server: dependency, the mandatory surefire setup, a first test
 - [Datasets](docs/datasets.md) — `.cql` scripts and YAML/JSON/XML/CSV row datasets, keyspace create/drop control
 - [Embedded server](docs/embedded-server.md) — the `EmbeddedCassandraServerHelper` API
 - [Spring integration](docs/spring.md) — the annotations and listeners
@@ -36,13 +81,16 @@ now point here.
 Requirements
 ------------
 
-| | |
-|---|---|
-| Apache Cassandra | embedded, pulled in transitively — see [Version compatibility](#version-compatibility) for the exact version |
-| **JDK** | **17 — nothing else** |
-| Maven | 3.9+ |
+The two artifacts have different requirements, and the difference is the main reason to prefer one.
 
-That is not a recommendation, it is the whole supported set:
+| | `cassandra-unit-dataset` | `cassandra-unit` |
+|---|---|---|
+| Apache Cassandra | **none** — you supply the session | embedded, pulled in transitively |
+| **JDK** | **17 or later**, no upper bound | **17 — nothing else** |
+| Surefire `argLine` | not needed | **mandatory**, see [Setup](#setup) |
+| Maven | 3.9+ | 3.9+ |
+
+`cassandra-unit`'s JDK row is not a recommendation, it is the whole supported set:
 
 - Cassandra 5.0 removed Java 8, and Cassandra 5.0 supports only JDK 11 and 17.
 - Of those two, this project targets 17: it compiles with `--release 17`, and `spring-test` 6.2
@@ -56,6 +104,9 @@ The build enforces this, so a wrong JDK fails with a clear message rather than a
 crash. If the message surprises you, check `mvn -v` rather than `java -version` — tools like
 `jenv` install a shim that overrides `JAVA_HOME` for `mvn` only.
 
+`cassandra-unit-dataset` carries none of that. It starts no daemon, so it needs no JPMS flags, and
+the 24+ ceiling does not apply — it compiles to 17 and runs on anything later.
+
 Version compatibility
 ---------------------
 
@@ -64,8 +115,19 @@ patch are cassandra-unit's own, by ordinary semver. The driver version never app
 number — it is a compatibility fact, listed below. The full policy is in
 [CONTRIBUTING.md](CONTRIBUTING.md#versioning).
 
+The artifacts, as of 5.2.0:
+
+| artifact | Embedded Cassandra | CQL driver | JDK |
+|---|---|---|---|
+| `cassandra-unit-dataset` | none — you supply the session | `org.apache.cassandra:java-driver-core` 4.19.3 | 17+ |
+| `cassandra-unit` | 5.0.8 | same | 17 only |
+| `cassandra-unit-spring` | via `cassandra-unit` | same | 17 only |
+
+And the history, which is all `cassandra-unit`:
+
 | cassandra-unit | Embedded Cassandra | CQL driver | JDK |
 |---|---|---|---|
+| `5.2.x` | 5.0.8 | `org.apache.cassandra:java-driver-core` 4.19.3 | 17 |
 | `5.1.x` | 5.0.8 | `org.apache.cassandra:java-driver-core` 4.19.3 | 17 |
 | `5.0.x` | 5.0.8 | `org.apache.cassandra:java-driver-core` 4.19.3 | 17 |
 | `4.3.1.0` | 3.11.5 | `com.datastax.oss:java-driver-core` 4.3.1 *(optional)* | 8 |
@@ -114,11 +176,26 @@ or declare `java-driver-core` directly.
 Setup
 -----
 
+**If you already have a Cassandra**, this is the whole setup — no surefire block, nothing else:
+
+```xml
+<dependency>
+    <groupId>org.cassandraunit</groupId>
+    <artifactId>cassandra-unit-dataset</artifactId>
+    <version>5.2.0</version>
+    <scope>test</scope>
+</dependency>
+```
+
+See [Using your own Cassandra](docs/with-your-own-cassandra.md) and stop here.
+
+**If you want the embedded server**, take `cassandra-unit` instead — it includes everything above:
+
 ```xml
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
     <scope>test</scope>
 </dependency>
 ```
