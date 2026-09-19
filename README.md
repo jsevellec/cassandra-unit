@@ -131,7 +131,7 @@ patch are cassandra-unit's own, by ordinary semver. The driver version never app
 number — it is a compatibility fact, listed below. The full policy is in
 [CONTRIBUTING.md](CONTRIBUTING.md#versioning).
 
-The artifacts, as of 5.2.0:
+The artifacts, as of 5.1.0:
 
 | artifact | Embedded Cassandra | CQL driver | JDK |
 |---|---|---|---|
@@ -143,7 +143,6 @@ And the history, which is all `cassandra-unit`:
 
 | cassandra-unit | Embedded Cassandra | CQL driver | JDK |
 |---|---|---|---|
-| `5.2.x` | 5.0.8 | `org.apache.cassandra:java-driver-core` 4.19.3 | 17 |
 | `5.1.x` | 5.0.8 | `org.apache.cassandra:java-driver-core` 4.19.3 | 17 |
 | `5.0.x` | 5.0.8 | `org.apache.cassandra:java-driver-core` 4.19.3 | 17 |
 | `4.3.1.0` | 3.11.5 | `com.datastax.oss:java-driver-core` 4.3.1 *(optional)* | 8 |
@@ -198,7 +197,7 @@ Setup
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit-dataset</artifactId>
-    <version>5.2.0</version>
+    <version>5.1.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -211,7 +210,7 @@ See [Using your own Cassandra](docs/with-your-own-cassandra.md) and stop here.
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit</artifactId>
-    <version>5.2.0</version>
+    <version>5.1.0</version>
     <scope>test</scope>
 </dependency>
 ```

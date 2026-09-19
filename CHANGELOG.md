@@ -1,9 +1,6 @@
 # Changelog
 
-## 5.2.0 (unreleased)
-
-Includes the row-dataset work previously staged here as 5.1.0. That version was never tagged,
-so it ships as part of this release rather than as one of its own.
+## 5.1.0 (unreleased)
 
 ### Added
 
@@ -80,17 +77,17 @@ so it ships as part of this release rather than as one of its own.
   <dependency>
       <groupId>org.cassandraunit</groupId>
       <artifactId>cassandra-unit-dataset</artifactId>
-      <version>5.2.0</version>
+      <version>5.1.0</version>
       <scope>test</scope>
   </dependency>
   ```
 
   **Nothing changes for existing users.** Package and class names are unchanged, and
   `cassandra-unit` depends on the new module at compile scope, so every import resolves as before.
-  The set of artifacts a `cassandra-unit` consumer resolves is identical to 5.1.0's, plus
-  `cassandra-unit-dataset` itself. `jackson-dataformat-csv` moves to the new pom, where the CSV
-  parser now lives; it was optional before and is optional now, so it reaches no consumer either
-  way.
+  The set of artifacts a `cassandra-unit` consumer resolves is what 5.0.0 resolves today, plus the
+  row-dataset additions listed above and `cassandra-unit-dataset` itself. `jackson-dataformat-csv`
+  moves to the new pom, where the CSV parser now lives; it was optional before and is optional now,
+  so it reaches no consumer either way.
 
 - **`CqlDataSetExtension`**, a JUnit 5 extension that loads datasets through a session you supply
   rather than starting one. See [Using your own Cassandra](docs/with-your-own-cassandra.md).

@@ -8,7 +8,7 @@ on its own: hand it a `CqlSession` and it loads datasets through that.
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit-dataset</artifactId>
-    <version>5.2.0</version>
+    <version>5.1.0</version>
     <scope>test</scope>
 </dependency>
 ```

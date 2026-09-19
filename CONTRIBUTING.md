@@ -74,7 +74,7 @@ driver version never appears in the number.
 |---|---|---|
 | `5.0.0` | 5.0.8 | first Cassandra 5 release |
 | `5.0.1` | 5.0.8 | a cassandra-unit bugfix |
-| `5.1.0` | 5.0.9 | a cassandra-unit feature, plus a C* patch |
+| `5.1.0` | 5.0.8 | cassandra-unit features, no C* change |
 | `5.2.0` | 5.1.x | C* **minor** bump |
 | `6.0.0` | 6.0.x | C* **major** bump |
 

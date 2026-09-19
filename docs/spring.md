@@ -7,7 +7,7 @@ node starts and the dataset loads as part of the Spring test lifecycle.
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit-spring</artifactId>
-    <version>5.2.0</version>
+    <version>5.1.0</version>
     <scope>test</scope>
 </dependency>
 ```

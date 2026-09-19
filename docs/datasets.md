@@ -380,7 +380,7 @@ again every time. `CQLDataLoader.Isolation` picks what a load clears:
 
 | | |
 |---|---|
-| `DATASET` | honour the dataset's own creation and deletion flags — normally drop the keyspace and create it again. **The default**, and what every release before 5.2.0 did |
+| `DATASET` | honour the dataset's own creation and deletion flags — normally drop the keyspace and create it again. **The default**, and what every release before 5.1.0 did |
 | `TRUNCATE` | keep the keyspace and its schema, empty every table in it instead. The keyspace is created first if it is not there |
 | `NONE` | clear nothing. The keyspace is selected if it exists, so an unqualified statement still lands where it should |
 
