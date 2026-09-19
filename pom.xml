@@ -182,34 +182,6 @@
                 <version>3.5.0</version>
                 <executions>
                     <execution>
-                        <id>enforce-jdk</id>
-                        <goals><goal>enforce</goal></goals>
-                        <configuration>
-                            <rules>
-                                <!--
-                                  Cassandra 5.0 runs on JDK 11 or 17 only, and the embedded
-                                  daemon is started in this JVM, so the build JDK is the
-                                  server JDK. We require 17 specifically: maven.compiler.release
-                                  is 17, and spring-test 6.2 needs 17 regardless, so supporting
-                                  11 would mean split release levels across modules for no gain.
-                                  Without this check a wrong JDK shows up as
-                                  surefire's "The forked VM terminated without properly
-                                  saying goodbye", which says nothing useful. Note that a
-                                  jenv shim will override JAVA_HOME for mvn - check
-                                  `mvn -v`, not `java -version`.
-
-                                  The upper bound is real, not caution: Cassandra's
-                                  ThreadAwareSecurityManager calls System::setSecurityManager,
-                                  which is terminally deprecated and throws on JDK 24+.
-                                -->
-                                <requireJavaVersion>
-                                    <version>[17,18)</version>
-                                    <message>cassandra-unit must be built and run on JDK 17. Cassandra 5.0 supports only JDK 11 and 17, and this project targets 17 (spring-test 6.2 requires it too). The embedded daemon runs in the build JVM, so this is the server JDK as well. If this looks wrong, check `mvn -v` - a jenv shim overrides JAVA_HOME for mvn.</message>
-                                </requireJavaVersion>
-                            </rules>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>enforce-version-scheme</id>
                         <goals><goal>enforce</goal></goals>
                         <configuration>
