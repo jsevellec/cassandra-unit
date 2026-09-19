@@ -1,8 +1,8 @@
 # CassandraUnit documentation
 
-> **These docs describe the 5.x line.** 5.0.0 is on Maven Central. Everything beyond it described
-> here — the row datasets in [Datasets](datasets.md), and the driver-only `cassandra-unit-dataset`
-> artifact in [Using your own Cassandra](with-your-own-cassandra.md) — ships in 5.1.0.
+> **These docs describe the 5.x line**, and 5.1.0 is the current release on Maven Central. The
+> fluent assertion API in [Asserting in code](assertions-fluent.md) is not in it yet; everything
+> else on these pages is.
 >
 > 5.0.0 deliberately breaks compatibility with 4.3.1.0 — it upgrades the embedded server from
 > Cassandra 3.11.5 to 5.0.8, requires JDK 17, and removes the command line tools, the shaded
@@ -27,14 +27,17 @@ Either way, two pages matter most. [Datasets](datasets.md) is one: the two datas
 scripts, and YAML/JSON/XML/CSV row datasets — how values are converted, how to load several files
 together, and how keyspaces are created and dropped between tests. It applies to both artifacts.
 
-[Assertions](assertions.md) is the other: stating what a table should hold *after* a test, not only
-what it held before. Nothing else in the Java/Cassandra ecosystem does this.
+Asserting is the other, and nothing else in the Java/Cassandra ecosystem does it: stating what a
+table should hold *after* a test, not only what it held before. It comes two ways, sharing one
+comparison — [Asserting in code](assertions-fluent.md) for a single value or row count, and
+[Asserting with a dataset file](assertions.md) for every row a table should hold.
 
 ## Reference
 
 | | |
 |---|---|
-| [Assertions](assertions.md) | `@ExpectedCassandraDataSet`: comparing a table against an expected dataset, the Cassandra-specific comparison rules, and the failure report. |
+| [Asserting in code](assertions-fluent.md) | The fluent `CqlAssertions` API: navigating session to keyspace to table to row, the method reference, and the optional AssertJ dependency. |
+| [Asserting with a dataset file](assertions.md) | `@ExpectedCassandraDataSet`: comparing a table against an expected dataset, the Cassandra-specific comparison rules, and the failure report. |
 | [Using your own Cassandra](with-your-own-cassandra.md) | `cassandra-unit-dataset`: loading fixtures through a `CqlSession` you supply, the `CqlDataSetExtension`, and what the artifact deliberately leaves out. |
 | [Embedded server](embedded-server.md) | The `EmbeddedCassandraServerHelper` API: starting, configuring ports and directories, cleaning between tests, and the one-instance-per-JVM constraint. |
 | [Spring integration](spring.md) | `cassandra-unit-spring`: the `@EmbeddedCassandra`, `@CassandraDataSet` and `@CassandraUnit` annotations with Spring's TestContext framework. |
@@ -46,12 +49,16 @@ in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## What CassandraUnit is, in one paragraph
 
-CassandraUnit is two things, and you can take either.
+CassandraUnit is three things, and you can take any of them.
 
 **The fixture loader** turns a YAML, JSON, XML, CSV or CQL file into rows in a real keyspace, with
 every value converted using the column's actual type read from the live schema — so a `text` column
 holding `"1"` stays the string `"1"`, and `uuid`, `timestamp`, `blob`, collections and UDTs all work
 without you hand-formatting CQL literals. It runs against any `CqlSession` you hand it.
+
+**The assertions** run the comparison the other way: given a table, is it what it should be? Either
+as a file listing every row, or as fluent code checking one value. Both read the column's real type
+from the live schema, exactly as the loader does, so the two directions agree about what a value is.
 
 **The embedded server** starts a real Apache Cassandra node inside your test JVM, for when you want
 one and would rather not run Docker. That in-process design is the source of both its convenience

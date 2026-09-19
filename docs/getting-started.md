@@ -182,4 +182,8 @@ Expect roughly three seconds of startup for the embedded node, once per JVM. If 
 
 - [Datasets](datasets.md) — the CQL and row dataset formats, keyspace create/drop control, and
   loading several files together.
+- [Asserting in code](assertions-fluent.md) — the test above ends with a hand-written `SELECT`.
+  `assertThat(session).keyspace(...).table(...)` replaces it, and needs nothing registered.
+- [Asserting with a dataset file](assertions.md) — state every row a table should hold *after* the
+  test, in the same format you loaded it with.
 - [Embedded server](embedded-server.md) — ports, directories, random ports, cleaning between tests.

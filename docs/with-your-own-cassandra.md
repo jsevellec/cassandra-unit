@@ -154,6 +154,36 @@ new CassandraContainer("cassandra:5.0")
         .withConfigurationOverride("cassandra-test-config")   // a dir holding cassandra.yaml
 ```
 
+## Asserting what ended up there
+
+Both halves of the assertion feature live in this artifact, and neither needs the embedded server —
+they take the same `CqlSession` you already built:
+
+```java
+import static org.cassandraunit.assertion.CqlAssertions.assertThat;
+
+assertThat(session).keyspace("mykeyspace")
+        .table("widget")
+            .hasRowCount(3)
+            .row("id", widgetId)
+                .hasValue("label", "one");
+```
+
+That is [Asserting in code](assertions-fluent.md) — static methods, so it works with Testcontainers,
+a local node, ScyllaDB or Astra, under any test framework or none.
+
+For the other direction, a file stating every row a table should hold after the test, see
+[Asserting with a dataset file](assertions.md). Outside the embedded server there is an extension
+for it:
+
+```java
+@RegisterExtension
+final ExpectedCassandraDataSetExtension expectations =
+        new ExpectedCassandraDataSetExtension(fixtures::getSession);
+```
+
+The fluent API is the one that needs no registration at all.
+
 ## What this artifact does not give you
 
 - **No server lifecycle.** Nothing starts or stops Cassandra; that is yours to arrange.

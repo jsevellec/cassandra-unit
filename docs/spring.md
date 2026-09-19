@@ -134,6 +134,20 @@ class MyAutowiredTest {
 }
 ```
 
+## Asserting the result
+
+Both ways of asserting work here. `@ExpectedCassandraDataSet` is read by the listeners, which check
+it before the keyspace is cleaned — see
+[Asserting with a dataset file](assertions.md#wiring-it-up). The fluent API needs no listener at
+all, because it is static methods over the session:
+
+```java
+assertThat(EmbeddedCassandraServerHelper.getSession())
+        .keyspace("mykeyspace").table("widget").hasRowCount(1);
+```
+
+See [Asserting in code](assertions-fluent.md).
+
 ## Qualify your table names
 
 The dataset load issues `USE <keyspace>` on the shared session, so the "current keyspace" is

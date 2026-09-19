@@ -40,7 +40,7 @@
   is wrong rather than the code under test. Addressing a compound-key table by one column is
   refused rather than silently matching a partial key.
 
-  See [Asserting what the database holds](docs/assertions.md).
+  See [Asserting in code](docs/assertions-fluent.md).
 
 ### Dependencies
 

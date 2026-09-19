@@ -68,7 +68,22 @@ void shipping_a_widget_marks_it_dispatched() {
 ```
 
 Rows are matched on the primary key, order across partitions is never compared, and the failure
-report names the row and column that differ. See [Assertions](docs/assertions.md).
+report names the row and column that differ. See
+[Asserting with a dataset file](docs/assertions.md).
+
+**Or in code, when a file is overkill.** The same comparison, fluent and AssertJ-native, with
+nothing to register — it is static methods over a session, so it works under any framework or none:
+
+```java
+assertThat(session).keyspace("mykeyspace")
+        .table("widget")
+            .hasRowCount(3)
+            .row("id", widgetId)
+                .hasValue("label", "one")
+                .hasNull("created");
+```
+
+See [Asserting in code](docs/assertions-fluent.md).
 
 Other features:
 
@@ -84,7 +99,8 @@ Full documentation is in **[docs/](docs/)**, versioned alongside the code:
 - [Using your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply
 - [Getting started](docs/getting-started.md) — the embedded server: dependency, the mandatory surefire setup, a first test
 - [Datasets](docs/datasets.md) — `.cql` scripts and YAML/JSON/XML/CSV row datasets, keyspace create/drop control
-- [Assertions](docs/assertions.md) — `@ExpectedCassandraDataSet`, and the comparison rules Cassandra forces
+- [Asserting with a dataset file](docs/assertions.md) — `@ExpectedCassandraDataSet`, and the comparison rules Cassandra forces
+- [Asserting in code](docs/assertions-fluent.md) — the fluent `CqlAssertions` API, for a single value or row count
 - [Embedded server](docs/embedded-server.md) — the `EmbeddedCassandraServerHelper` API
 - [Spring integration](docs/spring.md) — the annotations and listeners
 - [Troubleshooting](docs/troubleshooting.md) — failure modes whose messages hide the cause
@@ -140,7 +156,7 @@ The artifacts, as of 5.1.0:
 | `cassandra-unit-spring` | via `cassandra-unit` | same | 17 only |
 
 `cassandra-unit-dataset` also has one **optional** dependency, `assertj-core` **3.x**, needed only by
-the fluent `CqlAssertions` API — see [Assertions](docs/assertions.md). Optional dependencies are not
+the fluent `CqlAssertions` API — see [Asserting in code](docs/assertions-fluent.md). Optional dependencies are not
 transitive, so it reaches you only if you declare it yourself.
 
 And the history, which is all `cassandra-unit`:
