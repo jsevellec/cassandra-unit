@@ -83,6 +83,39 @@ static final CqlDataSetExtension fixtures =
 Build the session in the supplier, as the first example does. The supplier is called once, lazily,
 when the extension actually starts — by which time the container is up.
 
+### Isolation, and `auto_snapshot`
+
+`.isolation(Isolation.TRUNCATE)` keeps the keyspace between tests and empties its tables instead of
+rebuilding the schema. On the embedded server that is [dramatically
+faster](datasets.md#isolation-truncating-instead-of-dropping) at every keyspace size, and a
+container — where schema changes have a real cluster to agree with — should favour it more, not
+less.
+
+**Turn off `auto_snapshot` whichever mode you pick.** Unless the server sets it to `false`,
+Cassandra snapshots each table a `TRUNCATE` empties — and each table a `DROP KEYSPACE` drops, which
+is the same setting gating both. The configurations shipped with the embedded server turn it off;
+the stock `cassandra:5.0` image does **not**, so an un-overridden container writes a snapshot per
+table per test on `DATASET` and on `TRUNCATE` alike, and fills its disk over a long suite. It is
+not a reason to prefer one mode over the other; it is a reason to override the file.
+
+There is no system property or environment variable for it — `auto_snapshot` is read from
+`cassandra.yaml` and nowhere else, and no `nodetool` command or JMX operation changes it at
+runtime. So overriding it means supplying the file:
+
+```java
+@Container
+static final CassandraContainer cassandra = new CassandraContainer("cassandra:5.0")
+        .withReuse(true)
+        .withConfigurationOverride("cassandra-test-config");   // a classpath directory
+```
+
+`withConfigurationOverride` copies that classpath directory over `/etc/cassandra` in the container,
+so it must hold a **complete** `cassandra.yaml` — the image's own is replaced, not merged. Start
+from the one in the image and set `auto_snapshot: false`.
+
+`Isolation.DATASET` remains the default, and stays a safe choice: it needs no thought about which
+statements in your dataset are schema.
+
 ### Session ownership
 
 The extension **never closes a session it did not create**. `closingSession()` opts in to closing it

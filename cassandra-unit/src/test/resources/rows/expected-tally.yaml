@@ -1,0 +1,5 @@
+# Counters are not loadable by a row dataset, but they read back as a bigint. assertionSchema.cql
+# seeds this one with three increments.
+tally:
+  - id: a
+    hits: 3

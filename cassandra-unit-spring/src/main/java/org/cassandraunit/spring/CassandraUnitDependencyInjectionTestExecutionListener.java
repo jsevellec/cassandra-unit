@@ -23,6 +23,8 @@ public class CassandraUnitDependencyInjectionTestExecutionListener extends Abstr
 
   @Override
   public void afterTestMethod(TestContext testContext) throws Exception {
+    // Before any cleaning, so an expectation is never compared against a dropped keyspace.
+    verifyExpectations(testContext);
     if (Boolean.TRUE.equals(testContext.getAttribute(DependencyInjectionTestExecutionListener.REINJECT_DEPENDENCIES_ATTRIBUTE))) {
       LOGGER.debug("Cleaning and reloading server for test context [{}]", testContext);
       cleanServer();

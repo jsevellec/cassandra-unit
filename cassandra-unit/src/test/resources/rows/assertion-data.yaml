@@ -1,0 +1,37 @@
+# Loaded as the setup, and used again verbatim as the expectation - the point being that one file
+# can do both. Every rule that governs loading governs asserting: a column absent from a row is not
+# asserted, a column present with null asserts the column reads back as null.
+
+widget:
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570701
+    label: "1"                      # the text "1", not the number
+    tags: [alpha, beta]
+    created: "2026-09-19T10:00:00Z"
+    quantity: 42
+    ratio: 1.5
+    props: {a: 1, b: 2}
+
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570702
+    label: "two"
+    tags: []                        # an empty collection, which reads back as null-or-empty
+    quantity: 7
+
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570703
+    label: null                     # asserts the column reads back as null
+    quantity: 0
+
+event:
+  - day: "2026-09-19"
+    at: "2026-09-19T12:00:00Z"
+    kind: start
+    total: 2
+
+  - day: "2026-09-19"
+    at: "2026-09-19T10:00:00Z"
+    kind: retry
+    total: 2
+
+  - day: "2026-09-20"
+    at: "2026-09-20T09:00:00Z"
+    kind: start
+    total: 1

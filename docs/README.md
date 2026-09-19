@@ -23,14 +23,18 @@ Pick the one that matches what you already have:
 | **I already have a Cassandra** — Testcontainers, a local node, ScyllaDB, Astra | [Using your own Cassandra](with-your-own-cassandra.md) — the `cassandra-unit-dataset` artifact. No embedded server, no JVM flags, no JDK ceiling. |
 | **I want one started for me, in-process** | [Getting started](getting-started.md) — the `cassandra-unit` artifact. **Read the surefire section first**: an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
 
-Either way, [Datasets](datasets.md) is the page that matters most: the two dataset kinds — `.cql`
+Either way, two pages matter most. [Datasets](datasets.md) is one: the two dataset kinds — `.cql`
 scripts, and YAML/JSON/XML/CSV row datasets — how values are converted, how to load several files
 together, and how keyspaces are created and dropped between tests. It applies to both artifacts.
+
+[Assertions](assertions.md) is the other: stating what a table should hold *after* a test, not only
+what it held before. Nothing else in the Java/Cassandra ecosystem does this.
 
 ## Reference
 
 | | |
 |---|---|
+| [Assertions](assertions.md) | `@ExpectedCassandraDataSet`: comparing a table against an expected dataset, the Cassandra-specific comparison rules, and the failure report. |
 | [Using your own Cassandra](with-your-own-cassandra.md) | `cassandra-unit-dataset`: loading fixtures through a `CqlSession` you supply, the `CqlDataSetExtension`, and what the artifact deliberately leaves out. |
 | [Embedded server](embedded-server.md) | The `EmbeddedCassandraServerHelper` API: starting, configuring ports and directories, cleaning between tests, and the one-instance-per-JVM constraint. |
 | [Spring integration](spring.md) | `cassandra-unit-spring`: the `@EmbeddedCassandra`, `@CassandraDataSet` and `@CassandraUnit` annotations with Spring's TestContext framework. |

@@ -114,6 +114,41 @@ public final class CQLDataSetFactory {
                 keyspaceCreation, keyspaceDeletion, keyspaceName);
     }
 
+    /**
+     * A row dataset as its concrete type, for callers needing {@link RowsCQLDataSet#parse()} rather
+     * than just something loadable - the assertion side, which has to read the rows back out of the
+     * file to compare them.
+     * <p>
+     * Keyspace creation and deletion are forced off. An expected dataset must not be able to drop
+     * the keyspace it is about to inspect, and making that unrepresentable is better than
+     * documenting it as a caution.
+     *
+     * @throws ParseException if the location is a {@code .cql} script, which describes statements
+     *                        rather than rows
+     */
+    public static RowsCQLDataSet rowsFromClassPath(String location, String keyspaceName) {
+        return rows(location, new ClassPathDataSetSource(location), keyspaceName);
+    }
+
+    /** As {@link #rowsFromClassPath}, reading from the filesystem. */
+    public static RowsCQLDataSet rowsFromFile(String location, String keyspaceName) {
+        return rows(location, new FileDataSetSource(location), keyspaceName);
+    }
+
+    private static RowsCQLDataSet rows(String location, DataSetSource source, String keyspaceName) {
+        if (location == null) {
+            throw new ParseException("Dataset location is null");
+        }
+        String extension = extensionOf(location);
+        if ("cql".equals(extension)) {
+            throw new ParseException(location + " is a CQL script, not a row dataset. Rows have to be"
+                    + " described so they can be compared; a script is a list of statements. Use"
+                    + " .yaml, .yml, .json, .xml or .csv.");
+        }
+        return new RowsCQLDataSet(source, parserFor(extension, location), tableNameOf(location),
+                false, false, keyspaceName);
+    }
+
     private static CQLDataSet build(String location, DataSetSource source,
                                     Supplier<CQLDataSet> cqlDataSet,
                                     boolean keyspaceCreation, boolean keyspaceDeletion, String keyspaceName) {

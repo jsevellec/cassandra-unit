@@ -1,0 +1,17 @@
+# The other half. See expected-split-widget.yaml.
+
+event:
+  - day: "2026-09-19"
+    at: "2026-09-19T12:00:00Z"
+    kind: start
+    total: 2
+
+  - day: "2026-09-19"
+    at: "2026-09-19T10:00:00Z"
+    kind: retry
+    total: 2
+
+  - day: "2026-09-20"
+    at: "2026-09-20T09:00:00Z"
+    kind: start
+    total: 1

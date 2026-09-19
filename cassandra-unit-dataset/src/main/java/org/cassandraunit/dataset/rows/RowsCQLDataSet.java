@@ -75,6 +75,14 @@ public class RowsCQLDataSet implements SessionAwareDataSet {
         }
     }
 
+    /**
+     * Where this dataset came from, for error and failure messages - e.g.
+     * {@code classpath:rows/widget.yaml}.
+     */
+    public String describe() {
+        return source.describe();
+    }
+
     @Override
     public String getKeyspaceName() {
         return keyspaceName;

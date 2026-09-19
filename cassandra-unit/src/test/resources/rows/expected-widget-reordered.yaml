@@ -1,0 +1,19 @@
+# The same widget rows the setup loaded, listed in a deliberately different order. Cross-partition
+# order is partition-token order and is never compared, so this must pass.
+widget:
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570703
+    label: null
+    quantity: 0
+
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570701
+    label: "1"
+    tags: [beta, alpha]             # a set is unordered too
+    created: "2026-09-19T10:00:00Z"
+    quantity: 42
+    ratio: 1.5
+    props: {b: 2, a: 1}             # so is a map
+
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570702
+    label: "two"
+    tags: []
+    quantity: 7

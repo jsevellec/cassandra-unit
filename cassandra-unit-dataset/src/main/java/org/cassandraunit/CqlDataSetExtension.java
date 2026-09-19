@@ -65,6 +65,7 @@ public final class CqlDataSetExtension
     private final Function<ExtensionContext, CqlSession> sessionFn;
     private final CQLDataSet schemaOnce;
     private final CQLDataSet rowsPerTest;
+    private final CQLDataLoader.Isolation isolation;
     private final boolean closeSession;
 
     private volatile CqlSession session;
@@ -73,6 +74,7 @@ public final class CqlDataSetExtension
         this.sessionFn = builder.sessionFn;
         this.schemaOnce = builder.schemaOnce;
         this.rowsPerTest = builder.rowsPerTest;
+        this.isolation = builder.isolation;
         this.closeSession = builder.closeSession;
     }
 
@@ -99,6 +101,7 @@ public final class CqlDataSetExtension
         private final Function<ExtensionContext, CqlSession> sessionFn;
         private CQLDataSet schemaOnce;
         private CQLDataSet rowsPerTest;
+        private CQLDataLoader.Isolation isolation = CQLDataLoader.Isolation.DATASET;
         private boolean closeSession;
 
         private Builder(Function<ExtensionContext, CqlSession> sessionFn) {
@@ -126,6 +129,24 @@ public final class CqlDataSetExtension
          */
         public Builder load(CQLDataSet dataSet) {
             return rowsPerTest(dataSet);
+        }
+
+        /**
+         * How each per-test load clears the previous test's data. Defaults to
+         * {@link CQLDataLoader.Isolation#DATASET}, which drops and recreates the keyspace.
+         * <p>
+         * {@link CQLDataLoader.Isolation#TRUNCATE} pairs with {@link #schemaOnce}: build the
+         * schema once, then empty the tables between tests rather than rebuilding them. Read that
+         * enum constant before reaching for it - against a stock Cassandra image it is likely to
+         * be the slower of the two, because {@code TRUNCATE} takes a snapshot unless the server
+         * sets {@code auto_snapshot: false}.
+         */
+        public Builder isolation(CQLDataLoader.Isolation isolation) {
+            if (isolation == null) {
+                throw new IllegalArgumentException("isolation must not be null");
+            }
+            this.isolation = isolation;
+            return this;
         }
 
         /**
@@ -162,7 +183,7 @@ public final class CqlDataSetExtension
     @Override
     public void beforeEach(ExtensionContext context) {
         if (rowsPerTest != null) {
-            new CQLDataLoader(session(context)).load(rowsPerTest);
+            new CQLDataLoader(session(context)).load(rowsPerTest, isolation);
         }
     }
 

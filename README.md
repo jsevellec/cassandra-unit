@@ -55,6 +55,21 @@ class WidgetIT {
 Testcontainers gives you the node; `withInitScript` is the whole of its data API, one CQL file.
 The snippet above is the rest.
 
+**And the other direction.** A dataset can also state what a table should hold *after* a test —
+`@ExpectedCassandraDataSet` — which is the half of the DBUnit comparison this project has been
+missing since 2010, and which no other Cassandra test library has at all:
+
+```java
+@Test
+@ExpectedCassandraDataSet(value = "rows/expected-widget.yaml", keyspace = "mykeyspace")
+void shipping_a_widget_marks_it_dispatched() {
+    service.ship(widgetId);
+}
+```
+
+Rows are matched on the primary key, order across partitions is never compared, and the failure
+report names the row and column that differ. See [Assertions](docs/assertions.md).
+
 Other features:
 
 - Create the schema from a CQL script.
@@ -69,6 +84,7 @@ Full documentation is in **[docs/](docs/)**, versioned alongside the code:
 - [Using your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply
 - [Getting started](docs/getting-started.md) — the embedded server: dependency, the mandatory surefire setup, a first test
 - [Datasets](docs/datasets.md) — `.cql` scripts and YAML/JSON/XML/CSV row datasets, keyspace create/drop control
+- [Assertions](docs/assertions.md) — `@ExpectedCassandraDataSet`, and the comparison rules Cassandra forces
 - [Embedded server](docs/embedded-server.md) — the `EmbeddedCassandraServerHelper` API
 - [Spring integration](docs/spring.md) — the annotations and listeners
 - [Troubleshooting](docs/troubleshooting.md) — failure modes whose messages hide the cause

@@ -3,6 +3,10 @@ package org.cassandraunit;
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.cassandraunit.dataset.CQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.cassandraunit.assertion.ExpectedCassandraDataSet;
+import org.cassandraunit.assertion.ExpectedCassandraDataSetExtension;
+import org.cassandraunit.assertion.ExpectedDataSetVerifier;
+import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -42,13 +46,18 @@ import java.time.Duration;
  * <p>
  * This is the entry point for Jupiter-based suites, including Spring Boot 3+, which previously
  * had none (issue #293).
+ * <p>
+ * A test method carrying {@link ExpectedCassandraDataSet} also has its expectation verified
+ * afterwards, and only if it passed. Without the annotation nothing extra happens.
  */
-public class CassandraUnitExtension implements BeforeAllCallback, BeforeEachCallback, ParameterResolver {
+public class CassandraUnitExtension
+        implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
     private final CQLDataSet dataSet;
     private final String configurationFileName;
     private final long startupTimeoutMillis;
     private Duration requestTimeout;
+    private CQLDataLoader.Isolation isolation = CQLDataLoader.Isolation.DATASET;
 
     public CassandraUnitExtension(CQLDataSet dataSet) {
         this(dataSet, null, EmbeddedCassandraServerHelper.DEFAULT_STARTUP_TIMEOUT);
@@ -76,6 +85,21 @@ public class CassandraUnitExtension implements BeforeAllCallback, BeforeEachCall
         return this;
     }
 
+    /**
+     * How each per-test load clears the previous test's data. Defaults to
+     * {@link CQLDataLoader.Isolation#DATASET}, which is what this extension has always done.
+     * <p>
+     * {@link CQLDataLoader.Isolation#TRUNCATE} keeps the keyspace and empties its tables, so the
+     * dataset given to this extension must then be rows only - see that enum constant.
+     */
+    public CassandraUnitExtension withIsolation(CQLDataLoader.Isolation isolation) {
+        if (isolation == null) {
+            throw new IllegalArgumentException("isolation must not be null");
+        }
+        this.isolation = isolation;
+        return this;
+    }
+
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         if (configurationFileName != null) {
@@ -90,7 +114,20 @@ public class CassandraUnitExtension implements BeforeAllCallback, BeforeEachCall
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        new CQLDataLoader(EmbeddedCassandraServerHelper.getSession()).load(dataSet);
+        new CQLDataLoader(EmbeddedCassandraServerHelper.getSession()).load(dataSet, isolation);
+    }
+
+    /**
+     * Verifies an {@link ExpectedCassandraDataSet} on the test, if there is one.
+     * <p>
+     * Nothing happens without the annotation, so this changes no existing behaviour - in
+     * particular it is still true that this extension never wipes anything for you.
+     */
+    @Override
+    public void afterEach(ExtensionContext context) {
+        ExpectedCassandraDataSetExtension.annotationFor(context).ifPresent(annotation ->
+                ExpectedDataSetVerifier.verifyUnlessFailed(
+                        getSession(), annotation, context.getExecutionException()));
     }
 
     public CqlSession getSession() {

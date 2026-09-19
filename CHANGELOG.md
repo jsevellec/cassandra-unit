@@ -2,7 +2,65 @@
 
 ## 5.2.0 (unreleased)
 
+Includes the row-dataset work previously staged here as 5.1.0. That version was never tagged,
+so it ships as part of this release rather than as one of its own.
+
 ### Added
+
+- **`@ExpectedCassandraDataSet` — asserting what the database holds.** Closes
+  [#45](https://github.com/jsevellec/cassandra-unit/issues/45), opened in 2012 and abandoned on the
+  `issue45_assertions` branch the same year.
+
+  The project has described itself as "DBUnit for Cassandra" since 2010 while only ever
+  implementing the load direction. A dataset can now state what a table should hold *after* a test,
+  and it can be literally the same file that set it up — the two directions follow identical rules:
+  a column absent from a row is not asserted, a column present with `null` asserts the column reads
+  back as null.
+
+  ```java
+  @Test
+  @ExpectedCassandraDataSet(value = "rows/expected-widget.yaml", keyspace = "mykeyspace")
+  void shipping_a_widget_marks_it_dispatched() {
+      service.ship(widgetId);
+  }
+  ```
+
+  Nothing else in the Java/Cassandra ecosystem does this: Testcontainers' Cassandra module has one
+  `withInitScript`, and embedded-cassandra has `CqlScript`.
+
+  The comparison rules are Cassandra's, not SQL's, and are documented in
+  [docs/assertions.md](docs/assertions.md):
+
+  - **Rows are matched on the primary key**, so a wrong value reports as one column on the right row
+    rather than a missing row plus an unexpected one.
+  - **Order across partitions is never compared** — an unrestricted `SELECT` returns partition-token
+    order, which is stable but arbitrary. Order *within* a partition can be asserted with
+    `checkingClusteringOrder()`.
+  - **Strict by default.** A named table must hold exactly the rows listed. Cassandra is upsert-only
+    with no unique constraints, so a write landing under the wrong key produces an extra row that a
+    contains-style assertion would never catch.
+  - **Never `SELECT *`, never `ALLOW FILTERING`.** Only the primary key and the columns the file
+    mentions are selected, and the statement is echoed in the failure message.
+  - Collection `null` and empty are the same value (the driver's codecs never decode a collection to
+    null); `BigDecimal` compares with `compareTo`, since `1.5` and `1.50` are the same decimal.
+  - Counters are assertable although not loadable — they read back as a `bigint`.
+
+  A mismatch throws `DataSetMismatchError`, an `AssertionError`, reported as a test **failure**. A
+  broken expectation — unknown column, a row missing part of its key, a `.cql` file — throws
+  `ParseException`, reported as an **error**. One means the code is wrong, the other means the test
+  is.
+
+  Integrations, all reading the one annotation rather than a copy per module: `CassandraUnitExtension`
+  picks it up with no extra wiring, `ExpectedCassandraDataSetExtension` does the same against a
+  session you supply, `ExpectedCassandraDataSetRule` covers JUnit 4 (a sibling rule, because
+  `ExternalResource` cannot see a method annotation), and the Spring listeners check it *before*
+  `cleanServer()` drops the keyspace.
+
+- **`CQLDataSetFactory.rowsFromClassPath` / `rowsFromFile`**, returning the concrete
+  `RowsCQLDataSet` for callers needing `parse()`. Keyspace creation and deletion are forced off: an
+  expected dataset must not be able to drop the keyspace it is about to inspect.
+
+- **`RowsCQLDataSet.describe()`**, the dataset's origin, for error messages.
 
 - **`cassandra-unit-dataset`, the fixture layer without the embedded server.** Closes
   [#243](https://github.com/jsevellec/cassandra-unit/issues/243), open since 2017.
@@ -44,6 +102,35 @@
   extension starts. The extension never closes a session it did not create; `closingSession()`
   opts in.
 
+- **`CQLDataLoader.Isolation`** and **`load(dataSet, isolation)`** - how a load clears what the
+  last test left behind. `DATASET` (the default) honours the dataset's own creation and deletion
+  flags, which is what every earlier release did; `TRUNCATE` keeps the keyspace and its schema and
+  empties every table instead; `NONE` clears nothing. Exposed as
+  `CqlDataSetExtension.Builder.isolation(...)` and `CassandraUnitExtension.withIsolation(...)`.
+  Closes [#306](https://github.com/jsevellec/cassandra-unit/issues/306) and
+  [#216](https://github.com/jsevellec/cassandra-unit/issues/216).
+
+  The mode is on the loader rather than on the dataset because a `.cql` script interleaves DDL and
+  DML: nothing reading a dataset can tell which of its statements are schema, so a decorator would
+  have to guess.
+
+  **`TRUNCATE` is much faster, and it was worth measuring rather than assuming.** On the embedded
+  server, median of ten cycles with the schema replayed in the `DATASET` arm - which is the work it
+  actually does - and twenty rows per table put back before each timed cycle:
+
+  | tables | `DATASET` | `TRUNCATE` |
+  |---|---|---|
+  | 2 | 940 ms | 1.6 ms |
+  | 10 | 1022 ms | 4.1 ms |
+  | 50 | 1640 ms | 10.7 ms |
+
+  It stays opt-in anyway, because it is not a drop-in: a dataset that creates its own schema
+  breaks under it. Note that `auto_snapshot` is not a reason to choose between the modes - it gates
+  the snapshot taken when a table is truncated *and* the one taken when a table is dropped, so on a
+  stock `cassandra:5.0` image both modes write a snapshot per table per test. There is no property
+  or `nodetool` command for it, so overriding it means supplying a `cassandra.yaml`. See
+  [Isolation](docs/datasets.md#isolation-truncating-instead-of-dropping).
+
 - **`CQLDataLoader.loadIfKeyspaceAbsent(dataSet)`** - loads only if the keyspace is not already
   there, and reports whether it did. Backs the extension's `schemaOnce`. It asks
   `system_schema.keyspaces` rather than remembering in a field, because several test classes
@@ -64,16 +151,6 @@
   gives a future read-back path the same ladder to use.
 
 - `Automatic-Module-Name` manifest entries on both jars.
-
-### Changed
-
-- The JDK requirement is now per-artifact. `cassandra-unit` is still **JDK 17 and nothing else** -
-  Cassandra's `ThreadAwareSecurityManager` calls `System::setSecurityManager`, so 24+ can never
-  work. `cassandra-unit-dataset` needs **17 or later with no upper bound**.
-
-## 5.1.0 (unreleased)
-
-### Added
 
 - **Row datasets in YAML, JSON, XML and CSV.** A dataset may now be a declarative list of rows
   instead of a CQL script. The format is chosen by file extension:
@@ -108,6 +185,9 @@
 
 ### Changed
 
+- The JDK requirement is now per-artifact. `cassandra-unit` is still **JDK 17 and nothing else** -
+  Cassandra's `ThreadAwareSecurityManager` calls `System::setSecurityManager`, so 24+ can never
+  work. `cassandra-unit-dataset` needs **17 or later with no upper bound**.
 - Generated row inserts are **fully qualified with the keyspace**. A row dataset normally loads
   with `keyspaceCreation=false`, which means no `USE` is issued before it and the current keyspace
   would otherwise be whatever the previous load left behind (#160). A CQL script can work around

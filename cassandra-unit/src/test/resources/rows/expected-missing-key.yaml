@@ -1,0 +1,4 @@
+# event's primary key is (day, at); this row gives only day, so it cannot be matched to a row.
+event:
+  - day: "2026-09-19"
+    kind: start

@@ -1,6 +1,8 @@
 package org.cassandraunit.spring;
 
 import org.cassandraunit.CQLDataLoader;
+import org.cassandraunit.assertion.ExpectedCassandraDataSet;
+import org.cassandraunit.assertion.ExpectedDataSetVerifier;
 import org.cassandraunit.dataset.CQLDataSetFactory;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
@@ -24,6 +26,30 @@ import java.util.*;
 public abstract class AbstractCassandraUnitTestExecutionListener extends AbstractTestExecutionListener implements Ordered {
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraUnitTestExecutionListener.class);
     private static boolean initialized = false;
+
+    /**
+     * Verifies an {@link ExpectedCassandraDataSet} on the test method, if there is one.
+     * <p>
+     * <b>Must run before {@code cleanServer()}</b>, which drops every non-system keyspace - an
+     * expectation after it would be comparing against nothing.
+     * <p>
+     * Skipped when the test already threw. The expectation would fail too, and its report would be
+     * the last thing printed, burying the real error.
+     */
+    protected void verifyExpectations(TestContext testContext) {
+        if (testContext.getTestException() != null) {
+            return;
+        }
+        ExpectedCassandraDataSet expected = AnnotationUtils.findAnnotation(
+                testContext.getTestMethod(), ExpectedCassandraDataSet.class);
+        if (expected == null) {
+            expected = AnnotationUtils.findAnnotation(
+                    testContext.getTestClass(), ExpectedCassandraDataSet.class);
+        }
+        if (expected != null) {
+            ExpectedDataSetVerifier.verify(EmbeddedCassandraServerHelper.getSession(), expected);
+        }
+    }
 
     protected void startServer(TestContext testContext) throws Exception {
         EmbeddedCassandra embeddedCassandra = Objects.requireNonNull(AnnotationUtils.findAnnotation(testContext.getTestClass(), EmbeddedCassandra.class),

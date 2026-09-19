@@ -57,14 +57,21 @@
         </dependency>
 
         <!--
-          For CqlDataSetExtension. Optional for the same reason cassandra-unit declares both JUnits
-          optional: a consumer brings their own test framework, and this module must not put one on
-          their classpath. Anyone not using the extension never loads the class.
+          For CqlDataSetExtension and the assertion integrations. Both JUnits are optional, for the
+          reason cassandra-unit declares them so: a consumer brings their own test framework, and
+          this module must not put one on their classpath. Anyone not using a given integration
+          never loads its class.
         -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${cu.junit.jupiter.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${cu.junit.version}</version>
             <optional>true</optional>
         </dependency>
 

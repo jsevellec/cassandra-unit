@@ -1,0 +1,20 @@
+# Half of assertion-data.yaml. Paired with expected-split-event.yaml to assert that an annotation
+# listing several locations verifies all of them, not only the first.
+
+widget:
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570701
+    label: "1"
+    tags: [alpha, beta]
+    created: "2026-09-19T10:00:00Z"
+    quantity: 42
+    ratio: 1.5
+    props: {a: 1, b: 2}
+
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570702
+    label: "two"
+    tags: []
+    quantity: 7
+
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570703
+    label: null
+    quantity: 0

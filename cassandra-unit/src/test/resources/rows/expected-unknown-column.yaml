@@ -1,0 +1,4 @@
+# Names a column the table does not have. A mistake in the test, not a failure of the code.
+widget:
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570701
+    nosuchcolumn: oops

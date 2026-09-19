@@ -373,26 +373,85 @@ identifier buys you case sensitivity, nothing more.
 **Files are read as UTF-8** as of 5.0.0 — row datasets too. Earlier versions used the platform
 default encoding, so the same dataset could parse differently on different machines.
 
-## Truncating instead of dropping
+## Isolation: truncating instead of dropping
 
-Dropping and recreating a keyspace per test is simple but not free. To keep the schema and empty
-only the rows:
+Dropping and recreating a keyspace per test is simple but not free — the schema has to be built
+again every time. `CQLDataLoader.Isolation` picks what a load clears:
+
+| | |
+|---|---|
+| `DATASET` | honour the dataset's own creation and deletion flags — normally drop the keyspace and create it again. **The default**, and what every release before 5.2.0 did |
+| `TRUNCATE` | keep the keyspace and its schema, empty every table in it instead. The keyspace is created first if it is not there |
+| `NONE` | clear nothing. The keyspace is selected if it exists, so an unqualified statement still lands where it should |
+
+```java
+new CQLDataLoader(session).load(rows, Isolation.TRUNCATE);
+```
+
+On the extensions:
+
+```java
+CqlDataSetExtension.using(...)
+        .schemaOnce(CQLDataSetFactory.fromClassPath("cql/schema.cql", "mykeyspace"))
+        .rowsPerTest(CQLDataSetFactory.fromClassPath("rows/widget.yaml", false, false, "mykeyspace"))
+        .isolation(Isolation.TRUNCATE)
+        .build();
+
+new CassandraUnitExtension(dataSet).withIsolation(Isolation.TRUNCATE);
+```
+
+**With `TRUNCATE`, the per-test dataset must not re-create the schema it loads into.** Either pair
+it with `schemaOnce` — or `CQLDataLoader.loadIfKeyspaceAbsent`, which is the same thing by hand and
+reports whether it loaded — and keep the per-test dataset to rows, or write
+`CREATE TABLE IF NOT EXISTS` in the script. The mode ignores the dataset's own creation and
+deletion flags, deliberately: asking for it is asking for the keyspace to survive.
+
+### How much faster
+
+Measured on the embedded server, median of ten cycles after three warm-ups, with twenty rows per
+table put back before each timed cycle. Both arms include the work the other avoids: `DATASET` is
+`DROP KEYSPACE` + `CREATE KEYSPACE` + one `CREATE TABLE` per table, `TRUNCATE` is one `TRUNCATE`
+per table. Loading the rows is common to both and excluded from both.
+
+| tables | `DATASET` | `TRUNCATE` |
+|---|---|---|
+| 2 | 940 ms | 1.6 ms |
+| 10 | 1022 ms | 4.1 ms |
+| 50 | 1640 ms | 10.7 ms |
+
+Reproduce it with
+`mvn -pl cassandra-unit -am test -Dtest=IsolationBenchmarkTest -Dsurefire.failIfNoSpecifiedTests=false -Dcassandraunit.benchmark=true`.
+
+The gap closes as tables are added — truncation costs one round trip per table, while schema
+changes agree in something closer to a batch — but it closes far too slowly to matter: the two
+would not meet until a keyspace held thousands of tables.
+
+What keeps this from being the default is not speed. It is **not** a drop-in — a dataset that
+creates its own schema breaks under it, as above — and changing the default would alter what an
+existing suite's keyspace looks like between tests.
+
+The numbers are one embedded node, where schema agreement has no peers to wait for. That is the
+friendliest case `DATASET` will ever get, so treat the gap as a lower bound on what `TRUNCATE`
+saves against a container or a real cluster.
+
+> **`auto_snapshot` costs both modes, not only this one.** `TRUNCATE` snapshots each table it
+> empties unless the server sets `auto_snapshot: false` — but so does `DROP KEYSPACE`, for each
+> table it drops: Cassandra gates `truncateBlocking` and `onTableDropped` on the same setting. So
+> leaving it on does not change which mode is faster; it makes *both* write a snapshot per table
+> per test and fill the disk. The yaml files shipped with the embedded server turn it off, and the
+> benchmark asserts that rather than assuming it. A stock `cassandra:5.0` image does not — see
+> [With your own Cassandra](with-your-own-cassandra.md).
+
+### By hand
+
+The primitive is public, so you can truncate without going through a load at all:
 
 ```java
 CqlOperations.truncateKeyspace(session, "mykeyspace");
 CqlOperations.truncateKeyspace(session, "mykeyspace", "reference_data");
 ```
 
-The second form truncates every table *except* the ones named. This works against any session, so
-it is available on the `cassandra-unit-dataset` path too. With the embedded server,
+The second form truncates every table *except* the ones named, which is how you keep pre-seeded
+reference data. With the embedded server,
 `EmbeddedCassandraServerHelper.cleanDataEmbeddedCassandra("mykeyspace", "reference_data")` is the
 same thing against the shared session — see [Embedded server](embedded-server.md).
-
-This pairs well with a row dataset: load the schema once — `CQLDataLoader.loadIfKeyspaceAbsent`
-does exactly that, and reports whether it loaded — truncate between tests, and load only the rows
-each time.
-
-> **`TRUNCATE` snapshots first unless the server sets `auto_snapshot: false`.** The yaml files
-> shipped with the embedded server set it. A stock `cassandra:5.0` image does **not**, so on a
-> Testcontainers node this writes a snapshot per truncate, which is slow and fills the container's
-> disk. Override the configuration if you truncate between tests there.
