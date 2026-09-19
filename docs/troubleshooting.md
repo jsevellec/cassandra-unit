@@ -84,6 +84,12 @@ jars are on the **module path** at once. `cassandra-unit` can never go there any
 `add-opens ...=ALL-UNNAMED`, a self-attaching javaagent and `jdk.internal.*` reflection. If you hit
 this, put them on the classpath.
 
+Only `cassandra-unit-dataset` declares an `Automatic-Module-Name`
+(`org.cassandraunit.dataset`). `cassandra-unit` deliberately does not: it can never be a module, and
+declaring one makes the javadoc tool resolve against the module path, where a broken jar in
+`cassandra-all`'s transitive tree (`sjk-core`, which has a class in the default package) fails the
+build.
+
 ## Address already in use / `BindException`
 
 The default configuration uses storage 7010, ssl storage 7011 and native transport 9142 — chosen to

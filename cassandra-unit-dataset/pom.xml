@@ -113,15 +113,12 @@
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
                     <!--
-                      The parent requires JDK 17 exactly, because the embedded daemon runs in the
-                      build JVM and Cassandra 5.0 supports nothing else. This module starts no
-                      daemon, so that bound does not apply to it - and applying it would make it
-                      impossible to prove the point by testing this module on a later JDK.
+                      There is deliberately no requireJavaVersion rule here. cassandra-unit and
+                      cassandra-unit-spring each carry one pinning JDK 17, because the embedded
+                      daemon runs in the build JVM and Cassandra 5.0 supports nothing else. This
+                      module starts no daemon, so it has no upper bound - and the CI job that
+                      builds it on a later JDK is the demonstration of that.
                     -->
-                    <execution>
-                        <id>enforce-jdk</id>
-                        <phase>none</phase>
-                    </execution>
 
                     <!--
                       The whole claim of this artifact, checked rather than asserted. If any of

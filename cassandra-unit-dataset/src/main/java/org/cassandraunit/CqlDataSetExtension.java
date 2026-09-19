@@ -131,6 +131,11 @@ public final class CqlDataSetExtension
         /**
          * Close the session in {@code afterAll}. Off by default: a session handed to this
          * extension may well outlive it, and closing someone else's is not ours to do.
+         * <p>
+         * Jupiter fires {@code afterAll} once per container, so do not turn this on for an
+         * extension shared with a {@code @Nested} class - the inner class finishing would close
+         * the session while the outer one still has tests to run. Register a separate extension
+         * per container, or leave this off and close the session yourself.
          */
         public Builder closingSession() {
             this.closeSession = true;
