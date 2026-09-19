@@ -81,11 +81,23 @@
             <version>${cu.junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+        <!--
+          Optional, not test-scoped, because org.cassandraunit.assertion.CqlAssertions and the
+          assert types around it extend AssertJ's AbstractAssert - that inheritance is what buys
+          as(), satisfies() and SoftAssertions, and it has to be on the compile classpath.
+
+          Optional keeps the promise that made this acceptable: an optional dependency is never
+          transitive, so nobody who does not ask for AssertJ resolves it, exactly as with
+          jackson-dataformat-csv and the two JUnits above. Nothing else in this module touches it,
+          so a consumer who never imports CqlAssertions is unaffected. One that does and has no
+          assertj-core gets NoClassDefFoundError on AbstractAssert; unlike the CSV parser there is
+          no constructor to intercept and turn into a message naming the coordinates.
+        -->
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${cu.assertj.version}</version>
-            <scope>test</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

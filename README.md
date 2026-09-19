@@ -139,6 +139,10 @@ The artifacts, as of 5.1.0:
 | `cassandra-unit` | 5.0.8 | same | 17 only |
 | `cassandra-unit-spring` | via `cassandra-unit` | same | 17 only |
 
+`cassandra-unit-dataset` also has one **optional** dependency, `assertj-core` **3.x**, needed only by
+the fluent `CqlAssertions` API — see [Assertions](docs/assertions.md). Optional dependencies are not
+transitive, so it reaches you only if you declare it yourself.
+
 And the history, which is all `cassandra-unit`:
 
 | cassandra-unit | Embedded Cassandra | CQL driver | JDK |

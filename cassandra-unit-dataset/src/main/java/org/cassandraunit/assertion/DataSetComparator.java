@@ -49,8 +49,11 @@ final class DataSetComparator {
     /**
      * Refuse to pull more than this from one table. An expected dataset aimed at a real table
      * should fail quickly and say so, not exhaust the test JVM's heap.
+     * <p>
+     * Package-visible because {@link TableAssert#rows()} enforces the same ceiling, and the two
+     * halves of this package should not disagree about where "too big to assert on" starts.
      */
-    private static final int MAX_ROWS = 10_000;
+    static final int MAX_ROWS = 10_000;
 
     private final CqlSession session;
     private final CodecRegistry codecRegistry;

@@ -40,8 +40,10 @@ row*, rather than as a missing row plus an unexpected one.
 **Only the columns the file mentions**, plus the primary key. Nothing else is selected, so an
 unrelated column of a type the driver cannot decode cannot break your assertion.
 
-**Never `SELECT *`, never `ALLOW FILTERING`.** The statement is echoed in the failure message so you
-can see exactly what was compared.
+**Never `SELECT *`, never `ALLOW FILTERING`** — for a dataset comparison, which knows exactly which
+columns it was asked about. The statement is echoed in the failure message so you can see exactly
+what was compared. (The fluent API below does issue `SELECT *`, because there is no expected-column
+set to project from; it never filters either way.)
 
 ### Ordering
 
@@ -181,6 +183,122 @@ ExpectedDataSetFactory.fromClassPath("rows/expected-widget.yaml", "mykeyspace")
         .ignoringColumns("created")
         .verify(session);
 ```
+
+## In code, without a file
+
+A dataset file is the right tool for *these are all the rows this table should hold*. For one value,
+or one row count, writing a file is out of proportion — so the same comparison is available as a
+fluent API:
+
+```java
+import static org.cassandraunit.assertion.CqlAssertions.assertThat;
+
+assertThat(session).keyspace("mykeyspace")
+        .table("widget")
+            .hasRowCount(3)
+            .row("id", widgetId)
+                .hasValue("label", "one")
+                .hasNull("created");
+```
+
+and on rows you fetched yourself:
+
+```java
+assertThat(session.execute("SELECT * FROM mykeyspace.widget"))
+        .hasSize(3)
+        .extracting("label")
+        .containsExactlyInAnyOrder("one", "two", "three");
+
+assertThat(row).hasValue("label", "one");
+```
+
+`assertThat` takes `CqlSession`, `Row` or `ResultSet`, so it can be statically imported next to
+`org.assertj.core.api.Assertions.*` with no ambiguity. Every assert type extends AssertJ's
+`AbstractAssert`, so `as()`, `describedAs()`, `satisfies()` and `SoftAssertions` behave as usual.
+
+### It is the same comparison
+
+Both paths share one `ValueEquality`, so everything in [Values](#values) above holds here too —
+collection `null` ≡ empty, `BigDecimal` by value, `ByteBuffer` not consumed by being read. A test in
+the suite asserts the two pass and fail together on the same data, because two ways of saying the
+same thing that disagreed would be a defect rather than a quirk.
+
+Expected values go through the same converter a row dataset uses, so they can be written the way you
+would write them in a fixture:
+
+```java
+.hasValue("quantity", 42)                        // an int against a bigint
+.hasValue("id", "1690e8da-5bf8-49e8-9583-4dff8a570701")   // a string against a uuid
+.hasValue("created", "2026-09-19T10:00:00Z")     // a string against a timestamp
+```
+
+### What you get
+
+| | |
+|---|---|
+| `assertThat(session)` | `hasKeyspace`, `doesNotHaveKeyspace`; `keyspace(name)` to go deeper |
+| `.keyspace(name)` | `hasTable`, `doesNotHaveTable`, `matches(expectedDataSet)`; `table(name)` |
+| `.table(name)` | `hasRowCount`, `isEmpty`, `isNotEmpty`, `hasNoRow`; `row(...)`, `rows()` |
+| `.row(key)` | `hasValue`, `hasValues`, `hasNull`, `hasNonNull` |
+| `.rows()` / `assertThat(resultSet)` | `hasSize`, `isEmpty`, `isNotEmpty`, `first()`, `singleRow()`, `extracting(column)` |
+
+`matches(expectedDataSet)` is the bridge back to the file-driven half, and sits on the keyspace
+rather than the table because that is the scope a dataset really covers.
+
+`row(...)` and `rows()` issue `SELECT *`, unlike a dataset comparison — there is no expected-column
+set here to narrow to. Both still restrict by primary key or by nothing at all, so neither can emit
+`ALLOW FILTERING`. `rows()` refuses to pull more than 10,000 rows, the same ceiling a dataset
+comparison uses.
+
+`hasValues(Map)` stops at the first column that does not match, and the map's iteration order
+decides which one that is. Pass a `LinkedHashMap` if you want the first failure to be predictable,
+or chain separate `hasValue` calls.
+
+**Addressing a row needs its whole primary key.** `row("id", value)` is shorthand for a
+single-column key and is refused on a table with a compound one — otherwise a partial key would
+quietly match whichever row came back first:
+
+```java
+.row(Map.of("day", "2026-09-19", "at", "2026-09-19T12:00:00Z"))
+```
+
+### Failures read like the dataset report
+
+```
+Expected column label of mykeyspace.widget to be
+  'one'
+but was
+  '1'
+
+Expected mykeyspace.widget to hold
+  5 rows
+but it holds
+  3
+```
+
+Values are CQL literals, so they paste into `cqlsh`. The failure/error split is the same as above: a
+value that does not match is an `AssertionError`, while a column, table or keyspace that does not
+exist is a `ParseException` — the test is wrong, not the code under test.
+
+### The dependency
+
+Needs `assertj-core` on the test classpath. It is declared `optional`, so it reaches nobody who does
+not ask for it and the rest of the library never touches it — but that means you must have it
+yourself, which you almost certainly already do:
+
+```xml
+<dependency>
+    <groupId>org.assertj</groupId>
+    <artifactId>assertj-core</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+Supported baseline is **assertj-core 3.x**. Without it, touching `CqlAssertions` raises
+`NoClassDefFoundError: org/assertj/core/api/AbstractAssert`.
+
+`hasRowCount` issues `SELECT count(*)`, which makes the server log *"Aggregation query used without
+partition key"*. Expected, and harmless at test-fixture sizes.
 
 ## Not supported
 

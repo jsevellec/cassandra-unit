@@ -1,6 +1,61 @@
 # Changelog
 
-## 5.1.0 (unreleased)
+## 5.2.0 (unreleased)
+
+### Added
+
+- **`CqlAssertions` - fluent, AssertJ-native assertions on what the database actually holds.** The
+  companion to `@ExpectedCassandraDataSet`, which is deliberately file-first: until now there was no
+  way to assert "this table holds three rows" or "this row's label is `one`" without writing a
+  fixture file for it, which is out of proportion for a single value.
+
+  ```java
+  import static org.cassandraunit.assertion.CqlAssertions.assertThat;
+
+  assertThat(session).keyspace("mykeyspace")
+          .table("widget")
+              .hasRowCount(3)
+              .row("id", widgetId)
+                  .hasValue("label", "one")
+                  .hasNull("created");
+
+  // or against something you already fetched
+  assertThat(row).hasValue("label", "one");
+  assertThat(resultSet).hasSize(3);
+  ```
+
+  Every assert type extends AssertJ's `AbstractAssert`, so `as()`, `describedAs()`, `satisfies()`
+  and `SoftAssertions` work. The entry points take driver types, so this can be statically imported
+  alongside `org.assertj.core.api.Assertions.*` without ambiguity.
+
+  **It agrees with the dataset comparison about what equal means**, because both go through the same
+  `ValueEquality`: a `set` column reading back empty rather than null, `1.50` against `1.5`, a
+  `ByteBuffer` that must not be consumed by being read. Expected values are coerced through the same
+  converter a row dataset uses, so `hasValue("quantity", 42)` works against a `bigint` and
+  `hasValue("id", "1690e8da-…")` against a `uuid`. A test asserts that the two paths pass and fail
+  together on the same data.
+
+  Failure and error keep the 5.1.0 rule: a value that does not match is an `AssertionError`, while a
+  column, table or keyspace that does not *exist* is a `ParseException`, because that means the test
+  is wrong rather than the code under test. Addressing a compound-key table by one column is
+  refused rather than silently matching a partial key.
+
+  See [Asserting what the database holds](docs/assertions.md).
+
+### Dependencies
+
+- `assertj-core` is now a dependency of `cassandra-unit-dataset`, declared
+  `<optional>true</optional>` - the same treatment `junit`, `junit-jupiter-api` and
+  `jackson-dataformat-csv` already get. **An optional dependency is never transitive, so it reaches
+  no consumer who does not ask for it**, and the resolved dependency set of `cassandra-unit` is
+  unchanged. Only `CqlAssertions` and the assert types around it touch AssertJ; a consumer who never
+  imports them is unaffected, and one who does but has no `assertj-core` gets a
+  `NoClassDefFoundError` on `AbstractAssert`.
+
+  This is a compile-surface commitment where before it was a test-only one: **assertj-core 3.x is
+  the supported baseline**, and a consumer on a different major would get a linkage error.
+
+## 5.1.0 (2026-09-19)
 
 ### Added
 
