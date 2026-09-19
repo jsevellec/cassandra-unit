@@ -3,6 +3,8 @@
 A dataset can state what a table *should* contain after a test, not only what it contained before.
 This is the half of the DBUnit comparison CassandraUnit never had.
 
+**Dependency:** `cassandra-unit-dataset`, or `cassandra-unit`, which includes it. See [What to declare](README.md#what-to-declare).
+
 > **Checking one value, or one row count?** Use the fluent API instead — see
 > [Asserting in code](assertions-fluent.md). It is the same comparison, without a file. This page is
 > for the case a file is good at: stating every row a table should hold.

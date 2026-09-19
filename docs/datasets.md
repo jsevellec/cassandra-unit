@@ -1,8 +1,11 @@
 # Datasets
 
-A dataset is what CassandraUnit loads into the embedded node before your test runs — usually a file,
-but a row dataset can also be [built in Java](#in-java-with-no-file). There are two kinds, and most
+A dataset is what CassandraUnit loads into a keyspace before your test runs — usually a file, but a
+row dataset can also be [built in Java](#in-java-with-no-file). It goes into whatever `CqlSession`
+you hand it: the embedded node, a container, a remote cluster. There are two kinds, and most
 projects end up using both:
+
+**Dependency:** `cassandra-unit-dataset`, or `cassandra-unit`, which includes it. See [What to declare](README.md#what-to-declare).
 
 | | **CQL script** | **Row dataset** |
 |---|---|---|

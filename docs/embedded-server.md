@@ -3,6 +3,8 @@
 `EmbeddedCassandraServerHelper` is the low-level API. The JUnit rule, the JUnit 5 extension and the
 Spring listeners all drive it, and you can use it directly when none of those fit.
 
+**Dependency:** `cassandra-unit`. The server is the one feature not in `cassandra-unit-dataset`. See [What to declare](README.md#what-to-declare).
+
 ## One Cassandra per JVM
 
 **This is a permanent design constraint, not a limitation waiting to be fixed.** Cassandra's

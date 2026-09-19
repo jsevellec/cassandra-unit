@@ -23,6 +23,22 @@ The loader does not need the server. If you are already using [Testcontainers' C
 module](https://java.testcontainers.org/modules/databases/cassandra/), it gives you the node and
 `cassandra-unit-dataset` gives you the data — `withInitScript` is one CQL file and nothing else.
 
+## What to declare
+
+Each artifact contains the one above it, so declare only the lowest line you need. All are group
+`org.cassandraunit`, version `5.2.0`, scope `test`.
+
+| What you want | Declare |
+|---|---|
+| The dataset loader and the assertions | `cassandra-unit-dataset` |
+| …and an embedded Cassandra | `cassandra-unit` |
+| …and Spring's TestContext integration | `cassandra-unit-spring` |
+
+Two dependencies are deliberately **optional**, so they never arrive on their own and you declare
+them yourself: `assertj-core` for the fluent assertions
+([details](assertions-fluent.md#the-dependency)) and `jackson-dataformat-csv` for `.csv` datasets
+([details](datasets.md#csv)).
+
 ## Start here
 
 Pick the one that matches what you already have:

@@ -2,6 +2,10 @@
 
 Fluent, AssertJ-native assertions on what a Cassandra actually holds.
 
+**Dependency:** `cassandra-unit-dataset`, or `cassandra-unit`, which includes it — plus
+`assertj-core`, which is optional and so must be declared by you; see
+[The dependency](#the-dependency) below.
+
 A dataset file is the right tool for *these are all the rows this table should hold* — that is
 [Asserting with a dataset file](assertions.md). For one value, one row count, or one row that should
 not be there, writing a file is out of proportion. This is that half.
