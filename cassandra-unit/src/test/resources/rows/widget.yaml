@@ -1,0 +1,32 @@
+widget:
+  # Every column set, exercising each type conversion once.
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570701
+    label: "1"                      # stays the text "1"; must not become the int 1
+    tags: [alpha, beta]
+    created: "2026-09-19T10:00:00Z"
+    payload: "0x0a0b0c"             # quoted: unquoted, YAML would read 0x0a0b0c as a number
+    quantity: 42                    # an Integer for a bigint column, so it has to widen
+    ratio: 1.5
+    addr: "127.0.0.1"
+    props: {a: 1, b: 2}
+
+  # Unquoted, so YAML hands over an Integer - for a text column, which still means the text "1".
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570702
+    label: 1
+
+  # An apostrophe in a text value, and a timestamp given as epoch millis rather than a date.
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570703
+    label: "it's fine"
+    created: 1758276000000
+
+  # An explicit null writes a tombstone.
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570704
+    label: null
+
+  # label is absent, not null: the row already in the table keeps its label.
+  - id: 00000000-0000-0000-0000-000000000009
+    tags: [kept]
+
+  # An unquoted YAML timestamp, which snakeyaml resolves to a java.util.Date.
+  - id: 1690e8da-5bf8-49e8-9583-4dff8a570705
+    created: 2026-09-19T10:00:00Z

@@ -1,9 +1,8 @@
 package org.cassandraunit.dataset.cql;
 
 import org.cassandraunit.dataset.CQLDataSet;
+import org.cassandraunit.dataset.FileDataSetSource;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 /**
@@ -33,13 +32,6 @@ public class FileCQLDataSet extends AbstractCQLDataSet implements CQLDataSet {
 
     @Override
     protected InputStream getInputDataSetLocation(String dataSetLocation) {
-        if (dataSetLocation == null) {
-            return null;
-        }
-        try {
-            return new FileInputStream(dataSetLocation);
-        } catch (FileNotFoundException e) {
-            return null;
-        }
+        return new FileDataSetSource(dataSetLocation).open();
     }
 }

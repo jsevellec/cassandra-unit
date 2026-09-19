@@ -1,6 +1,7 @@
 package org.cassandraunit.dataset.cql;
 
 import org.cassandraunit.dataset.CQLDataSet;
+import org.cassandraunit.dataset.ClassPathDataSetSource;
 
 import java.io.InputStream;
 
@@ -35,6 +36,8 @@ public class ClassPathCQLDataSet extends AbstractCQLDataSet implements CQLDataSe
 
     @Override
     protected InputStream getInputDataSetLocation(String dataSetLocation) {
-        return this.getClass().getResourceAsStream("/" + dataSetLocation);
+        // getClass(), not ClassPathDataSetSource.class: a subclass loaded by a different
+        // classloader resolved against its own before this delegation existed, and still should.
+        return new ClassPathDataSetSource(dataSetLocation, getClass()).open();
     }
 }

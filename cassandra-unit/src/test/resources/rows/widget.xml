@@ -1,0 +1,22 @@
+<dataset>
+  <table name="widget">
+    <row>
+      <id>1690e8da-5bf8-49e8-9583-4dff8a570901</id>
+      <label>1</label>
+      <tags>
+        <value>alpha</value>
+        <value>beta</value>
+      </tags>
+      <created>2026-09-19T10:00:00Z</created>
+      <quantity>42</quantity>
+      <props>
+        <entry key="a">1</entry>
+        <entry key="b">2</entry>
+      </props>
+    </row>
+    <row>
+      <id>1690e8da-5bf8-49e8-9583-4dff8a570902</id>
+      <label null="true"/>
+    </row>
+  </table>
+</dataset>

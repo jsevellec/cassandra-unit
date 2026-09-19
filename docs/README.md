@@ -4,7 +4,7 @@
 >
 > 5.0.0 deliberately breaks compatibility with 4.3.1.0 — it upgrades the embedded server from
 > Cassandra 3.11.5 to 5.0.8, requires JDK 17, and removes the command line tools, the shaded
-> artifact and the XML/JSON/YAML dataset formats. If you are using **4.3.1.0 or earlier**, these
+> artifact and the 4.x XML/JSON/YAML dataset formats. If you are using **4.3.1.0 or earlier**, these
 > pages will not match what you have installed; see [Migrating from 4.x](migrating-from-4.md) for
 > exactly what changed.
 >
@@ -17,7 +17,7 @@
 | | |
 |---|---|
 | [Getting started](getting-started.md) | Add the dependency, configure surefire, write a first passing test. **Read this before anything else** — an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
-| [Datasets](datasets.md) | Writing the `.cql` scripts that create your schema and load data, and controlling how keyspaces are created and dropped between tests. |
+| [Datasets](datasets.md) | Writing the `.cql` scripts that create your schema, the YAML/JSON/XML/CSV row datasets that fill it, and controlling how keyspaces are created and dropped between tests. |
 
 ## Reference
 

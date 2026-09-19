@@ -100,12 +100,46 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
+            <!--
+              Also the YAML dataset parser. It was already here for cassandra-all's sake, so YAML
+              datasets cost no new dependency.
+            -->
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!--
+          The JSON dataset parser. Declared rather than used transitively: java-driver-core has a
+          hard, non-optional dependency on jackson-core and jackson-databind, so this adds nothing
+          to the classpath - but code here imports it, and a dependency you compile against belongs
+          in the pom. Version comes from the jackson-bom imported by the parent.
+        -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!--
+          The CSV dataset parser, and the only dependency the dataset formats add that is not
+          already present. Optional on purpose: CSV is the least used of the formats, and this
+          project has a history of dependency-clash reports (#307, #314, #336, #248, #202) that
+          ended with cassandra-unit-shaded being deleted - the lesson being to put nothing on a
+          consumer's classpath that they did not ask for. CQLDataSetFactory probes for it and says
+          what to add if a CSV dataset is loaded without it.
+
+          Its own dependencies are jackson-databind and jackson-annotations, both already here, so
+          adding it pulls in exactly one jar and no new transitive tree. XML deliberately does NOT
+          use jackson-dataformat-xml, which would pull woodstox and stax2-api; the JDK parser does
+          that job for nothing.
+        -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-csv</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- test -->

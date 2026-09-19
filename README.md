@@ -267,7 +267,8 @@ the full guide and [CHANGELOG.md](CHANGELOG.md) the release-by-release detail. T
 - **Removed: the `cu-loader` / `cu-starter` command line tools.** `cu-starter` never worked.
 - **Removed: `EmbeddedCassandraServerHelper.getRpcPort()`** — Thrift is gone from Cassandra 4.0+.
 - **Removed: `@CassandraDataSet(type = ...)`**, and the XML/JSON/YAML dataset enum behind it.
-  Only CQL datasets have been loadable for years.
+  Only CQL datasets were loadable in 5.0.0. 5.1.0 adds YAML/JSON/XML/CSV *row* datasets, chosen by
+  file extension rather than by an attribute — a new design, not the 4.x one.
 - **JUnit 4 and Hamcrest are no longer compile-scope dependencies**, so they no longer land on
   your classpath through this library. Declare whichever test framework you actually use.
 - **The driver is now a required dependency** (`org.apache.cassandra:java-driver-core`), not an

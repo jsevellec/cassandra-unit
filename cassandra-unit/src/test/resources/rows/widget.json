@@ -1,0 +1,16 @@
+{
+  "widget": [
+    {
+      "id": "1690e8da-5bf8-49e8-9583-4dff8a570801",
+      "label": "1",
+      "tags": ["alpha", "beta"],
+      "created": "2026-09-19T10:00:00Z",
+      "quantity": 42,
+      "props": {"a": 1, "b": 2}
+    },
+    {
+      "id": "1690e8da-5bf8-49e8-9583-4dff8a570802",
+      "label": null
+    }
+  ]
+}

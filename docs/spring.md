@@ -48,15 +48,30 @@ means "use the library default".
 
 | Attribute | Default | Meaning |
 |---|---|---|
-| `value` | `{}` | classpath locations of the `.cql` scripts |
+| `value` | `{}` | classpath locations of the datasets |
 | `keyspace` | `cassandra_unit_keyspace` | keyspace to create and load into |
 
-With `value` empty, the listener looks for a dataset by convention at
-`<FullyQualifiedTestClassName>-dataset.cql`, then `<SimpleClassName>-dataset.cql`, and logs
-"No dataset will be loaded" if neither exists.
+Locations may be `.cql` scripts or `.yaml` / `.yml` / `.json` / `.xml` / `.csv` row datasets; the
+format comes from the extension. Mixing them is the normal case, because a row dataset needs its
+schema loaded first:
 
-> The `type` attribute is gone in 5.0.0, along with the `DataSetFileExtensionEnum` it referenced.
-> CQL is the only dataset format — see [Datasets](datasets.md).
+```java
+@CassandraDataSet({"cql/schema.cql", "data/widget.yaml"})
+```
+
+That works because of a rule the listener already had: **only the first location drops and creates
+the keyspace**, every later one loads into what is already there. Order matters, and schema goes
+first.
+
+With `value` empty, the listener looks for a dataset by convention at
+`<FullyQualifiedTestClassName>-dataset.<ext>`, then `<SimpleClassName>-dataset.<ext>`, trying
+extensions in the order `cql`, `yaml`, `yml`, `json`, `xml`, `csv` within each layout. First hit
+wins — so a project that already has a `-dataset.cql` resolves to exactly the file it always did.
+It logs "No dataset will be loaded" if none exists.
+
+> The `type` attribute is gone as of 5.0.0, along with the `DataSetFileExtensionEnum` it
+> referenced, and is not coming back: the extension is the single source of truth. See
+> [Datasets](datasets.md).
 
 ## Listeners
 
