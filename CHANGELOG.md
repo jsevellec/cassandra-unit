@@ -61,7 +61,7 @@ libraries to every consumer's classpath would have reopened exactly that. In par
 (see CASSANDRA-20848), and cassandra-unit runs Cassandra's own `YamlConfigurationLoader` in the
 test JVM — bumping it would break the embedded server this library exists to start.
 
-## 5.0.0 (unreleased)
+## 5.0.0 (2026-09-19)
 
 First release since 4.3.1.0 (January 2020). The version now tracks the embedded Apache
 Cassandra major rather than the driver version.

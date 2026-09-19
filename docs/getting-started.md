@@ -25,7 +25,7 @@ you, run `mvn -v` rather than `java -version` — see [Troubleshooting](troubles
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit</artifactId>
-    <version>5.0.0</version>
+    <version>5.1.0</version>
     <scope>test</scope>
 </dependency>
 ```

@@ -1,6 +1,7 @@
 # CassandraUnit documentation
 
-> **These docs describe version 5.0.0, which is not released yet.**
+> **These docs describe the 5.x line.** 5.0.0 is on Maven Central; the row datasets described in
+> [Datasets](datasets.md) ship in 5.1.0.
 >
 > 5.0.0 deliberately breaks compatibility with 4.3.1.0 — it upgrades the embedded server from
 > Cassandra 3.11.5 to 5.0.8, requires JDK 17, and removes the command line tools, the shaded
