@@ -4,7 +4,7 @@
 
 CassandraUnit is three things, and you can take any of them.
 
-**The fixture loader** turns a YAML, JSON, XML, CSV or CQL file — or a builder, in Java — into rows
+**The dataset loader** turns a YAML, JSON, XML, CSV or CQL file — or a builder, in Java — into rows
 in a real keyspace, with every value converted using the column's actual type read from the live
 schema — so a `text` column holding `"1"` stays the string `"1"`, and `uuid`, `timestamp`, `blob`,
 collections and UDTs all work without you hand-formatting CQL literals. It runs against any

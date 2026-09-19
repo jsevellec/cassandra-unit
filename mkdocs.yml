@@ -69,8 +69,8 @@ nav:
       - Datasets: datasets.md
       - Asserting in code: assertions-fluent.md
       - Asserting with a dataset file: assertions.md
-  - Reference:
       - Embedded server: embedded-server.md
+  - Reference:
       - Spring integration: spring.md
       - Troubleshooting: troubleshooting.md
       - Migrating from 4.x: migrating-from-4.md
