@@ -12,7 +12,9 @@ CassandraUnit helps you writing isolated JUnit tests in a Test Driven Developmen
 Main features:
 
 - Start an embedded Cassandra.
-- Create the schema and load data from a CQL script.
+- Create the schema from a CQL script.
+- Load fixture data from a CQL script, or declaratively from YAML, JSON, XML or CSV — values are
+  converted using the real column types, so there are no CQL literals to hand-format.
 - Integrations for JUnit 4 (`@Rule`), JUnit 5 (`Extension`) and Spring Test.
 
 Documentation
@@ -21,7 +23,7 @@ Documentation
 Full documentation is in **[docs/](docs/)**, versioned alongside the code:
 
 - [Getting started](docs/getting-started.md) — dependency, the mandatory surefire setup, a first test
-- [Datasets](docs/datasets.md) — writing `.cql` scripts, keyspace create/drop control
+- [Datasets](docs/datasets.md) — `.cql` scripts and YAML/JSON/XML/CSV row datasets, keyspace create/drop control
 - [Embedded server](docs/embedded-server.md) — the `EmbeddedCassandraServerHelper` API
 - [Spring integration](docs/spring.md) — the annotations and listeners
 - [Troubleshooting](docs/troubleshooting.md) — failure modes whose messages hide the cause
@@ -178,6 +180,18 @@ The `maven-dependency-plugin` `properties` goal is what resolves
 Usage
 -----
 
+A dataset is a `.cql` script, or a `.yaml` / `.yml` / `.json` / `.xml` / `.csv` file of rows loaded
+against a schema a `.cql` script created. The format comes from the extension:
+
+```java
+new ClassPathCQLDataSet("cql/simple.cql", "mykeyspace")                  // one CQL script
+
+CQLDataSetFactory.fromClassPathAll("mykeyspace",                         // schema, then rows
+        "cql/schema.cql", "data/widget.yaml")
+```
+
+Either can go anywhere a dataset is accepted below. See [Datasets](docs/datasets.md).
+
 ### JUnit 5
 
 ```java
@@ -218,7 +232,7 @@ public class MyTest {
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(...)
 @TestExecutionListeners(CassandraUnitTestExecutionListener.class)
-@CassandraDataSet(value = "cql/dataset.cql", keyspace = "mykeyspace")
+@CassandraDataSet(value = {"cql/schema.cql", "data/widget.yaml"}, keyspace = "mykeyspace")
 @EmbeddedCassandra
 class MySpringTest { ... }
 ```

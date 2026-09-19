@@ -170,7 +170,8 @@ class ManualTest {
     static void startCassandra() throws Exception {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra(60_000L);
         new CQLDataLoader(EmbeddedCassandraServerHelper.getSession())
-                .load(new ClassPathCQLDataSet("cql/simple.cql", "mykeyspace"));
+                .load(CQLDataSetFactory.fromClassPathAll(
+                        "mykeyspace", "cql/schema.cql", "data/widget.yaml"));
     }
 
     @Test
@@ -180,6 +181,10 @@ class ManualTest {
     }
 }
 ```
+
+`CQLDataSetFactory` picks the format from each extension, and `fromClassPathAll` drops and creates
+the keyspace once for the whole chain — see [Datasets](datasets.md). A single `.cql` script works
+just as well: `new ClassPathCQLDataSet("cql/simple.cql", "mykeyspace")`.
 
 `AbstractCassandraUnit4CQLTestCase` offers the same thing through inheritance for JUnit 4 — extend
 it and implement `getDataSet()`.

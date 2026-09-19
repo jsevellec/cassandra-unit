@@ -107,17 +107,28 @@ INSERT INTO widget (id, label) VALUES (1, 'hello');
 ```
 
 No `CREATE KEYSPACE` and no `USE` — CassandraUnit creates the keyspace and switches to it before
-running the script. See [Datasets](datasets.md).
+running the script.
 
-Rows can also be written as YAML, JSON, XML or CSV instead of `INSERT` statements, loaded against a
-schema this script creates:
+That one file is enough to get started. When the fixture data grows, you can split it: keep the
+schema in the `.cql` script and move the rows to a **row dataset** in YAML, JSON, XML or CSV —
 
-```java
-CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/schema.cql", "data/widget.yaml")
+`src/test/resources/data/widget.yaml`:
+
+```yaml
+widget:
+  - id: 1
+    label: hello
 ```
 
-Values are then converted using the real column types rather than hand-written CQL literals. See
-[Row datasets](datasets.md#row-datasets).
+— loading the pair together:
+
+```java
+CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/simple.cql", "data/widget.yaml")
+```
+
+Values are then converted using the real column types instead of CQL literals you format by hand,
+which is what makes `uuid`, `timestamp`, `blob` and collections painless. Either style works
+anywhere a dataset is accepted; see [Datasets](datasets.md) for both.
 
 ## 4. Write the test
 
@@ -169,5 +180,6 @@ Expect roughly three seconds of startup for the embedded node, once per JVM. If 
 
 ## Next
 
-- [Datasets](datasets.md) — statement parsing rules, and keyspace create/drop control.
+- [Datasets](datasets.md) — the CQL and row dataset formats, keyspace create/drop control, and
+  loading several files together.
 - [Embedded server](embedded-server.md) — ports, directories, random ports, cleaning between tests.

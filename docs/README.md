@@ -17,7 +17,7 @@
 | | |
 |---|---|
 | [Getting started](getting-started.md) | Add the dependency, configure surefire, write a first passing test. **Read this before anything else** — an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
-| [Datasets](datasets.md) | Writing the `.cql` scripts that create your schema, the YAML/JSON/XML/CSV row datasets that fill it, and controlling how keyspaces are created and dropped between tests. |
+| [Datasets](datasets.md) | The two dataset kinds — `.cql` scripts, and YAML/JSON/XML/CSV row datasets — how values are converted, how to load several files together, and how keyspaces are created and dropped between tests. |
 
 ## Reference
 
@@ -33,8 +33,9 @@ in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## What CassandraUnit is, in one paragraph
 
-CassandraUnit starts a real Apache Cassandra node **inside your test JVM** and loads a CQL script
-into it, so tests run against Cassandra itself rather than a mock. That in-process design is the
+CassandraUnit starts a real Apache Cassandra node **inside your test JVM** and loads a dataset into
+it — a CQL script, or rows in YAML, JSON, XML or CSV — so tests run against Cassandra itself rather
+than a mock. That in-process design is the
 source of both its convenience and its constraints: there is exactly one Cassandra per JVM, your
 test JVM needs the JVM flags a Cassandra server needs, and your JDK is the server's JDK. If those
 trade-offs do not suit you, [Testcontainers' Cassandra

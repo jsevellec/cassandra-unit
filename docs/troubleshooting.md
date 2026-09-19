@@ -119,12 +119,88 @@ On 4.3.1.0 and earlier `tmpDir` relocated nothing but a copy of the yaml — the
 hints, saved caches and CDC directories kept the hardcoded `target/embeddedCassandra/*` paths.
 Fixed in 5.0.0. On older versions, edit those paths in your own yaml instead.
 
+## `could not prepare INSERT INTO ... unconfigured table`
+
+A row dataset ran before its schema existed. A `.yaml` / `.json` / `.xml` / `.csv` dataset only
+inserts rows — something has to create the table first, and order matters:
+
+```java
+CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/schema.cql", "data/widget.yaml")
+```
+
+Schema first, rows after. If you are loading by hand with two `CQLDataLoader.load` calls, check the
+second one has `keyspaceCreation` and `keyspaceDeletion` **off** — see the next entry.
+
+## A row dataset loaded, and the table is empty afterwards
+
+The second dataset dropped the keyspace the first had just populated. Loading by hand, every dataset
+after the first needs both flags off:
+
+```java
+loader.load(CQLDataSetFactory.fromClassPath("cql/schema.cql",   true,  true,  "mykeyspace"));
+loader.load(CQLDataSetFactory.fromClassPath("data/widget.yaml", false, false, "mykeyspace"));
+```
+
+`CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/schema.cql", "data/widget.yaml")` does this
+for you and is the better answer.
+
+## `cannot convert value [...] for column x.y of type ...`
+
+The value in the file does not fit the column. The message names the dataset, the table, the column
+and the type, and its tail says what specifically was wrong. Two common causes:
+
+- **A decimal written to a `text` column.** `label: 1.10` in YAML is the *number* 1.1, and storing
+  `"1.1"` would quietly contradict the file, so it is refused. Quote it: `label: "1.10"`. A whole
+  number is fine unquoted — `label: 1` gives `"1"`.
+- **An unquoted `blob`.** `payload: 0x0a0b` is the number 2571 to YAML. Quote it: `"0x0a0b"`.
+
+Generally: if a value's YAML meaning differs from its CQL meaning, quote it.
+
+## A column I set in the fixture came back null
+
+Two different things look alike here:
+
+- **The column is absent from that row** — it is left out of the generated `INSERT` entirely, so
+  nothing is written. That is *unset*, and it deliberately does not overwrite an existing value.
+- **The column is present with a `null` value** — a tombstone is written.
+
+In **CSV an empty field means unset**, always; CSV has no way to express an explicit null. Use YAML
+or JSON when you need a tombstone.
+
+## `CSV datasets need jackson-dataformat-csv on the test classpath`
+
+CSV is the only dataset format needing a dependency that is not already present, and it is declared
+`optional` so it does not land on the classpath of projects that do not use it:
+
+```xml
+<dependency>
+  <groupId>com.fasterxml.jackson.dataformat</groupId>
+  <artifactId>jackson-dataformat-csv</artifactId>
+  <scope>test</scope>
+</dependency>
+```
+
+No version is needed if you already import `com.fasterxml.jackson:jackson-bom`. YAML, JSON and XML
+need nothing added.
+
+## `Unsupported dataset extension` / `Cannot tell the format of ...`
+
+The format comes from the file extension, and the supported set is `cql`, `yaml`, `yml`, `json`,
+`xml`, `csv`. A dataset with no extension, or an unrecognised one, cannot be loaded. Rename the
+file.
+
+## `a CSV dataset cannot name its own table`
+
+CSV is flat, so the table name comes from the filename: `data/widget.csv` loads into `widget`. This
+error means the location had no usable stem. Name the file after the table.
+
 ## Tests pass alone but fail together
 
 Usually one of:
 
-- **Unqualified table names.** The dataset load issues `USE <keyspace>` on the shared session, so
-  the current keyspace is JVM-global. Qualify as `keyspace.table`.
+- **Unqualified table names in a CQL script.** The dataset load issues `USE <keyspace>` on the
+  shared session, so the current keyspace is JVM-global. Qualify as `keyspace.table`. Row datasets
+  are not affected — they qualify every statement with their own keyspace.
 - **`keyspaceDeletion` disabled** on a dataset that a later test expects to be empty.
 - **A test calling `cleanEmbeddedCassandra()`**, which drops every non-system keyspace for
   everything else in that JVM.

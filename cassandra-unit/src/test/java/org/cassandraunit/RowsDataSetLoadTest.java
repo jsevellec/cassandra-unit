@@ -2,6 +2,8 @@ package org.cassandraunit;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.data.TupleValue;
+import com.datastax.oss.driver.api.core.data.UdtValue;
 import org.cassandraunit.dataset.CQLDataSetFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -121,6 +123,30 @@ class RowsDataSetLoadTest {
     void anExplicitNullShouldBeWritten(CqlSession session) {
         // Present in the file with a null value: the column is in the INSERT, bound to null.
         assertThat(widget(session, "1690e8da-5bf8-49e8-9583-4dff8a570704").getString("label")).isNull();
+    }
+
+    @Test
+    void aUdtShouldBeReadFromAMapKeyedByFieldName(CqlSession session) {
+        UdtValue addr = session.execute(
+                        "SELECT addr FROM rowskeyspace.place WHERE id = 1690e8da-5bf8-49e8-9583-4dff8a570d01")
+                .one().getUdtValue("addr");
+
+        // Each field converts against its own type: street is text, zip is int, and the YAML gave
+        // a string and a number respectively.
+        assertThat(addr.getString("street")).isEqualTo("1 Main St");
+        assertThat(addr.getInt("zip")).isEqualTo(75001);
+    }
+
+    @Test
+    void aTupleShouldBeReadFromItsCqlLiteral(CqlSession session) {
+        // Tuples have no natural shape in YAML, so they fall through to the driver's own literal
+        // parser - which is why the documented form is the CQL one.
+        TupleValue coord = session.execute(
+                        "SELECT coord FROM rowskeyspace.place WHERE id = 1690e8da-5bf8-49e8-9583-4dff8a570d01")
+                .one().getTupleValue("coord");
+
+        assertThat(coord.getInt(0)).isEqualTo(1);
+        assertThat(coord.getString(1)).isEqualTo("north");
     }
 
     @Test

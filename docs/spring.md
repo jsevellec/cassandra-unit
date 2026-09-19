@@ -138,7 +138,12 @@ class MyAutowiredTest {
 
 The dataset load issues `USE <keyspace>` on the shared session, so the "current keyspace" is
 JVM-global mutable state. A test that queries `widget` instead of `mykeyspace.widget` will pass or
-fail depending on what ran before it. Always qualify.
+fail depending on what ran before it. Always qualify — in your test code, and in any `.cql` script
+that does not create its own keyspace.
+
+Row datasets are the exception: they qualify every statement with the dataset's keyspace
+themselves, so a `.yaml` / `.json` / `.xml` / `.csv` dataset lands in the right place regardless of
+what the session had current.
 
 ## Spring Boot
 

@@ -121,12 +121,17 @@ machines.
   `@RegisterExtension`; a `CqlSession` test parameter is injected. This is the entry point
   Jupiter-based suites, Spring Boot 3+ included, previously did not have.
 - **`EmbeddedCassandraServerHelper.setRequestTimeout(Duration)`**.
+- **Row datasets in YAML, JSON, XML and CSV** (5.1.0), plus `CQLDataSetFactory` for building a
+  dataset from any location and loading several as one. If you came here to convert 4.x XML/JSON/YAML
+  datasets, read this first — the formats share a name with the old ones but nothing else, so it is
+  a rewrite rather than a port. See [Datasets](datasets.md).
 
 ## Suggested order
 
 1. Move to JDK 17 and get the build green without CassandraUnit.
 2. Bump the version and add the surefire `argLine`. Expect the first run to fail if you skip it.
 3. Fix compile errors: driver coordinates, `getRpcPort()`, `@CassandraDataSet(type = ...)`.
-4. Convert any non-CQL datasets.
+4. Convert any non-CQL datasets to CQL. If they were mostly rows, the 5.1.0 row datasets may be a
+   better destination than `INSERT` statements — but they are a different format, not the 4.x one.
 5. Replace a custom yaml with the shipped one, or port its keys.
 6. Only then adopt the JUnit 5 extension, if you want it — the `@Rule` still works.
