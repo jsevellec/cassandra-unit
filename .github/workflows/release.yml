@@ -51,7 +51,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: maven
           # Writes ~/.m2/settings.xml with a <server> whose id matches the pom's
           # <publishingServerId>central</publishingServerId>. Do not switch to an explicit
           # `-s some/settings.xml`: release:perform forks a fresh Maven inside target/checkout,
@@ -60,6 +59,21 @@ jobs:
           server-username: CENTRAL_USERNAME
           server-password: CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      # The same `full-` prefix build.yml's main job writes, on purpose: this builds the same
+      # reactor, so it should restore what that job cached on the last push to main. build.yml
+      # saves after its snapshot deploy, so the publishing plugin's tree is in there too.
+      #
+      # restore-keys is doing the real work here. The key hashes every pom, and release:prepare
+      # rewrites them - the released version is a fresh hash by definition - so this job can never
+      # get an exact hit. A prefix hit restores a nearly complete repository anyway. That is also
+      # why this is not setup-java's `cache: maven`, which exposes no restore-keys.
+      - name: Cache the Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-full-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-full-${{ runner.os }}-
 
       - name: Configure git identity
         run: |

@@ -29,13 +29,32 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
-          cache: maven
           # Writes ~/.m2/settings.xml with a <server> matching the pom's
           # <publishingServerId>central</publishingServerId>, so the snapshot deploy below has
           # credentials. Harmless on pull requests, where that step does not run.
           server-id: central
           server-username: CENTRAL_USERNAME
           server-password: CENTRAL_PASSWORD
+
+      # Deliberately not setup-java's `cache: maven`. Its key is
+      # setup-java-<os>-<arch>-maven-<hash of **/pom.xml>, with no job name and no matrix value in
+      # it, so every job in this workflow computed the *same* key. The dataset jobs below finish in
+      # about twenty seconds against this job's two and a half minutes, so one of them always
+      # reserved the key first and this job's save was always rejected with "Unable to reserve
+      # cache ... another job may be creating this cache". The cassandra-all half of the dependency
+      # tree was therefore never cached at all, and this job re-downloaded 730 artifacts on every
+      # run. The `full-` prefix is what keeps the two from colliding.
+      #
+      # restore-keys matters more here than in most projects: the key hashes every pom, and a
+      # release commits two version bumps, so an exact hit is the exception. A prefix hit restores
+      # a nearly complete repository and Maven fetches only the delta. setup-java's built-in cache
+      # offers no restore-keys at all, which is the other half of why it was doing nothing for us.
+      - name: Cache the Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-full-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-full-${{ runner.os }}-
 
       # Each test class forks a JVM that starts a real embedded Cassandra, so the suite is
       # slower than the source size suggests. -B keeps the log readable in CI.
@@ -101,7 +120,17 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
-          cache: maven
+
+      # A `dataset-` prefix, kept off the `full-` one the build job above uses. These jobs resolve
+      # a fraction of that job's dependencies, and while they shared a key they were overwriting
+      # its cache with their own much smaller one - see the comment there. matrix.java is in the
+      # key as well, so the two legs of this matrix do not race each other to save either.
+      - name: Cache the Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-dataset-${{ runner.os }}-java${{ matrix.java }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-dataset-${{ runner.os }}-java${{ matrix.java }}-
 
       # -am builds the parent pom, which cassandra-unit-dataset needs to resolve. The parent
       # carries no JDK rule - enforce-jdk lives on the two modules that start a daemon - so this
