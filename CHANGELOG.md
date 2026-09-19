@@ -1,5 +1,66 @@
 # Changelog
 
+## 5.1.0 (unreleased)
+
+### Added
+
+- **Row datasets in YAML, JSON, XML and CSV.** A dataset may now be a declarative list of rows
+  instead of a CQL script. The format is chosen by file extension:
+
+  ```java
+  new CassandraUnitExtension(
+      CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/schema.cql", "data/widget.yaml"));
+  ```
+
+  A row dataset describes **data only** — the schema stays in a `.cql` script. That split is what
+  makes the conversion correct: the column types are already in the database when rows load, so
+  they are read from there rather than re-declared in the fixture, and the driver's own codecs do
+  the conversion. `uuid`, `timestamp`, `blob`, collections and UDTs work without this project
+  owning a type system, and a `text` column holding `"1"` stays the string `"1"` instead of
+  becoming `VALUES (1)` — the defining bug of the 4.x formats.
+
+  **These are not the 4.x XML/JSON/YAML formats.** Those described Thrift column families and their
+  loaders were deleted in 2016; an old 4.x dataset will not load. See [Datasets](docs/datasets.md).
+
+- **`SessionAwareDataSet`**, a sub-interface of `CQLDataSet` for a dataset that needs the live
+  session to load itself. `CQLDataLoader` dispatches on it. Purely additive — every existing
+  `CQLDataSet` implementation, including third-party ones, is unaffected.
+- **`CQLDataSetFactory`**, which builds the right dataset for a location, and
+  `CQLDataSetFactory.fromClassPathAll(keyspace, locations...)`, which loads several datasets as one
+  with the keyspace dropped and created once for the chain. The latter is what makes a row dataset
+  usable from the JUnit rule and the JUnit 5 extension, since both take exactly one dataset.
+- **`DataSetSource`**, separating where a dataset's bytes come from (classpath, file) from what
+  format they are in. Without it, every new format would have needed a class per source.
+- `@CassandraDataSet` accepts the new formats with no new attribute, and its
+  convention-over-configuration lookup now tries `<TestClassName>-dataset.<ext>` for each supported
+  extension, `cql` first.
+
+### Changed
+
+- Generated row inserts are **fully qualified with the keyspace**. A row dataset normally loads
+  with `keyspaceCreation=false`, which means no `USE` is issued before it and the current keyspace
+  would otherwise be whatever the previous load left behind (#160). A CQL script can work around
+  that by writing `keyspace.table` itself; a row dataset cannot.
+- `jackson-databind` is now declared explicitly in `cassandra-unit`. It was already a hard,
+  non-optional dependency of `java-driver-core`, so nothing new reaches your classpath; the pom now
+  admits what the code compiles against.
+
+### Dependencies
+
+Three of the four new formats add **nothing**: YAML uses the `snakeyaml` already present for
+`cassandra-all`, JSON the `jackson-databind` already present for the driver, XML the JDK's own
+parser. Only **CSV** needs a new artifact, `jackson-dataformat-csv`, and it is declared
+`<optional>true</optional>` — its own dependencies are `jackson-databind` and
+`jackson-annotations`, both already there, so it is one jar with no new transitive tree. Loading a
+`.csv` dataset without it fails at dataset construction with a message naming the coordinates.
+
+This restraint is deliberate. `cassandra-unit-shaded` was deleted in 5.0.0 because of recurring
+dependency-clash reports (#307, #314, #336, #248, #202); a feature that quietly added four parser
+libraries to every consumer's classpath would have reopened exactly that. In particular
+`jackson-dataformat-yaml` is **not** used: it requires a newer `snakeyaml` than Cassandra tolerates
+(see CASSANDRA-20848), and cassandra-unit runs Cassandra's own `YamlConfigurationLoader` in the
+test JVM — bumping it would break the embedded server this library exists to start.
+
 ## 5.0.0 (unreleased)
 
 First release since 4.3.1.0 (January 2020). The version now tracks the embedded Apache

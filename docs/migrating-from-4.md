@@ -50,7 +50,7 @@ application picks the Spring version.
 | `cassandra-unit-shaded` | existed to hide old vulnerable guava/netty/jackson; the Cassandra 5.0 upgrade removes those versions | depend on `cassandra-unit` and declare your own exclusions if you still need them |
 | `cu-loader` / `cu-starter` CLI | `cu-starter` never worked — it read a yaml the assembly did not ship, swallowed the error and exited 0 | drive `EmbeddedCassandraServerHelper` from code |
 | `EmbeddedCassandraServerHelper.getRpcPort()` | Thrift was removed in Cassandra 4.0, and with it `DatabaseDescriptor.getRpcPort()` | `getNativeTransportPort()` |
-| XML / JSON / YAML datasets, `DataSetFileExtensionEnum`, `@CassandraDataSet(type = ...)` | the loaders were removed years ago; only the dead enum remained | convert datasets to CQL — see [Datasets](datasets.md) |
+| The 4.x XML / JSON / YAML datasets, `DataSetFileExtensionEnum`, `@CassandraDataSet(type = ...)` | the loaders were removed years ago; only the dead enum remained | convert them to CQL. 5.1.0 adds YAML/JSON/XML/CSV **row** datasets, but they are a new design describing CQL tables — a 4.x file describing Thrift column families will not load. See [Datasets](datasets.md) |
 | `GenericType`, `GenericTypeEnum`, `CassandraUnitException` | referenced nowhere | — |
 | bundled log4j configuration | log4j was excluded from the build and Cassandra uses logback, so it never took effect | configure logback |
 

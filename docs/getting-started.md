@@ -109,6 +109,16 @@ INSERT INTO widget (id, label) VALUES (1, 'hello');
 No `CREATE KEYSPACE` and no `USE` — CassandraUnit creates the keyspace and switches to it before
 running the script. See [Datasets](datasets.md).
 
+Rows can also be written as YAML, JSON, XML or CSV instead of `INSERT` statements, loaded against a
+schema this script creates:
+
+```java
+CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/schema.cql", "data/widget.yaml")
+```
+
+Values are then converted using the real column types rather than hand-written CQL literals. See
+[Row datasets](datasets.md#row-datasets).
+
 ## 4. Write the test
 
 ### JUnit 5

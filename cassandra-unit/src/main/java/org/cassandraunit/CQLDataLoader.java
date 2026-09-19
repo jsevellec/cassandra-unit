@@ -2,6 +2,7 @@ package org.cassandraunit;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.cassandraunit.dataset.CQLDataSet;
+import org.cassandraunit.dataset.SessionAwareDataSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +31,14 @@ public class CQLDataLoader {
         initKeyspaceContext(session, dataSet);
 
         log.debug("loading data");
-        dataSet.getCQLStatements().stream()
-                .forEach(execute(session));
+        if (dataSet instanceof SessionAwareDataSet sessionAware) {
+            // A row dataset (yaml/json/csv/xml) renders nothing to text: it reads the column types
+            // from the schema this session can see and binds prepared statements itself.
+            sessionAware.load(session);
+        } else {
+            dataSet.getCQLStatements().stream()
+                    .forEach(execute(session));
+        }
 
         if (dataSet.getKeyspaceName() != null) {
             use(session).accept(dataSet.getKeyspaceName());

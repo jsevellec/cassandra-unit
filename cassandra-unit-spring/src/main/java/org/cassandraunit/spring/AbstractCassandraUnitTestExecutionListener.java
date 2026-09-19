@@ -1,7 +1,7 @@
 package org.cassandraunit.spring;
 
 import org.cassandraunit.CQLDataLoader;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
+import org.cassandraunit.dataset.CQLDataSetFactory;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,30 +49,46 @@ public abstract class AbstractCassandraUnitTestExecutionListener extends Abstrac
             while (datasetIterator.hasNext()) {
                 String next = datasetIterator.next();
                 boolean dropAndCreateKeyspace = datasetIterator.previousIndex() == 0;
-                cqlDataLoader.load(new ClassPathCQLDataSet(next, dropAndCreateKeyspace, dropAndCreateKeyspace, keyspace));
+                cqlDataLoader.load(CQLDataSetFactory.fromClassPath(next, dropAndCreateKeyspace, dropAndCreateKeyspace, keyspace));
             }
         }
     }
 
-    /** The only dataset format is CQL; @CassandraDataSet used to carry a dead `type` knob. */
-    private static final String DATASET_EXTENSION = "cql";
-
+    /**
+     * Find the dataset(s) to load. An explicit {@code @CassandraDataSet("...")} wins; otherwise the
+     * convention is {@code <TestClassName>-dataset.<ext>}, tried first against the fully qualified
+     * class name and then the simple name.
+     * <p>
+     * The format comes from the extension, so the convention now has several candidates rather
+     * than one. They are tried in {@link CQLDataSetFactory#SUPPORTED_EXTENSIONS} order - {@code cql}
+     * first, so a project that already has a {@code -dataset.cql} keeps resolving to exactly the
+     * file it always did. Within a layout the first hit wins; the fully qualified layout is
+     * exhausted before the simple one, which is the precedence that was already there.
+     */
     private List<String> dataSetLocations(TestContext testContext, CassandraDataSet cassandraDataSet) {
         String[] dataset = cassandraDataSet.value();
         if (dataset.length == 0) {
-            String alternativePath = alternativePath(testContext.getTestClass(), true, DATASET_EXTENSION);
-            if (testContext.getApplicationContext().getResource(alternativePath).exists()) {
-                dataset = new String[]{alternativePath.replace(ResourceUtils.CLASSPATH_URL_PREFIX + "/", "")};
+            String found = findByConvention(testContext, true);
+            if (found == null) {
+                found = findByConvention(testContext, false);
+            }
+            if (found == null) {
+                LOGGER.info("No dataset will be loaded");
             } else {
-                alternativePath = alternativePath(testContext.getTestClass(), false, DATASET_EXTENSION);
-                if (testContext.getApplicationContext().getResource(alternativePath).exists()) {
-                    dataset = new String[]{alternativePath.replace(ResourceUtils.CLASSPATH_URL_PREFIX + "/", "")};
-                } else {
-                    LOGGER.info("No dataset will be loaded");
-                }
+                dataset = new String[]{found};
             }
         }
         return Arrays.asList(dataset);
+    }
+
+    private String findByConvention(TestContext testContext, boolean includedPackageName) {
+        for (String extension : CQLDataSetFactory.SUPPORTED_EXTENSIONS) {
+            String alternativePath = alternativePath(testContext.getTestClass(), includedPackageName, extension);
+            if (testContext.getApplicationContext().getResource(alternativePath).exists()) {
+                return alternativePath.replace(ResourceUtils.CLASSPATH_URL_PREFIX + "/", "");
+            }
+        }
+        return null;
     }
 
     protected void cleanServer() {
