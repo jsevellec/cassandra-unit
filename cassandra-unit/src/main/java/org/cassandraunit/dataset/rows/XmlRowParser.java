@@ -41,7 +41,7 @@ import java.util.Map;
  * </dataset>
  * }</pre>
  * <p>
- * Every value arrives as a string, which is fine - {@link RowBinder} converts against the real
+ * Every value arrives as a string, which is fine - {@link RowValueConverter} converts against the real
  * column type. XML has no null of its own, hence {@code null="true"}; an element that is simply
  * absent means unset.
  *
