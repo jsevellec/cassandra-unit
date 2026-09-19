@@ -1,0 +1,6 @@
+# Toolchain for the documentation site (see mkdocs.yml and .github/workflows/docs.yml).
+# Pinned deliberately: an unpinned build breaks months later on an unrelated theme release.
+# mkdocs >= 1.6 is required — mkdocs.yml uses `exclude_docs` and `validation`, both added in 1.6.
+mkdocs==1.6.1
+mkdocs-material==9.7.7
+pymdown-extensions==12.0.1

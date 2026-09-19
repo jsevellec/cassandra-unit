@@ -9,6 +9,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.cassandraunit/cassandra-unit)](https://central.sonatype.com/artifact/org.cassandraunit/cassandra-unit)
 [![build](https://github.com/jsevellec/cassandra-unit/actions/workflows/build.yml/badge.svg)](https://github.com/jsevellec/cassandra-unit/actions/workflows/build.yml)
+[![docs](https://img.shields.io/badge/docs-jsevellec.github.io-1287A8)](https://jsevellec.github.io/cassandra-unit/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
 ![JDK 17+](https://img.shields.io/badge/JDK-17%2B-blue)
 
@@ -171,7 +172,9 @@ Also in the box
 Documentation
 -------------
 
-Full documentation is in **[docs/](docs/)**, versioned alongside the code:
+Full documentation is published at
+**[jsevellec.github.io/cassandra-unit](https://jsevellec.github.io/cassandra-unit/)**, built
+from [docs/](docs/) and so versioned alongside the code:
 
 - [Using your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply
 - [Getting started](docs/getting-started.md) — the embedded server: dependency, the mandatory surefire setup, a first test
@@ -227,7 +230,7 @@ patch are cassandra-unit's own, by ordinary semver. The driver version never app
 number — it is a compatibility fact, listed below. The full policy is in
 [CONTRIBUTING.md](CONTRIBUTING.md#versioning).
 
-The artifacts, as of 5.1.0:
+The artifacts, as of 5.2.0:
 
 | artifact | Embedded Cassandra | CQL driver | JDK |
 |---|---|---|---|
@@ -297,7 +300,7 @@ Setup
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit-dataset</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -310,7 +313,7 @@ See [Using your own Cassandra](docs/with-your-own-cassandra.md) and stop here.
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
     <scope>test</scope>
 </dependency>
 ```

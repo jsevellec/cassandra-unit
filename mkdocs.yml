@@ -1,0 +1,76 @@
+site_name: CassandraUnit
+site_description: Test fixtures and assertions for Apache Cassandra, with an embedded server if you want one.
+site_url: https://jsevellec.github.io/cassandra-unit/
+repo_url: https://github.com/jsevellec/cassandra-unit
+repo_name: jsevellec/cassandra-unit
+edit_uri: edit/main/docs/
+copyright: MIT licensed
+
+theme:
+  name: material
+  logo: assets/logo-mark-dark.svg
+  favicon: assets/logo-mark.svg
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.top
+    - navigation.sections
+    - content.code.copy
+    - content.action.edit
+    - search.suggest
+
+extra_css:
+  - assets/extra.css
+
+markdown_extensions:
+  - tables
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+
+plugins:
+  - search
+
+# The brand guide is a contributor-facing file, not a docs page. Excluding it keeps /assets/ out
+# of the nav and the search index; the SVGs beside it still publish.
+exclude_docs: |
+  assets/README.md
+
+# Turns `mkdocs build --strict` into a link checker over the cross-page links and their anchors.
+validation:
+  links:
+    absolute_links: relative_to_docs
+    unrecognized_links: warn
+  anchors: warn
+
+# Mirrors the two tables in docs/README.md — that ordering is deliberate.
+nav:
+  - Home: README.md
+  - Start here:
+      - Using your own Cassandra: with-your-own-cassandra.md
+      - Getting started: getting-started.md
+  - Core:
+      - Datasets: datasets.md
+      - Asserting in code: assertions-fluent.md
+      - Asserting with a dataset file: assertions.md
+  - Reference:
+      - Embedded server: embedded-server.md
+      - Spring integration: spring.md
+      - Troubleshooting: troubleshooting.md
+      - Migrating from 4.x: migrating-from-4.md

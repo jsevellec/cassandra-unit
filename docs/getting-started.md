@@ -6,7 +6,7 @@
 |---|---|
 | **JDK** | **17 — and only 17** |
 | Maven | 3.9+ |
-| Apache Cassandra | embedded, pulled in transitively — [Version compatibility](../README.md#version-compatibility) has the exact version |
+| Apache Cassandra | embedded, pulled in transitively — [Version compatibility](https://github.com/jsevellec/cassandra-unit/blob/main/README.md#version-compatibility) has the exact version |
 
 JDK 17 is the entire supported set, not a recommendation:
 
@@ -25,7 +25,7 @@ you, run `mvn -v` rather than `java -version` — see [Troubleshooting](troubles
 <dependency>
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
     <scope>test</scope>
 </dependency>
 ```

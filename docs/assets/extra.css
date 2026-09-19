@@ -1,0 +1,31 @@
+/*
+ * Brand palette, from docs/assets/README.md.
+ *
+ * The mark is drawn in primary + accent with no dark ink, so it vanishes against a header of the
+ * same hue. Painting the header with the ink token instead lets the dark mark variant read
+ * identically in both palettes, with no per-scheme logo swap.
+ */
+
+[data-md-color-primary=custom] {
+  --md-primary-fg-color:        #0B2A38;  /* ink, light */
+  --md-primary-fg-color--light: #1287A8;  /* primary, light */
+  --md-primary-fg-color--dark:  #071E28;
+}
+
+[data-md-color-accent=custom] {
+  --md-accent-fg-color: #37C2B4;          /* accent, light */
+}
+
+[data-md-color-scheme=slate][data-md-color-accent=custom] {
+  --md-accent-fg-color: #52D8C8;          /* accent, dark */
+}
+
+/*
+ * The two "pick your situation" tables on the landing page are deliberately header-less, written
+ * as `| | |` over `|---|---|`. Python-Markdown emits real empty <th> cells for that, and Material
+ * paints <th> with a filled band — so each table grows a blank bar that GitHub renders silently.
+ * Collapse a header row only when every one of its cells is empty.
+ */
+.md-typeset table:not([class]) thead tr:not(:has(th:not(:empty))) {
+  display: none;
+}

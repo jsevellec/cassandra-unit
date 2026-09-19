@@ -20,3 +20,6 @@ bin/
 
 /runnable/
 /temp/
+
+### MkDocs ###
+site/

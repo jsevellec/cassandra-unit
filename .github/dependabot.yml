@@ -16,3 +16,16 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
+
+  # The docs site toolchain pinned in requirements-docs.txt.
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: monthly
+    ignore:
+      # MkDocs 2.0 removes the plugin system and rewrites theming, with no migration path, and
+      # mkdocs-material does not support it. A major bump here would break the docs build
+      # outright, so it is upgraded deliberately and never by a bot. Minor and patch are fine.
+      # https://squidfunk.github.io/mkdocs-material/blog/2026/02/18/mkdocs-2.0/
+      - dependency-name: "mkdocs"
+        update-types: [ "version-update:semver-major" ]

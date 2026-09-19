@@ -395,7 +395,7 @@ schema change. Use a CQL script for those — that is what the pair is for.
 
 These apply to `.cql` scripts only. The parser is deliberately small — a lexer that strips comments
 and splits on semicolons, not a CQL grammar. The exact rules, from
-[`SimpleCQLLexer`](../cassandra-unit-dataset/src/main/java/org/cassandraunit/dataset/cql/SimpleCQLLexer.java):
+[`SimpleCQLLexer`](https://github.com/jsevellec/cassandra-unit/blob/main/cassandra-unit-dataset/src/main/java/org/cassandraunit/dataset/cql/SimpleCQLLexer.java):
 
 **Statements are separated by semicolons.** The final one may omit its semicolon — whatever is left
 over at end of file is executed as a statement — but terminate every statement anyway, so that

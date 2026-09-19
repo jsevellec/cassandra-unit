@@ -1,8 +1,8 @@
 # CassandraUnit documentation
 
-> **These docs describe the 5.x line**, and 5.1.0 is the current release on Maven Central. The
-> fluent assertion API in [Asserting in code](assertions-fluent.md) is not in it yet; everything
-> else on these pages is.
+> **These docs describe the 5.x line**, and 5.2.0 is the current release on Maven Central.
+> Everything on these pages is in it, including the fluent assertion API in
+> [Asserting in code](assertions-fluent.md) and the Java dataset builder, both added by 5.2.0.
 >
 > 5.0.0 deliberately breaks compatibility with 4.3.1.0 — it upgrades the embedded server from
 > Cassandra 3.11.5 to 5.0.8, requires JDK 17, and removes the command line tools, the shaded
@@ -45,8 +45,8 @@ comparison — [Asserting in code](assertions-fluent.md) for a single value or r
 | [Troubleshooting](troubleshooting.md) | The failure modes that are hard to diagnose from their error messages. Check here first if a test JVM dies without explanation. |
 | [Migrating from 4.x](migrating-from-4.md) | Everything removed or changed in 5.0.0, and what to do instead. |
 
-Release-by-release detail lives in [CHANGELOG.md](../CHANGELOG.md). How to build and contribute is
-in [CONTRIBUTING.md](../CONTRIBUTING.md).
+Release-by-release detail lives in [CHANGELOG.md](https://github.com/jsevellec/cassandra-unit/blob/main/CHANGELOG.md). How to build and contribute is
+in [CONTRIBUTING.md](https://github.com/jsevellec/cassandra-unit/blob/main/CONTRIBUTING.md).
 
 ## What CassandraUnit is, in one paragraph
 
