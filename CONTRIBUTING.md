@@ -120,7 +120,6 @@ Releases are cut by the **release** workflow in GitHub Actions, never from a lap
 | `releaseVersion` | `5.0.0` | one version for the parent and both jars — neither module declares its own. Must lead with the embedded Cassandra major; see [Versioning](#versioning) |
 | `developmentVersion` | `5.0.1-SNAPSHOT` | what `main` is bumped to afterwards |
 | `dryRun` | `true` | **leave it on the first time**: rehearses everything, pushes and uploads nothing |
-| `autoPublish` | `false` | `false` leaves the deployment sitting in the Portal for you to inspect and publish by hand |
 
 The job declares `environment: central`, so it pauses for an approval before it can do anything.
 
@@ -134,9 +133,10 @@ Without the pre-flight, a bad signing key costs you a burnt version number and s
 commit-and-tag steps, writing `pom.xml.tag` / `pom.xml.next` and stopping there — nothing pushed,
 nothing uploaded.
 
-Then run for real with `autoPublish=false`, check the deployment reached state **VALIDATED** in
-the Portal, and press Publish there. Dropping a deployment is free; publishing is permanent and
-the version number cannot be reused.
+Then run for real. The upload always stops at a **VALIDATED** deployment: `autoPublish` is pinned
+to `false` in the pom, so nothing reaches Central without a human. Check that state in the Portal
+and press Publish there. Dropping a deployment is free; publishing is permanent and the version
+number cannot be reused.
 
 ### Secrets
 

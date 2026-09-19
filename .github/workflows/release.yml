@@ -20,13 +20,9 @@ on:
         description: 'Next development version, e.g. 5.0.1-SNAPSHOT'
         required: true
       dryRun:
-        description: 'Rehearse only: no commit, no tag, no upload'
+        description: 'dry run'
         type: boolean
         default: true
-      autoPublish:
-        description: 'Publish to Central automatically instead of leaving the deployment VALIDATED for a manual Publish click'
-        type: boolean
-        default: false
 
 # Two releases at once would fight over the tag and the version bump.
 concurrency:
@@ -101,7 +97,7 @@ jobs:
           mvn -B release:clean release:prepare release:perform \
             -DreleaseVersion=${{ inputs.releaseVersion }} \
             -DdevelopmentVersion=${{ inputs.developmentVersion }} \
-            -Darguments="-DskipTests -DautoPublish=${{ inputs.autoPublish }}"
+            -Darguments="-DskipTests"
         env:
           # settings.xml written by setup-java resolves these by name; release:perform forks
           # a fresh Maven in target/checkout, which inherits this environment.
