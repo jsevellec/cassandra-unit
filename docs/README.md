@@ -1,18 +1,27 @@
 # CassandraUnit documentation
 
-> **These docs describe the 5.x line**, and 5.2.0 is the current release on Maven Central.
-> Everything on these pages is in it, including the fluent assertion API in
-> [Asserting in code](assertions-fluent.md) and the Java dataset builder, both added by 5.2.0.
->
-> 5.0.0 deliberately breaks compatibility with 4.3.1.0 — it upgrades the embedded server from
-> Cassandra 3.11.5 to 5.0.8, requires JDK 17, and removes the command line tools, the shaded
-> artifact and the 4.x XML/JSON/YAML dataset formats. If you are using **4.3.1.0 or earlier**, these
-> pages will not match what you have installed; see [Migrating from 4.x](migrating-from-4.md) for
-> exactly what changed.
->
-> These pages replace the project wiki, which had drifted so far that it documented classes and
-> annotation attributes that never existed. Documentation now lives in the repository so that it
-> is versioned with the code and reviewed alongside it.
+**Test fixtures and assertions for Apache Cassandra**, with an embedded server if you want one.
+
+CassandraUnit is three things, and you can take any of them.
+
+**The fixture loader** turns a YAML, JSON, XML, CSV or CQL file — or a builder, in Java — into rows
+in a real keyspace, with every value converted using the column's actual type read from the live
+schema — so a `text` column holding `"1"` stays the string `"1"`, and `uuid`, `timestamp`, `blob`,
+collections and UDTs all work without you hand-formatting CQL literals. It runs against any
+`CqlSession` you hand it.
+
+**The assertions** run the comparison the other way: given a table, is it what it should be? Either
+as a file listing every row, or as fluent code checking one value. Both read the column's real type
+from the live schema, exactly as the loader does, so the two directions agree about what a value is.
+
+**The embedded server** starts a real Apache Cassandra node inside your test JVM, for when you want
+one and would rather not run Docker. That in-process design is the source of both its convenience
+and its constraints: exactly one Cassandra per JVM, your test JVM needs the JVM flags a Cassandra
+server needs, and your JDK is the server's JDK.
+
+The loader does not need the server. If you are already using [Testcontainers' Cassandra
+module](https://java.testcontainers.org/modules/databases/cassandra/), it gives you the node and
+`cassandra-unit-dataset` gives you the data — `withInitScript` is one CQL file and nothing else.
 
 ## Start here
 
@@ -48,25 +57,18 @@ comparison — [Asserting in code](assertions-fluent.md) for a single value or r
 Release-by-release detail lives in [CHANGELOG.md](https://github.com/jsevellec/cassandra-unit/blob/main/CHANGELOG.md). How to build and contribute is
 in [CONTRIBUTING.md](https://github.com/jsevellec/cassandra-unit/blob/main/CONTRIBUTING.md).
 
-## What CassandraUnit is, in one paragraph
+## Which version these docs describe
 
-CassandraUnit is three things, and you can take any of them.
-
-**The fixture loader** turns a YAML, JSON, XML, CSV or CQL file — or a builder, in Java — into rows
-in a real keyspace, with every value converted using the column's actual type read from the live
-schema — so a `text` column
-holding `"1"` stays the string `"1"`, and `uuid`, `timestamp`, `blob`, collections and UDTs all work
-without you hand-formatting CQL literals. It runs against any `CqlSession` you hand it.
-
-**The assertions** run the comparison the other way: given a table, is it what it should be? Either
-as a file listing every row, or as fluent code checking one value. Both read the column's real type
-from the live schema, exactly as the loader does, so the two directions agree about what a value is.
-
-**The embedded server** starts a real Apache Cassandra node inside your test JVM, for when you want
-one and would rather not run Docker. That in-process design is the source of both its convenience
-and its constraints: exactly one Cassandra per JVM, your test JVM needs the JVM flags a Cassandra
-server needs, and your JDK is the server's JDK.
-
-The loader does not need the server. If you are already using [Testcontainers' Cassandra
-module](https://java.testcontainers.org/modules/databases/cassandra/), it gives you the node and
-`cassandra-unit-dataset` gives you the data — `withInitScript` is one CQL file and nothing else.
+> **These docs describe the 5.x line**, and 5.2.0 is the current release on Maven Central.
+> Everything on these pages is in it, including the fluent assertion API in
+> [Asserting in code](assertions-fluent.md) and the Java dataset builder, both added by 5.2.0.
+>
+> 5.0.0 deliberately breaks compatibility with 4.3.1.0 — it upgrades the embedded server from
+> Cassandra 3.11.5 to 5.0.8, requires JDK 17, and removes the command line tools, the shaded
+> artifact and the 4.x XML/JSON/YAML dataset formats. If you are using **4.3.1.0 or earlier**, these
+> pages will not match what you have installed; see [Migrating from 4.x](migrating-from-4.md) for
+> exactly what changed.
+>
+> These pages replace the project wiki, which had drifted so far that it documented classes and
+> annotation attributes that never existed. Documentation now lives in the repository so that it
+> is versioned with the code and reviewed alongside it.
