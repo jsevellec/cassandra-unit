@@ -122,7 +122,8 @@ machines.
   Jupiter-based suites, Spring Boot 3+ included, previously did not have.
 - **`EmbeddedCassandraServerHelper.setRequestTimeout(Duration)`**.
 - **Row datasets in YAML, JSON, XML and CSV** (5.1.0), plus `CQLDataSetFactory` for building a
-  dataset from any location and loading several as one. If you came here to convert 4.x XML/JSON/YAML
+  dataset from any location and loading several as one, and `CQLDataSetFactory.builder(...)` for
+  the same rows written in Java with no file at all (5.2.0). If you came here to convert 4.x XML/JSON/YAML
   datasets, read this first — the formats share a name with the old ones but nothing else, so it is
   a rewrite rather than a port. See [Datasets](datasets.md).
 

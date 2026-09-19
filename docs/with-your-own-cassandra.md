@@ -54,8 +54,9 @@ class WidgetIT {
 ```
 
 Testcontainers' own Cassandra module gives you the node. `withInitScript` is the whole of its data
-API — one CQL file. This is the rest: row datasets in YAML, JSON, XML and CSV, bound to the real
-column types read from the live schema.
+API — one CQL file. This is the rest: row datasets in YAML, JSON, XML and CSV, or
+[built in Java](datasets.md#in-java-with-no-file), bound to the real column types read from the live
+schema.
 
 ### Build the session inside the supplier
 

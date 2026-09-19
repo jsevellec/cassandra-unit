@@ -145,8 +145,9 @@ Fixed in 5.0.0. On older versions, edit those paths in your own yaml instead.
 
 ## `could not prepare INSERT INTO ... unconfigured table`
 
-A row dataset ran before its schema existed. A `.yaml` / `.json` / `.xml` / `.csv` dataset only
-inserts rows — something has to create the table first, and order matters:
+A row dataset ran before its schema existed. A row dataset only inserts rows — whether it is a
+`.yaml` / `.json` / `.xml` / `.csv` file or a builder — so something has to create the table first,
+and order matters:
 
 ```java
 CQLDataSetFactory.fromClassPathAll("mykeyspace", "cql/schema.cql", "data/widget.yaml")

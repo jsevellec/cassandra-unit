@@ -6,14 +6,14 @@ projects end up using both:
 
 | | **CQL script** | **Row dataset** |
 |---|---|---|
-| Extensions | `.cql` | `.yaml`, `.yml`, `.json`, `.xml`, `.csv` |
+| Written as | a `.cql` file | a `.yaml`, `.yml`, `.json`, `.xml` or `.csv` file, or [a Java builder](#in-java-with-no-file) |
 | Contains | any CQL statements | rows, and nothing else |
 | Creates the schema | yes | no — it needs one to already exist |
-| Values are written as | CQL literals you format yourself | plain values, converted using the real column types |
+| Values are given as | CQL literals you format yourself | plain values, converted using the real column types |
 | Loaded by | executing each statement | binding prepared statements |
 
-The format is chosen by **file extension**. There is no `type` attribute to keep in sync with the
-filename.
+For a file, the format is chosen by its **extension**. There is no `type` attribute to keep in sync
+with the filename.
 
 > **These are not the 4.x XML/JSON/YAML formats.** Those described Thrift column families
 > (`columnFamilies`, `superColumns`, `comparatorType`) and their loaders were deleted in 2016. The

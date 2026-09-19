@@ -9,8 +9,9 @@
 
 CassandraUnit does three things. Take all of them, or just the one you need.
 
-1. **Load test data.** A YAML, JSON, XML, CSV or CQL file becomes rows in a real keyspace, with
-   every value converted using the column's actual type, read from the live schema.
+1. **Load test data.** A YAML, JSON, XML, CSV or CQL file — or a builder, in Java — becomes rows
+   in a real keyspace, with every value converted using the column's actual type, read from the
+   live schema.
 2. **Assert what the database holds.** Fluent and AssertJ-native for a single value or row count,
    or a dataset file for *every* row a table should hold.
 3. **Start a Cassandra.** A real Apache Cassandra node inside your test JVM, for when you want one
@@ -40,7 +41,20 @@ Every value is converted using the column's **actual type, read from the live sc
 `timestamp`, `blob`, collections and UDTs need no hand-formatted CQL literals, and a `text` column
 holding `"1"` stays text rather than becoming the number 1.
 
-YAML, JSON, XML, CSV, or a plain `.cql` script. See [Datasets](docs/datasets.md).
+For a handful of rows, skip the file — the same dataset, next to the test that needs it:
+
+```java
+new CQLDataLoader(session).load(CQLDataSetFactory.builder("mykeyspace")
+        .table("widget").columns("id", "label", "status")
+            .row(widgetId, "one", "pending")
+            .row(otherId, "two", "shipped")
+        .build());
+```
+
+Hand over the objects you already have — a `UUID`, an `Instant`, a `Set<String>` — rather than
+spelling them as text.
+
+YAML, JSON, XML, CSV, a plain `.cql` script, or the builder. See [Datasets](docs/datasets.md).
 
 # Assert what the database holds
 
@@ -156,7 +170,7 @@ Full documentation is in **[docs/](docs/)**, versioned alongside the code:
 
 - [Using your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply
 - [Getting started](docs/getting-started.md) — the embedded server: dependency, the mandatory surefire setup, a first test
-- [Datasets](docs/datasets.md) — `.cql` scripts and YAML/JSON/XML/CSV row datasets, keyspace create/drop control
+- [Datasets](docs/datasets.md) — `.cql` scripts, YAML/JSON/XML/CSV row datasets, the Java builder, keyspace create/drop control
 - [Asserting with a dataset file](docs/assertions.md) — `@ExpectedCassandraDataSet`, and the comparison rules Cassandra forces
 - [Asserting in code](docs/assertions-fluent.md) — the fluent `CqlAssertions` API, for a single value or row count
 - [Embedded server](docs/embedded-server.md) — the `EmbeddedCassandraServerHelper` API
@@ -354,14 +368,19 @@ The `maven-dependency-plugin` `properties` goal is what resolves
 Usage
 -----
 
-A dataset is a `.cql` script, or a `.yaml` / `.yml` / `.json` / `.xml` / `.csv` file of rows loaded
-against a schema a `.cql` script created. The format comes from the extension:
+A dataset is a `.cql` script, or rows loaded against a schema a `.cql` script created — from a
+`.yaml` / `.yml` / `.json` / `.xml` / `.csv` file, or from a builder. For a file the format comes
+from the extension:
 
 ```java
 new ClassPathCQLDataSet("cql/simple.cql", "mykeyspace")                  // one CQL script
 
 CQLDataSetFactory.fromClassPathAll("mykeyspace",                         // schema, then rows
         "cql/schema.cql", "data/widget.yaml")
+
+CQLDataSetFactory.builder("mykeyspace")                                  // rows, no file
+        .table("widget").columns("id", "label").row(1, "hello")
+        .build()
 ```
 
 Either can go anywhere a dataset is accepted below. See [Datasets](docs/datasets.md).

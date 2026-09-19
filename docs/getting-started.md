@@ -110,7 +110,8 @@ No `CREATE KEYSPACE` and no `USE` — CassandraUnit creates the keyspace and swi
 running the script.
 
 That one file is enough to get started. When the fixture data grows, you can split it: keep the
-schema in the `.cql` script and move the rows to a **row dataset** in YAML, JSON, XML or CSV —
+schema in the `.cql` script and move the rows to a **row dataset** — in YAML, JSON, XML or CSV, or
+[built in Java](datasets.md#in-java-with-no-file) if there are only a few —
 
 `src/test/resources/data/widget.yaml`:
 

@@ -63,6 +63,28 @@ That works because of a rule the listener already had: **only the first location
 the keyspace**, every later one loads into what is already there. Order matters, and schema goes
 first.
 
+**Only locations.** A dataset [built in Java](datasets.md#in-java-with-no-file) cannot go in the
+annotation — the listener resolves classpath strings
+(`AbstractCassandraUnitTestExecutionListener` calls `CQLDataSetFactory.fromClassPath`), and there is
+nowhere to hand it an object. Name the schema script here and load the built rows yourself:
+
+```java
+@CassandraDataSet(value = "cql/schema.cql", keyspace = "mykeyspace")
+class MySpringTest {
+
+    @BeforeEach
+    void rows() {
+        new CQLDataLoader(EmbeddedCassandraServerHelper.getSession())
+                .load(CQLDataSetFactory.builder("mykeyspace")
+                        .table("widget").columns("id", "label").row(1, "hello")
+                        .build());
+    }
+}
+```
+
+The annotation still drops and creates the keyspace, and the builder defaults to leaving it alone,
+so the order is the usual one: schema from the script, rows after.
+
 With `value` empty, the listener looks for a dataset by convention at
 `<FullyQualifiedTestClassName>-dataset.<ext>`, then `<SimpleClassName>-dataset.<ext>`, trying
 extensions in the order `cql`, `yaml`, `yml`, `json`, `xml`, `csv` within each layout. First hit

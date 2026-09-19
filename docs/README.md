@@ -24,8 +24,9 @@ Pick the one that matches what you already have:
 | **I want one started for me, in-process** | [Getting started](getting-started.md) — the `cassandra-unit` artifact. **Read the surefire section first**: an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
 
 Either way, two pages matter most. [Datasets](datasets.md) is one: the two dataset kinds — `.cql`
-scripts, and YAML/JSON/XML/CSV row datasets — how values are converted, how to load several files
-together, and how keyspaces are created and dropped between tests. It applies to both artifacts.
+scripts, and row datasets written as YAML/JSON/XML/CSV or built in Java — how values are converted,
+how to load several files together, and how keyspaces are created and dropped between tests. It
+applies to both artifacts.
 
 Asserting is the other, and nothing else in the Java/Cassandra ecosystem does it: stating what a
 table should hold *after* a test, not only what it held before. It comes two ways, sharing one
@@ -51,8 +52,9 @@ in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 CassandraUnit is three things, and you can take any of them.
 
-**The fixture loader** turns a YAML, JSON, XML, CSV or CQL file into rows in a real keyspace, with
-every value converted using the column's actual type read from the live schema — so a `text` column
+**The fixture loader** turns a YAML, JSON, XML, CSV or CQL file — or a builder, in Java — into rows
+in a real keyspace, with every value converted using the column's actual type read from the live
+schema — so a `text` column
 holding `"1"` stays the string `"1"`, and `uuid`, `timestamp`, `blob`, collections and UDTs all work
 without you hand-formatting CQL literals. It runs against any `CqlSession` you hand it.
 
