@@ -106,7 +106,7 @@ A real Apache Cassandra node, in your test JVM, with the schema and rows already
 three seconds of startup, once per JVM, and no Docker.
 
 It is one node per JVM, your test JVM needs the JVM flags a Cassandra server needs, and your JDK is
-the server's JDK — **read [the surefire section](docs/getting-started.md#3-configure-surefire)
+the server's JDK — **read [the surefire section](docs/getting-started.md#2-configure-surefire)
 before your first run**, because skipping it fails confusingly.
 
 Against a Cassandra you already have
@@ -117,8 +117,8 @@ and asserts through any `CqlSession` you hand it:
 
 | | |
 |---|---|
-| **I already have one** — a container, a local node, ScyllaDB, Astra | [Using your own Cassandra](docs/with-your-own-cassandra.md) — no embedded server, no JVM flags, no JDK ceiling. |
-| **Start one for me, in-process** | [Your first test](docs/getting-started.md) — `cassandra-unit`, the embedded server above. |
+| **I already have one** — a container, a local node, ScyllaDB, Astra | [Your first test — your own Cassandra](docs/with-your-own-cassandra.md) — no embedded server, no JVM flags, no JDK ceiling. |
+| **Start one for me, in-process** | [Your first test — embedded server](docs/getting-started.md) — `cassandra-unit`, the embedded server above. |
 
 Against a container, the whole setup is one extension:
 
@@ -176,8 +176,8 @@ Full documentation is published at
 **[jsevellec.github.io/cassandra-unit](https://jsevellec.github.io/cassandra-unit/)**, built
 from [docs/](docs/) and so versioned alongside the code:
 
-- [Using your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply
-- [Your first test](docs/getting-started.md) — the embedded server in six steps: pick your Cassandra, dependency, surefire, dataset, test, run
+- [Your first test — your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply, in four steps: dependency, dataset, test, run
+- [Your first test — embedded server](docs/getting-started.md) — the same, in five: dependency, surefire, dataset, test, run
 - [Datasets](docs/datasets.md) — `.cql` scripts, YAML/JSON/XML/CSV row datasets, the Java builder, keyspace create/drop control
 - [Asserting with a dataset file](docs/assertions.md) — `@ExpectedCassandraDataSet`, and the comparison rules Cassandra forces
 - [Asserting in code](docs/assertions-fluent.md) — the fluent `CqlAssertions` API, for a single value or row count
@@ -312,7 +312,7 @@ Setup
 </dependency>
 ```
 
-See [Using your own Cassandra](docs/with-your-own-cassandra.md) and stop here.
+See [Your first test — your own Cassandra](docs/with-your-own-cassandra.md) and stop here.
 
 **If you want the embedded server**, take `cassandra-unit` instead — it includes everything above:
 
@@ -340,7 +340,7 @@ side.
 
 Without them the fork starts and the test fails on the call that starts the node, with an
 `IllegalAccessException` on `sun.nio.ch.DirectBuffer.cleaner` — spelled out in
-[Your first test](docs/getting-started.md#3-configure-surefire).
+[Your first test](docs/getting-started.md#2-configure-surefire).
 
 ```xml
 <plugin>

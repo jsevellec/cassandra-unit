@@ -63,8 +63,8 @@ validation:
 nav:
   - Home: README.md
   - Start here:
-      - Using your own Cassandra: with-your-own-cassandra.md
-      - Your first test: getting-started.md
+      - Your first test (your own Cassandra): with-your-own-cassandra.md
+      - Your first test (embedded server): getting-started.md
   - Core:
       - Datasets: datasets.md
       - Asserting in code: assertions-fluent.md

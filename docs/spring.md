@@ -18,7 +18,7 @@ requires **JUnit Jupiter 6** — Spring's own `SpringExtension` calls JUnit 6 AP
 JUnit 5 needs Spring 6.2 and Boot 3 instead.
 
 `@EmbeddedCassandra` starts the node in the test JVM, so [the surefire
-configuration](getting-started.md#3-configure-surefire) applies here for the same reason
+configuration](getting-started.md#2-configure-surefire) applies here for the same reason
 it applies anywhere: the flags are needed by a JVM that starts the node. The one path that skips
 them is [Boot with your own Cassandra](#boot-with-your-own-cassandra), where nothing starts a
 daemon.

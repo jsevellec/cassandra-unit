@@ -1,8 +1,13 @@
-# Using your own Cassandra
+# Your first test — your own Cassandra
 
-If you already have a Cassandra to test against — a Testcontainers container, a node on localhost,
-ScyllaDB, Astra — you do not need the embedded server. `cassandra-unit-dataset` is the fixture layer
-on its own: hand it a `CqlSession` and it loads datasets through that.
+A Testcontainers container, a node on localhost, ScyllaDB, Astra — anything speaking CQL. You hand
+`cassandra-unit-dataset` a `CqlSession`, it loads the fixtures through that, in four steps.
+
+> Want a node started for you instead, in-process and without Docker? That is
+> [Your first test — embedded server](getting-started.md). It costs JVM flags and pins you to
+> JDK 17.
+
+## 1. Add the dependency
 
 ```xml
 <dependency>
@@ -25,7 +30,70 @@ plus optional extras you only resolve by asking for them: `jackson-dataformat-cs
 and `spring-test` / `spring-context` for `SpringSessions`. The build enforces that: a
 `bannedDependencies` rule fails if `cassandra-all` ever appears.
 
+There is no JDK row to satisfy either: 17 or later, no upper bound, and Maven 3.9+.
+
+## 2. Write the dataset
+
+`src/test/resources/cql/simple.cql`:
+
+```sql
+CREATE TABLE widget (id int PRIMARY KEY, label text);
+INSERT INTO widget (id, label) VALUES (1, 'hello');
+```
+
+No `CREATE KEYSPACE` and no `USE` — the dataset creates the keyspace and switches to it before
+running the script, and drops it again afterwards unless you say otherwise. On a cluster where you
+cannot create keyspaces, load into one that exists and turn both off:
+`CQLDataSetFactory.fromClassPath("cql/simple.cql", false, false, "mykeyspace")`.
+
+Rows can live in a separate YAML, JSON, XML or CSV file instead of in the script, which is what
+makes `uuid`, `timestamp`, `blob` and collections painless — see [Datasets](datasets.md).
+
+## 3. Write the test
+
+```java
+class WidgetTest {
+
+    @RegisterExtension
+    static final CqlDataSetExtension fixtures = CqlDataSetExtension
+            .using(() -> CqlSession.builder()
+                    .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
+                    .withLocalDatacenter("datacenter1")
+                    .build())
+            .closingSession()
+            .load(new ClassPathCQLDataSet("cql/simple.cql", "mykeyspace"))
+            .build();
+
+    @Test
+    void readsTheDataset(CqlSession session) {   // resolved by the extension
+        Row row = session.execute("select label from widget where id = 1").one();
+        assertThat(row.getString("label")).isEqualTo("hello");
+    }
+}
+```
+
+`using(...)` takes a **supplier**, not a session, and it is called lazily — that is what lets the
+session depend on something else the test sets up, a container most of all. `closingSession()` says
+this extension created the session and may close it; leave it off for a session you own elsewhere.
+`load(...)` is the simple case: one dataset, loaded before every test.
+
+No JVM flags, no `argLine`, nothing else to configure — see [Which JVMs need
+it](getting-started.md#which-jvms-need-it) for why that is a property of the embedded daemon and not
+of this library.
+
+## 4. Run it
+
+```
+mvn test
+```
+
+The node has to be reachable before the first test runs. If you do not have one standing by, the
+next section starts one per build.
+
 ## With Testcontainers
+
+The same test with the node supplied by a container rather than by you, and the fixtures split in
+two: the schema once per class, the rows before every test.
 
 ```java
 @Testcontainers

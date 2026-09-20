@@ -46,8 +46,8 @@ Pick the one that matches what you already have:
 
 | | |
 |---|---|
-| **I already have a Cassandra** — Testcontainers, a local node, ScyllaDB, Astra | [Using your own Cassandra](with-your-own-cassandra.md) — the `cassandra-unit-dataset` artifact. No embedded server, no JVM flags, no JDK ceiling. |
-| **I want one started for me, in-process** | [Your first test](getting-started.md) — the `cassandra-unit` artifact. **Read the surefire section first**: an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
+| **I already have a Cassandra** — Testcontainers, a local node, ScyllaDB, Astra | [Your first test — your own Cassandra](with-your-own-cassandra.md) — the `cassandra-unit-dataset` artifact. No embedded server, no JVM flags, no JDK ceiling. |
+| **I want one started for me, in-process** | [Your first test — embedded server](getting-started.md) — the `cassandra-unit` artifact. **Read the surefire section first**: an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
 
 Either way, two pages matter most. [Datasets](datasets.md) is one: the two dataset kinds — `.cql`
 scripts, and row datasets written as YAML/JSON/XML/CSV or built in Java — how values are converted,
@@ -65,7 +65,7 @@ comparison — [Asserting in code](assertions-fluent.md) for a single value or r
 |---|---|
 | [Asserting in code](assertions-fluent.md) | The fluent `CqlAssertions` API: navigating session to keyspace to table to row, the method reference, and the optional AssertJ dependency. |
 | [Asserting with a dataset file](assertions.md) | `@ExpectedCassandraDataSet`: comparing a table against an expected dataset, the Cassandra-specific comparison rules, and the failure report. |
-| [Using your own Cassandra](with-your-own-cassandra.md) | `cassandra-unit-dataset`: loading fixtures through a `CqlSession` you supply, the `CqlDataSetExtension`, and what the artifact deliberately leaves out. |
+| [Your first test — your own Cassandra](with-your-own-cassandra.md) | `cassandra-unit-dataset`: the four-step walkthrough, then loading fixtures through a `CqlSession` you supply, the `CqlDataSetExtension`, Testcontainers, and what the artifact deliberately leaves out. |
 | [Embedded server](embedded-server.md) | The `EmbeddedCassandraServerHelper` API: starting, configuring ports and directories, cleaning between tests, and the one-instance-per-JVM constraint. |
 | [Spring integration](spring.md) | `cassandra-unit-spring`: the `@EmbeddedCassandra`, `@CassandraDataSet` and `@CassandraUnit` annotations with Spring's TestContext framework. |
 | [Troubleshooting](troubleshooting.md) | The failure modes that are hard to diagnose from their error messages. Check here first if a test JVM dies without explanation. |

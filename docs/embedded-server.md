@@ -7,7 +7,7 @@ Spring listeners all drive it, and you can use it directly when none of those fi
 
 **JVM flags:** the daemon runs inside your test JVM, so that JVM needs Cassandra's JPMS
 `--add-exports` / `--add-opens` set — see [Configure
-surefire](getting-started.md#3-configure-surefire). Without them the first
+surefire](getting-started.md#2-configure-surefire). Without them the first
 `startEmbeddedCassandra(...)` call fails with an `IllegalAccessException` against a `sun.*` or
 `jdk.internal.*` member. Nothing on this page works until that is in place.
 

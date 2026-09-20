@@ -1,16 +1,12 @@
-# Your first test
+# Your first test — embedded server
 
-## 1. Pick your Cassandra
+A real Apache Cassandra node inside your test JVM, with a dataset loaded, in five steps. No Docker.
 
-**You already have one** — a Testcontainers container, a node on localhost, ScyllaDB, Astra? Then
-you do not want the embedded server. Read [Using your own
-Cassandra](with-your-own-cassandra.md) instead: `cassandra-unit-dataset` loads and asserts through
-any `CqlSession` you hand it, with no JDK ceiling and no JVM flags. None of the rest of this page
-applies to you.
+> Already have a Cassandra — a container, a node on localhost, ScyllaDB, Astra? You want
+> [Your first test — your own Cassandra](with-your-own-cassandra.md) instead. It needs no JVM flags
+> and has no JDK ceiling.
 
-**You want one started for you?** Continue here. The embedded server runs a real Apache Cassandra
-node inside your test JVM — no Docker — and that in-process design is where the requirements below
-come from.
+## Requirements
 
 | | |
 |---|---|
@@ -29,7 +25,7 @@ JDK 17 is the entire supported set, not a recommendation:
 The build enforces this, so a wrong JDK fails with a readable message. If that message surprises
 you, run `mvn -v` rather than `java -version` — see [Troubleshooting](troubleshooting.md).
 
-## 2. Add the dependency
+## 1. Add the dependency
 
 ```xml
 <dependency>
@@ -53,11 +49,11 @@ integration](spring.md).
 
 <a id="2-configure-surefire-mandatory"></a>
 
-## 3. Configure surefire
+## 2. Configure surefire
 
-This step exists because the path you picked starts a Cassandra node inside your test JVM, so that
-JVM needs the same flags a Cassandra server gets: the JPMS `--add-exports` / `--add-opens` set from
-Cassandra's own `conf/jvm17-server.options`.
+This page starts a Cassandra node inside your test JVM, so that JVM needs the same flags a Cassandra
+server gets: the JPMS `--add-exports` / `--add-opens` set from Cassandra's own
+`conf/jvm17-server.options`.
 
 ### Which JVMs need it
 
@@ -212,7 +208,7 @@ tasks.test {
 }
 ```
 
-## 4. Write the dataset
+## 3. Write the dataset
 
 `src/test/resources/cql/simple.cql`:
 
@@ -246,7 +242,7 @@ Values are then converted using the real column types instead of CQL literals yo
 which is what makes `uuid`, `timestamp`, `blob` and collections painless. Either style works
 anywhere a dataset is accepted; see [Datasets](datasets.md) for both.
 
-## 5. Write the test
+## 4. Write the test
 
 ### JUnit Jupiter
 
@@ -285,14 +281,14 @@ public class WidgetTest {
 }
 ```
 
-## 6. Run it
+## 5. Run it
 
 ```
 mvn test
 ```
 
 Expect roughly three seconds of startup for the embedded node, once per JVM. If it fails, go to
-[Troubleshooting](troubleshooting.md) — most first-run failures are step 3.
+[Troubleshooting](troubleshooting.md) — most first-run failures are step 2.
 
 ## Next
 
