@@ -4,7 +4,7 @@
     <artifactId>cassandra-unit-parent</artifactId>
     <packaging>pom</packaging>
     <name>cassandra-unit-parent</name>
-    <version>5.3.0</version>
+    <version>5.4.0-SNAPSHOT</version>
     <description>Test framework to develop with Cassandra</description>
     <url>https://github.com/jsevellec/cassandra-unit</url>
     <licenses>
@@ -24,7 +24,7 @@
         <connection>scm:git:https://github.com/jsevellec/cassandra-unit.git</connection>
         <developerConnection>scm:git:https://github.com/jsevellec/cassandra-unit.git</developerConnection>
         <url>https://github.com/jsevellec/cassandra-unit.git</url>
-    <tag>cassandra-unit-parent-5.3.0</tag>
+    <tag>HEAD</tag>
   </scm>
     <modules>
         <module>cassandra-unit-dataset</module>
