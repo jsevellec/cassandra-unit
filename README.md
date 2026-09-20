@@ -202,7 +202,7 @@ The two artifacts have different requirements, and the difference is the main re
 |---|---|---|
 | Apache Cassandra | **none** — you supply the session | embedded, pulled in transitively |
 | **JDK** | **17 or later**, no upper bound | **17 — nothing else** |
-| Surefire `argLine` | not needed | **mandatory**, see [Setup](#setup) |
+| Surefire `argLine` | not needed | **mandatory** when you start the node, see [Setup](#setup) |
 | Maven | 3.9+ | 3.9+ |
 
 `cassandra-unit`'s JDK row is not a recommendation, it is the whole supported set:
@@ -330,25 +330,23 @@ See [Using your own Cassandra](docs/with-your-own-cassandra.md) and stop here.
 This is not optional, and it is the single biggest difference from older versions. CassandraUnit
 starts a **real Cassandra node inside your test JVM**, so your test JVM needs the same flags a
 Cassandra server gets: the JPMS `--add-exports`/`--add-opens` set from Cassandra's own
-`conf/jvm17-server.options`, plus the `jamm` memory-meter agent. Without them the JVM dies
-during startup and surefire reports only
-`The forked VM terminated without properly saying goodbye`.
+`conf/jvm17-server.options`.
+
+What needs it is **any test JVM that starts the embedded node**, not merely having the jar on the
+classpath: JPMS flags are read at JVM launch, so the unit is the surefire execution. Most projects
+taking `cassandra-unit` start the node in most tests and should just set it module-wide;
+[Mixed modules](docs/getting-started.md#mixed-modules) covers running both kinds of test side by
+side.
+
+Without them the fork starts and the test fails on the call that starts the node, with an
+`IllegalAccessException` on `sun.nio.ch.DirectBuffer.cleaner` — spelled out in
+[Your first test](docs/getting-started.md#2-configure-surefire-mandatory).
 
 ```xml
-<plugin>
-    <artifactId>maven-dependency-plugin</artifactId>
-    <executions>
-        <execution>
-            <goals><goal>properties</goal></goals>
-        </execution>
-    </executions>
-</plugin>
 <plugin>
     <artifactId>maven-surefire-plugin</artifactId>
     <configuration>
         <argLine>
-            -javaagent:${com.github.jbellis:jamm:jar}
-            -Djdk.attach.allowAttachSelf=true
             -Dio.netty.tryReflectionSetAccessible=true
             --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
             --add-exports java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED
@@ -377,8 +375,10 @@ during startup and surefire reports only
 </plugin>
 ```
 
-The `maven-dependency-plugin` `properties` goal is what resolves
-`${com.github.jbellis:jamm:jar}` to the agent's real path, so no version is hardcoded.
+**5.3.0 and earlier need more than this**: the `jamm` memory-meter agent as
+`-javaagent:${com.github.jbellis:jamm:jar}`, plus `-Djdk.attach.allowAttachSelf=true`, plus a
+`maven-dependency-plugin` `properties` execution to resolve that path. 5.4.0 drops all three —
+Cassandra's memory meter falls back to `Unsafe` when no agent is loaded.
 
 Usage
 -----

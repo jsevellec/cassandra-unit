@@ -27,10 +27,12 @@ because Cassandra calls the terminally-deprecated `System::setSecurityManager`.
 
 ### You must configure surefire
 
-New, and unavoidable. An embedded Cassandra 5.0 needs JPMS `--add-exports` / `--add-opens` flags
-and the `jamm` agent in the test JVM. Skipping this produces
-`The forked VM terminated without properly saying goodbye` and nothing else. The block to copy is
-in [the surefire section](getting-started.md#2-configure-surefire-mandatory).
+New, and unavoidable. An embedded Cassandra 5.0 needs the JPMS `--add-exports` / `--add-opens`
+flags in the test JVM; skipping them fails the test with an `IllegalAccessException` against a
+`sun.*` or `jdk.internal.*` member. The block to copy is in
+[the surefire section](getting-started.md#2-configure-surefire-mandatory). Releases up to 5.3.0 also
+required the `jamm` agent and a `maven-dependency-plugin` execution to resolve its path; 5.4.0
+dropped both.
 
 This is the biggest practical cost of the upgrade, and it is inherent to running a modern Cassandra
 in-process.

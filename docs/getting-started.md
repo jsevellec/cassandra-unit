@@ -45,27 +45,27 @@ integration](spring.md).
 
 CassandraUnit starts a real Cassandra node inside your test JVM, so that JVM needs the same flags
 a Cassandra server gets: the JPMS `--add-exports` / `--add-opens` set from Cassandra's own
-`conf/jvm17-server.options`, plus the `jamm` memory-meter agent.
+`conf/jvm17-server.options`.
 
-**Without these the JVM dies during startup** and surefire reports only
-`The forked VM terminated without properly saying goodbye`, which does not mention the JVM flags,
-the JDK, or Cassandra. This is the single most common setup problem.
+### Which JVMs need it
+
+**Any test JVM that starts the embedded node** — which is not the same as "any project that
+depends on `cassandra-unit`". JPMS flags are read when a JVM launches, so the unit is the forked
+JVM, and therefore the *surefire execution*: not the module, not the dependency. Having the jar on
+the classpath breaks nothing by itself, and an execution whose tests all run against a Cassandra
+you supply yourself needs none of this.
+
+Most projects that reach for `cassandra-unit` start the node in most of their tests. If that is
+you, configure it once for the whole module and stop thinking about it. If you run both kinds of
+test side by side, see [Mixed modules](#mixed-modules).
+
+### The configuration
 
 ```xml
-<plugin>
-    <artifactId>maven-dependency-plugin</artifactId>
-    <executions>
-        <execution>
-            <goals><goal>properties</goal></goals>
-        </execution>
-    </executions>
-</plugin>
 <plugin>
     <artifactId>maven-surefire-plugin</artifactId>
     <configuration>
         <argLine>
-            -javaagent:${com.github.jbellis:jamm:jar}
-            -Djdk.attach.allowAttachSelf=true
             -Dio.netty.tryReflectionSetAccessible=true
             --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
             --add-exports java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED
@@ -94,12 +94,111 @@ the JDK, or Cassandra. This is the single most common setup problem.
 </plugin>
 ```
 
-The `maven-dependency-plugin` `properties` goal is what resolves
-`${com.github.jbellis:jamm:jar}` to the agent's real path on disk, so no version is hardcoded
-into a path. The agent itself arrives transitively with `cassandra-all`; you do not declare it.
+That is the whole of it — flags on one plugin, nothing to resolve, no agent.
 
-Gradle users need the equivalent on the `test` task's `jvmArgs`, and must resolve the jamm jar
-path themselves.
+**Before 5.4.0 there was more.** The `argLine` also carried `-javaagent:${com.github.jbellis:jamm:jar}`
+and `-Djdk.attach.allowAttachSelf=true`, and you needed a `maven-dependency-plugin` `properties`
+execution to turn that property into a real path. 5.4.0 drops all three: Cassandra asks the jamm
+memory meter for a fallback chain, so with no agent loaded it measures through `Unsafe` instead. If
+you are on 5.3.0 or earlier, keep them — see
+[Troubleshooting](troubleshooting.md#the-forked-vm-terminated-without-properly-saying-goodbye) for
+what their absence looks like.
+
+### What it looks like when the flags are missing
+
+The fork starts normally; the failure lands in the test, on the call that starts the node:
+
+```
+java.lang.ExceptionInInitializerError
+    at org.apache.cassandra.config.DatabaseDescriptor.resolveCommitLogWriteDiskAccessMode(DatabaseDescriptor.java:1501)
+    at org.apache.cassandra.config.DatabaseDescriptor.initializeCommitLogDiskAccessMode(DatabaseDescriptor.java:2909)
+    at org.apache.cassandra.config.DatabaseDescriptor.applySimpleConfig(DatabaseDescriptor.java:640)
+    at org.apache.cassandra.config.DatabaseDescriptor.applyAll(DatabaseDescriptor.java:455)
+    at org.apache.cassandra.config.DatabaseDescriptor.daemonInitialization(DatabaseDescriptor.java:263)
+    at org.cassandraunit.utils.EmbeddedCassandraServerHelper.startEmbeddedCassandra(EmbeddedCassandraServerHelper.java:153)
+    … extension and JUnit frames …
+Caused by: java.lang.RuntimeException: java.lang.IllegalAccessException: access to public member failed:
+    sun.nio.ch.DirectBuffer.cleaner … from class org.apache.cassandra.io.util.FileUtils (unnamed module @10742304)
+    at org.apache.cassandra.io.util.FileUtils.<clinit>(FileUtils.java:106)
+```
+
+An `IllegalAccessException` naming a `sun.*` or `jdk.internal.*` member is a missing `--add-opens`.
+Take the whole set; picking through it is not worth your afternoon.
+
+### Mixed modules
+
+One module with embedded tests *and* tests that use a Cassandra of your own: put the `argLine` on
+the execution that needs it, not on the plugin, so the other execution launches a plain JVM.
+
+```xml
+<plugin>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>default-test</id>
+            <configuration>
+                <argLine>-Dio.netty.tryReflectionSetAccessible=true … the rest of the flags …</argLine>
+                <includes><include>**/*EmbeddedTest.java</include></includes>
+            </configuration>
+        </execution>
+        <execution>
+            <id>no-embedded-server</id>
+            <goals><goal>test</goal></goals>
+            <configuration>
+                <excludes><exclude>**/*EmbeddedTest.java</exclude></excludes>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+Plugin-level `<configuration>` is inherited by every execution, so the flags have to sit inside the
+one execution rather than above both. There is no penalty for the simpler thing — flags on a JVM
+that never starts a node do nothing — so only split when you want the second execution kept clean.
+
+### Gradle
+
+The same flags on the `test` task. Pin the toolchain too: Gradle runs tests on its own JDK unless
+told otherwise, and on anything but 17 the node never finishes starting.
+
+```kotlin
+java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }
+
+dependencies {
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
+    testImplementation("org.cassandraunit:cassandra-unit:5.2.0")
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    jvmArgs(
+        "-Dio.netty.tryReflectionSetAccessible=true",
+        "--add-exports", "java.base/jdk.internal.misc=ALL-UNNAMED",
+        "--add-exports", "java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED",
+        "--add-exports", "java.management/com.sun.jmx.remote.security=ALL-UNNAMED",
+        "--add-exports", "java.rmi/sun.rmi.registry=ALL-UNNAMED",
+        "--add-exports", "java.rmi/sun.rmi.server=ALL-UNNAMED",
+        "--add-exports", "java.sql/java.sql=ALL-UNNAMED",
+        "--add-exports", "java.base/java.lang.ref=ALL-UNNAMED",
+        "--add-exports", "jdk.unsupported/sun.misc=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.module=ALL-UNNAMED",
+        "--add-opens", "java.base/jdk.internal.loader=ALL-UNNAMED",
+        "--add-opens", "java.base/jdk.internal.ref=ALL-UNNAMED",
+        "--add-opens", "java.base/jdk.internal.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/jdk.internal.math=ALL-UNNAMED",
+        "--add-opens", "java.base/jdk.internal.module=ALL-UNNAMED",
+        "--add-opens", "java.base/jdk.internal.util.jar=ALL-UNNAMED",
+        "--add-opens", "jdk.management/com.sun.management.internal=ALL-UNNAMED",
+        "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+        "--add-opens", "java.base/java.io=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+    )
+}
+```
 
 ## 3. Write the dataset
 

@@ -193,35 +193,16 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <!--
-                      Resolves the jamm agent path for the parent's argLine. jamm arrives only via
-                      cassandra-all, so here there is nothing to resolve and nothing that needs it.
-                    -->
-                    <execution>
-                        <id>resolve-agent-paths</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!--
-                      A plain JVM: no jamm javaagent, no add-opens, no add-exports.
+                      A plain JVM: no add-opens, no add-exports.
 
                       This is not a tidy-up, it is the artifact's central claim expressed in the
-                      build. The parent's ${cu.cassandra.argLine} is 25 lines of JPMS flags plus
-                      -javaagent:${com.github.jbellis:jamm:jar}, and that property is only resolved
-                      by the dependency-plugin execution disabled above. Inheriting it would launch
-                      surefire with the literal unexpanded string and the fork would die with
-                      "The forked VM terminated without properly saying goodbye".
-
-                      That these tests pass without any of it is the standing proof that the fixture
-                      code needs no embedded server.
+                      build. The parent's ${cu.cassandra.argLine} is 23 lines of JPMS flags that
+                      exist only so an embedded Cassandra daemon can reach into the JDK. That these
+                      tests pass without any of it is the standing proof that the fixture code needs
+                      no embedded server.
                     -->
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                 </configuration>

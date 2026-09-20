@@ -13,11 +13,12 @@ on its own: hand it a `CqlSession` and it loads datasets through that.
 </dependency>
 ```
 
-**No surefire configuration.** No `--add-opens`, no `--add-exports`, no jamm javaagent. Those exist
-because the embedded server runs a real Cassandra daemon inside your test JVM; there is no daemon
-here. **No JDK ceiling** either: `cassandra-unit` is pinned to JDK 17 and can never run on 24+,
-because Cassandra's `ThreadAwareSecurityManager` calls `System::setSecurityManager`. This artifact
-needs 17 or later and has no upper bound.
+**No surefire configuration.** No `--add-opens`, no `--add-exports`, no JVM flags at all. Those exist
+because the embedded server runs a real Cassandra daemon inside your test JVM, and they are needed
+by [any JVM that starts one](getting-started.md#which-jvms-need-it); there is no daemon here.
+**No JDK ceiling** either: `cassandra-unit` is pinned to JDK 17 and can never run on 24+, because
+Cassandra's `ThreadAwareSecurityManager` calls `System::setSecurityManager`. This artifact needs 17
+or later and has no upper bound.
 
 Its whole dependency tree is `java-driver-core`, `jackson-databind`, `snakeyaml` and `slf4j-api`,
 plus optional extras you only resolve by asking for them: `jackson-dataformat-csv` for CSV datasets,

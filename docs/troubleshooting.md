@@ -7,18 +7,61 @@ bite.
 
 ```
 [ERROR] The forked VM terminated without properly saying goodbye. VM crash or System.exit called?
-[ERROR] Process Exit Code: 3
+[ERROR] Process Exit Code: 1
 ```
 
-The test JVM died before surefire could talk to it, so there is no stack trace. Two causes, in
+The test JVM died before surefire could talk to it, so there is no stack trace. Three causes, in
 order of likelihood.
 
-**1. The surefire `argLine` is missing.** An embedded Cassandra 5.0 needs the JPMS
-`--add-exports` / `--add-opens` flags and the `jamm` agent; without them the JVM fails during
-startup. This is the most common first-run problem. See
-[the surefire section](getting-started.md#2-configure-surefire-mandatory).
+**1. You are on the wrong JDK.** Check with **`mvn -v`**, not `java -version` — see below.
 
-**2. You are on the wrong JDK.** Check with **`mvn -v`**, not `java -version` — see below.
+**2. A `-javaagent` or `-XX` flag of your own is wrong.** Anything the JVM cannot honour at launch
+kills the fork before surefire gets a word out of it. The message prints the full forked command
+line; read what it actually launched.
+
+**3. On 5.3.0 and earlier: the `argLine` is configured but `maven-dependency-plugin` is not.** Those
+versions need the `jamm` agent, and its path is a property — `${com.github.jbellis:jamm:jar}` —
+resolved by that plugin's `properties` goal. Without it surefire launches the fork with the literal
+string. Look a few lines above surefire's message, where the JVM says so itself:
+
+```
+Error opening zip file or JAR manifest missing : ${com.github.jbellis:jamm:jar}
+Error occurred during initialization of VM
+```
+
+From 5.4.0 there is no agent and no such property, so this one cannot happen — see
+[the surefire section](getting-started.md#the-configuration).
+
+Note that a **missing** `argLine` does not produce this error at all. That failure looks completely
+different; see below.
+
+## `ExceptionInInitializerError` / `IllegalAccessException` when the node starts
+
+```
+java.lang.ExceptionInInitializerError
+    at org.apache.cassandra.config.DatabaseDescriptor.daemonInitialization(DatabaseDescriptor.java:263)
+    at org.cassandraunit.utils.EmbeddedCassandraServerHelper.startEmbeddedCassandra(...)
+Caused by: java.lang.IllegalAccessException: access to public member failed:
+    sun.nio.ch.DirectBuffer.cleaner ... from class org.apache.cassandra.io.util.FileUtils (unnamed module @10742304)
+```
+
+The JPMS flags are missing. Unlike the case above, the fork starts fine and the failure lands in
+the test, on the call that starts the node — an `IllegalAccessException` naming a `sun.*` or
+`jdk.internal.*` member is always a missing `--add-opens`.
+
+Take [the whole set](getting-started.md#the-configuration). The flags are not independent, and
+whichever one you leave out simply moves the failure to the next class that needs it.
+
+## Do I actually need the `argLine`?
+
+Only a **JVM that starts the embedded node** does. The flags are read at JVM launch, so the unit is
+the forked JVM — the surefire *execution*, not the module and not the dependency. Depending on
+`cassandra-unit` while your tests all run against a Cassandra of your own needs none of it, and
+`cassandra-unit-dataset` never does.
+
+Mirror image of the `reuseForks` note further down: the simple thing is to set it module-wide and
+forget it, since flags on a JVM that never starts a node cost nothing. Split it per execution only
+when you want one execution kept clean — [Mixed modules](getting-started.md#mixed-modules).
 
 ## `mvn -v` disagrees with `java -version`
 
@@ -81,7 +124,7 @@ and class names.
 `org.cassandraunit` and `org.cassandraunit.utils` are split across the two jars. That is invisible
 on the classpath, which is where surefire puts test dependencies, and it is only an error when both
 jars are on the **module path** at once. `cassandra-unit` can never go there anyway — it needs
-`add-opens ...=ALL-UNNAMED`, a self-attaching javaagent and `jdk.internal.*` reflection. If you hit
+`add-opens ...=ALL-UNNAMED` and `jdk.internal.*` reflection. If you hit
 this, put them on the classpath.
 
 Only `cassandra-unit-dataset` declares an `Automatic-Module-Name`

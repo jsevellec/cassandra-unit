@@ -50,13 +50,21 @@
         <!--
           Cassandra 5.0 reaches deep into the JDK, so an embedded daemon needs the same JVM
           flags a real node gets. These are copied verbatim from conf/jvm17-server.options at
-          tag cassandra-5.0.8, plus the jamm memory-meter agent. The agent path is resolved by
-          maven-dependency-plugin's `properties` goal, so no version is hardcoded in a path.
-          Consumers of this library must apply the same argLine - see README.
+          tag cassandra-5.0.8. Consumers of this library must apply the same argLine - see README.
+
+          What is deliberately NOT here is the jamm memory-meter agent, which every previous
+          version required as -javaagent plus -Djdk.attach.allowAttachSelf=true, plus a
+          maven-dependency-plugin execution to resolve the agent's path. Cassandra asks jamm for a
+          fallback chain - ObjectSizes builds MemoryMeter.builder().withGuessing(
+          INSTRUMENTATION_AND_SPECIFICATION, UNSAFE) - so with no agent loaded it measures through
+          Unsafe instead, which needs no instrumentation and no attach. That drops the most
+          error-prone third of the consumer-facing setup: an unresolved ${...} agent path kills the
+          fork before surefire can say why. The trade is real but small here: sizes come from Unsafe
+          field offsets rather than from instrumentation, which shifts memtable accounting slightly
+          in a node that holds a test fixture. The jdk.unsupported/sun.misc export
+          below is what that fallback needs, so it stays.
         -->
         <cu.cassandra.argLine>
-            -javaagent:${com.github.jbellis:jamm:jar}
-            -Djdk.attach.allowAttachSelf=true
             -Dio.netty.tryReflectionSetAccessible=true
             --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
             --add-exports java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED
@@ -159,21 +167,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.8.1</version>
-                <executions>
-                    <execution>
-                        <!-- Resolves ${com.github.jbellis:jamm:jar} for the surefire argLine -->
-                        <id>resolve-agent-paths</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>properties</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
