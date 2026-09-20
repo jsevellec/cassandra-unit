@@ -1,6 +1,6 @@
 # Embedded server
 
-`EmbeddedCassandraServerHelper` is the low-level API. The JUnit rule, the JUnit 5 extension and the
+`EmbeddedCassandraServerHelper` is the low-level API. The JUnit rule, the Jupiter extension and the
 Spring listeners all drive it, and you can use it directly when none of those fit.
 
 **Dependency:** `cassandra-unit`. The server is the one feature not in `cassandra-unit-dataset`. See [What to declare](README.md#what-to-declare).

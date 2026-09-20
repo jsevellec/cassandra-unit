@@ -34,10 +34,11 @@ Each artifact contains the one above it, so declare only the lowest line you nee
 | …and an embedded Cassandra | `cassandra-unit` |
 | …and Spring's TestContext integration | `cassandra-unit-spring` |
 
-Two dependencies are deliberately **optional**, so they never arrive on their own and you declare
+A few dependencies are deliberately **optional**, so they never arrive on their own and you declare
 them yourself: `assertj-core` for the fluent assertions
-([details](assertions-fluent.md#the-dependency)) and `jackson-dataformat-csv` for `.csv` datasets
-([details](datasets.md#csv)).
+([details](assertions-fluent.md#the-dependency)), `jackson-dataformat-csv` for `.csv` datasets
+([details](datasets.md#csv)), and `spring-test` + `spring-context` for `SpringSessions`, which loads
+fixtures through a Spring-managed `CqlSession` ([details](spring.md#boot-with-your-own-cassandra)).
 
 ## Start here
 

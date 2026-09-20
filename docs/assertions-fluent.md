@@ -219,7 +219,7 @@ are static methods. That makes them usable in places the dataset annotation is n
 
 | | |
 |---|---|
-| JUnit 5 | works; `CassandraUnitExtension` or `CqlDataSetExtension` can supply the session as a test parameter |
+| JUnit Jupiter | works; `CassandraUnitExtension` or `CqlDataSetExtension` can supply the session as a test parameter |
 | JUnit 4 | works, with no rule beyond whatever starts your Cassandra |
 | Spring | works in any test; no listener needed |
 | no framework | works |

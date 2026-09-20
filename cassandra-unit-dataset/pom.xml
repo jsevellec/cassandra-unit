@@ -99,6 +99,34 @@
             <version>${cu.assertj.version}</version>
             <optional>true</optional>
         </dependency>
+
+        <!--
+          For org.cassandraunit.SpringSessions, which hands CqlDataSetExtension the CqlSession bean
+          out of a Spring test's ApplicationContext. spring-test carries SpringExtension, whose
+          getApplicationContext is the entry point; spring-context carries ApplicationContext
+          itself, and spring-test does not depend on it - its only non-optional dependency is
+          spring-core - so both have to be named here.
+
+          Optional, like the two JUnits and AssertJ above and for the same reason: an optional
+          dependency is never transitive, so a consumer who never imports SpringSessions never
+          resolves Spring. Nothing else in this module references it.
+
+          Note there is no requireJavaVersion rule in this module and this does not add one.
+          Compiling against Spring's JDK 17 class files on a newer JDK is fine, which is what the
+          dataset-on-newer-jdks CI job checks.
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${cu.spring.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${cu.spring.version}</version>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>

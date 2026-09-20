@@ -1,0 +1,10 @@
+# Publishes the embedded node's address into the Environment of any test class annotated with
+# @EmbeddedCassandra, so a Spring-managed CqlSession - Spring Boot's auto-configured one in
+# particular - connects to it instead of to the driver default of 9042.
+#
+# Only the factory is registered, never a TestExecutionListener: listeners registered here become
+# defaults for every consuming project, and this module must not change how anyone else's Spring
+# tests run. The factory returns null for a class without the annotation, so it contributes
+# nothing - not even a context cache key entry - to tests that are not ours.
+org.springframework.test.context.ContextCustomizerFactory=\
+org.cassandraunit.spring.EmbeddedCassandraContextCustomizerFactory

@@ -11,7 +11,7 @@
 JDK 17 is the entire supported set, not a recommendation:
 
 - Cassandra 5.0 removed Java 8, and supports only JDK 11 and 17.
-- Of those two this project targets 17, which `spring-test` 6.2 requires anyway.
+- Of those two this project targets 17, which `spring-test` requires anyway.
 - No released Cassandra line supports JDK 18–23.
 - **JDK 24+ can never work.** Cassandra's `ThreadAwareSecurityManager` calls
   `System::setSecurityManager`, which is terminally deprecated and throws on 24 and later.
@@ -31,8 +31,12 @@ you, run `mvn -v` rather than `java -version` — see [Troubleshooting](troubles
 ```
 
 JUnit is **not** pulled in for you. CassandraUnit ships an integration for JUnit 4 and one for
-JUnit 5 and declares both as optional, so you keep whichever you already use. Add your own
+JUnit Jupiter, and declares both as optional, so you keep whichever you already use. Add your own
 `junit-jupiter` and/or `junit` dependency as normal.
+
+The Jupiter integration is built against **Jupiter 6**, which is what Spring 7 requires. The
+extensions themselves only implement callback interfaces that are the same in Jupiter 5, so they
+generally work there too — but 6 is the version this project compiles and tests against.
 
 For Spring support, add `cassandra-unit-spring` as well — see [Spring
 integration](spring.md).
@@ -133,7 +137,7 @@ anywhere a dataset is accepted; see [Datasets](datasets.md) for both.
 
 ## 4. Write the test
 
-### JUnit 5
+### JUnit Jupiter
 
 ```java
 class WidgetTest {

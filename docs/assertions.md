@@ -150,7 +150,7 @@ rather than read them.
 
 ## Wiring it up
 
-**JUnit 5, embedded server** — nothing to add. `CassandraUnitExtension` picks the annotation up:
+**Jupiter, embedded server** — nothing to add. `CassandraUnitExtension` picks the annotation up:
 
 ```java
 @RegisterExtension
@@ -161,7 +161,7 @@ static CassandraUnitExtension cassandra = new CassandraUnitExtension(...);
 void myTest() { ... }
 ```
 
-**JUnit 5, your own Cassandra** — register the extension with your session:
+**Jupiter, your own Cassandra** — register the extension with your session:
 
 ```java
 @RegisterExtension

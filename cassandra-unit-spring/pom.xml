@@ -52,6 +52,55 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+          Spring Boot, test scope only, so that the Boot story is actually proved rather than
+          asserted: CassandraAutoConfiguration has to bind the spring.cassandra.* properties the
+          context customizer publishes, and nothing short of running Boot demonstrates that.
+
+          Deliberately four explicit artifacts rather than spring-boot-starter-test, and no BOM
+          import. The starter brings its own JUnit, AssertJ and spring-test versions, and
+          spring-boot-dependencies manages netty, jackson and snakeyaml - which would quietly
+          override the netty-bom and jackson-bom pins the parent sets on purpose.
+
+          CassandraAutoConfiguration is @ConditionalOnClass(CqlSession.class) and needs no
+          spring-data-cassandra; java-driver-core is already here through cassandra-unit.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <version>${cu.spring.boot.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>${cu.spring.boot.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!--
+          Boot 4 split the auto-configurations out of spring-boot-autoconfigure into one module per
+          technology; CassandraAutoConfiguration lives here now. On Boot 3 it was in
+          spring-boot-autoconfigure, which is why this coordinate looks new.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-cassandra</artifactId>
+            <version>${cu.spring.boot.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <version>${cu.spring.boot.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test-autoconfigure</artifactId>
+            <version>${cu.spring.boot.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- log -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -83,7 +132,7 @@
                                   Cassandra 5.0 runs on JDK 11 or 17 only, and the embedded
                                   daemon is started in this JVM, so the build JDK is the
                                   server JDK. We require 17 specifically: maven.compiler.release
-                                  is 17, and spring-test 6.2 needs 17 regardless, so supporting
+                                  is 17, and spring-test needs 17 regardless, so supporting
                                   11 would mean split release levels across modules for no gain.
                                   Without this check a wrong JDK shows up as
                                   surefire's "The forked VM terminated without properly
@@ -97,9 +146,41 @@
                                 -->
                                 <requireJavaVersion>
                                     <version>[17,18)</version>
-                                    <message>cassandra-unit must be built and run on JDK 17. Cassandra 5.0 supports only JDK 11 and 17, and this project targets 17 (spring-test 6.2 requires it too). The embedded daemon runs in the build JVM, so this is the server JDK as well. If this looks wrong, check `mvn -v` - a jenv shim overrides JAVA_HOME for mvn.</message>
+                                    <message>cassandra-unit must be built and run on JDK 17. Cassandra 5.0 supports only JDK 11 and 17, and this project targets 17 (spring-test requires it too). The embedded daemon runs in the build JVM, so this is the server JDK as well. If this looks wrong, check `mvn -v` - a jenv shim overrides JAVA_HOME for mvn.</message>
                                 </requireJavaVersion>
                             </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+              EmbeddedCassandraRandomPortSpringBootTest starts the node with
+              cu-cassandra-rndport.yaml, and a JVM is pinned to the first Cassandra configuration it
+              starts - checkConfigNameForRestart throws on a second. So it needs a fork to itself.
+
+              The parent declares both executions already; what is overridden here is which tests
+              each one matches. The parent's lists name tests that live in cassandra-unit, so in this
+              module they match nothing and replacing them costs nothing.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/EmbeddedCassandraRandomPortSpringBootTest.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>isolated-config-tests</id>
+                        <configuration>
+                            <includes>
+                                <include>**/EmbeddedCassandraRandomPortSpringBootTest.java</include>
+                            </includes>
                         </configuration>
                     </execution>
                 </executions>

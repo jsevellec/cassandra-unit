@@ -1,5 +1,73 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Spring Boot tests work with no wiring.** Annotate a `@SpringBootTest` class with
+  `@EmbeddedCassandra` and the node's address is published into the test's `Environment` as
+  `spring.cassandra.contact-points`, `spring.cassandra.port` and
+  `spring.cassandra.local-datacenter` before the context refreshes, so Boot's auto-configured
+  `CqlSession` connects to the embedded node instead of to the driver default of 9042.
+
+  This is what issue #217 asked for in 2017. It matters most with
+  `@EmbeddedCassandra(configuration = "cu-cassandra-rndport.yaml")`, where the port is chosen at
+  startup and so cannot be written into a properties file at all.
+
+  The mechanism is a `ContextCustomizerFactory` registered in `META-INF/spring.factories`. It
+  returns `null` for any class without the annotation — contributing nothing, not even a context
+  cache key entry — and names no type from `cassandra-unit`, so a project using this module for one
+  test class does not load the embedded server for the rest.
+
+- **`@EmbeddedCassandra(exposeProperties = false)`** turns that off, for tests that set
+  `spring.cassandra.*` themselves and want their own values to win.
+
+- **`org.cassandraunit.SpringSessions`**, in `cassandra-unit-dataset`, loads fixtures through a
+  `CqlSession` bean from the test's `ApplicationContext`:
+
+  ```java
+  CqlDataSetExtension.using(SpringSessions.fromApplicationContext())
+  ```
+
+  This is the path for Spring Boot against a Cassandra that is not the embedded one — a
+  Testcontainers container, a shared cluster, Astra. It lives in the driver-only artifact, so it has
+  no JDK ceiling and needs no surefire configuration. `spring-test` and `spring-context` are
+  **optional** dependencies, so they reach you only if you already have Spring.
+
+  The `CqlDataSetExtension.using(Function<ExtensionContext, CqlSession>)` overload it builds on
+  existed in 5.2.0 but was documented nowhere.
+
+### Changed
+
+- **JUnit 6, Spring 7 and Spring Boot 4.** JUnit Jupiter moves to **6.1.3**, Spring to **7.0.9** and
+  the Boot test coverage to **4.1.1**. These are one change, not three: Spring 7's `SpringExtension`
+  calls `ExtensionContext.Store.computeIfAbsent(...)`, which JUnit 5 spells
+  `getOrComputeIfAbsent(...)`, so Spring 7 cannot run on JUnit 5 at all.
+
+  **This is breaking for consumers.** `CqlDataSetExtension`, `CassandraUnitExtension` and
+  `ExpectedCassandraDataSetExtension` are JUnit Jupiter extensions, and `junit-jupiter-api` is an
+  optional compile dependency of the artifacts that publish them — so a project using any of them
+  must move to JUnit 6 as well. The JUnit 4 `@Rule` integration is unaffected and still runs through
+  the vintage engine, now 6.1.3.
+
+  Boot 4 also split auto-configuration into one module per technology: a Boot 4 application needs
+  `spring-boot-cassandra` for `CassandraAutoConfiguration`, where Boot 3 had it in
+  `spring-boot-autoconfigure`.
+
+- The published `spring.cassandra.*` property source is added **first**, so it takes precedence over
+  a `spring.cassandra.port` set in a configuration file or `@TestPropertySource`. If you previously
+  bridged this gap by hand, your literal is now overridden by the port the node is really listening
+  on. Use `exposeProperties = false` to keep your own values.
+
+### Documentation
+
+- `docs/spring.md` gains a real Spring Boot section — the previous one was three sentences saying
+  there was no Boot support — covering both paths, the published properties, the precedence rule,
+  why `spring.cassandra.keyspace-name` must not be set, and the lifecycle gotchas
+  (`closingSession()`, `@DirtiesContext`, competing `ParameterResolver`s).
+- `docs/with-your-own-cassandra.md` said "**No Spring integration**" about the artifact that now
+  carries `SpringSessions`. Corrected, with an example.
+
 ## 5.2.0 (2026-09-19)
 
 ### Added

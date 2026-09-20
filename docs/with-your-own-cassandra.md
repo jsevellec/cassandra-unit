@@ -20,7 +20,8 @@ because Cassandra's `ThreadAwareSecurityManager` calls `System::setSecurityManag
 needs 17 or later and has no upper bound.
 
 Its whole dependency tree is `java-driver-core`, `jackson-databind`, `snakeyaml` and `slf4j-api`,
-plus optional `jackson-dataformat-csv` if you use CSV datasets. The build enforces that: a
+plus optional extras you only resolve by asking for them: `jackson-dataformat-csv` for CSV datasets,
+and `spring-test` / `spring-context` for `SpringSessions`. The build enforces that: a
 `bannedDependencies` rule fails if `cassandra-all` ever appears.
 
 ## With Testcontainers
@@ -62,7 +63,7 @@ schema.
 
 This is the one thing worth getting right, because the failure is confusing.
 
-JUnit 5 runs `beforeAll` callbacks registered **declaratively** — which is how `@Testcontainers`
+Jupiter runs `beforeAll` callbacks registered **declaratively** — which is how `@Testcontainers`
 registers — before callbacks registered with `@RegisterExtension`, and runs `@BeforeAll` *methods*
 after all callbacks. So this does **not** work:
 
@@ -122,7 +123,7 @@ statements in your dataset are schema.
 The extension **never closes a session it did not create**. `closingSession()` opts in to closing it
 in `afterAll`. Leave it off if something else owns the session's lifecycle — a Spring context, say.
 
-## Without JUnit 5
+## Without JUnit Jupiter
 
 `CQLDataLoader` is the whole API, and it has always taken a session:
 
@@ -190,10 +191,32 @@ The fluent API is the one that needs no registration at all.
 - **No server lifecycle.** Nothing starts or stops Cassandra; that is yours to arrange.
 - **No `EmbeddedCassandraServerHelper`**, and no `CassandraCQLUnit` / `CassandraUnitExtension` —
   those live in `cassandra-unit` because they start the embedded daemon.
-- **No Spring integration.** `cassandra-unit-spring` is built on the embedded server.
+- **No server lifecycle for Spring either.** `cassandra-unit-spring`'s annotations start the
+  embedded node, so they are not the way in here. Spring is still supported — see below.
 
 If you want a node started for you and would rather not run Docker, use
 [`cassandra-unit`](getting-started.md) instead — but read its surefire section first.
+
+## With Spring
+
+`SpringSessions` hands `CqlDataSetExtension` the `CqlSession` bean out of your test's
+`ApplicationContext`, so fixtures load into the session Spring already owns — a Boot-auto-configured
+one, or any bean you declare:
+
+```java
+@RegisterExtension
+static final CqlDataSetExtension fixtures = CqlDataSetExtension
+        .using(SpringSessions.fromApplicationContext())
+        .schemaOnce(CQLDataSetFactory.fromClassPath("cql/schema.cql", "mykeyspace"))
+        .rowsPerTest(CQLDataSetFactory.fromClassPath(
+                "data/widget.yaml", false, false, "mykeyspace"))
+        .build();
+```
+
+`spring-test` and `spring-context` are optional dependencies here, so they reach you only because
+you are already using Spring. Do **not** add `closingSession()` — the bean belongs to the context.
+The [Spring page](spring.md#boot-with-your-own-cassandra) has the full `@SpringBootTest` example and
+the lifecycle gotchas.
 
 Depending on `cassandra-unit` already gives you everything on this page: it depends on
 `cassandra-unit-dataset` at compile scope, and the class and package names are identical. You never

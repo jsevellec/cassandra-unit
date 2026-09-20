@@ -37,11 +37,13 @@
         <maven.compiler.release>17</maven.compiler.release>
 
         <cu.junit.version>4.13.2</cu.junit.version>
-        <cu.junit.jupiter.version>5.14.4</cu.junit.jupiter.version>
+        <cu.junit.jupiter.version>6.1.3</cu.junit.jupiter.version>
         <cu.assertj.version>3.27.7</cu.assertj.version>
         <cu.cassandra.all.version>5.0.8</cu.cassandra.all.version>
         <cu.cassandra.driver.version>4.19.3</cu.cassandra.driver.version>
-        <cu.spring.version>6.2.19</cu.spring.version>
+        <cu.spring.version>7.0.9</cu.spring.version>
+        <!-- Test-scope only, for the @SpringBootTest coverage in cassandra-unit-spring. -->
+        <cu.spring.boot.version>4.1.1</cu.spring.boot.version>
         <!-- Must stay compatible with the logback-core the embedded Cassandra brings in -->
         <cu.logback.version>1.5.18</cu.logback.version>
 

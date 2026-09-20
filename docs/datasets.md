@@ -161,7 +161,7 @@ same way for both kinds:
 - **`keyspaceDeletion`** (default `true`) — issue `DROP KEYSPACE` first.
 
 With both defaults, each load gives you an empty keyspace. **This is what isolates one test from
-the next** — neither the JUnit rule nor the JUnit 5 extension wipes anything itself, so the
+the next** — neither the JUnit rule nor the Jupiter extension wipes anything itself, so the
 dataset's flags are the isolation mechanism. This matters if you change them.
 
 The keyspace is created as:

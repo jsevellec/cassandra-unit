@@ -33,4 +33,20 @@ public @interface EmbeddedCassandra {
   String tmpDir() default "";
 
   long timeout() default EmbeddedCassandraServerHelper.DEFAULT_STARTUP_TIMEOUT;
+
+  /**
+   * Whether to publish the node's address into the test's {@code Environment} as
+   * {@code spring.cassandra.contact-points}, {@code spring.cassandra.port} and
+   * {@code spring.cassandra.local-datacenter}.
+   * <p>
+   * On by default, because without it a Spring-managed {@code CqlSession} - Spring Boot's
+   * auto-configured one, say - goes to port 9042 while the embedded node listens on 9142, and with
+   * {@code cu-cassandra-rndport.yaml} the port is not knowable in advance at all.
+   * <p>
+   * Turn it off if you set {@code spring.cassandra.*} yourself and want your values to win: the
+   * property source is added first, so otherwise it takes precedence over your configuration file.
+   *
+   * @see EmbeddedCassandraContextCustomizer
+   */
+  boolean exposeProperties() default true;
 }

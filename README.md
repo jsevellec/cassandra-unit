@@ -155,7 +155,7 @@ Runnable examples
 -----------------
 
 **[cassandra-unit-examples](https://github.com/jsevellec/cassandra-unit-examples)** is a standalone
-Maven project you can clone and `mvn test`. It covers the JUnit 5 extension and the JUnit 4 rule,
+Maven project you can clone and `mvn test`. It covers the Jupiter extension and the JUnit 4 rule,
 `CqlDataSetExtension` against a session you supply, all four row formats, both ways of asserting,
 isolation between tests, the Spring integration, and starting on a random port or a custom
 `cassandra.yaml`.
@@ -166,7 +166,7 @@ Also in the box
 ---------------
 
 - Create the schema from a CQL script.
-- Integrations for JUnit 4 (`@Rule`), JUnit 5 (`Extension`) and Spring Test.
+- Integrations for JUnit 4 (`@Rule`), JUnit Jupiter (`Extension`) and Spring Test, including Spring Boot.
 - `truncateKeyspace` to empty tables between tests without dropping the schema.
 
 Documentation
@@ -230,17 +230,24 @@ patch are cassandra-unit's own, by ordinary semver. The driver version never app
 number — it is a compatibility fact, listed below. The full policy is in
 [CONTRIBUTING.md](CONTRIBUTING.md#versioning).
 
-The artifacts, as of 5.2.0:
+The artifacts, as of 5.3.0:
 
-| artifact | Embedded Cassandra | CQL driver | JDK |
-|---|---|---|---|
-| `cassandra-unit-dataset` | none — you supply the session | `org.apache.cassandra:java-driver-core` 4.19.3 | 17+ |
-| `cassandra-unit` | 5.0.8 | same | 17 only |
-| `cassandra-unit-spring` | via `cassandra-unit` | same | 17 only |
+| artifact | Embedded Cassandra | CQL driver | JUnit | Spring | JDK |
+|---|---|---|---|---|---|
+| `cassandra-unit-dataset` | none — you supply the session | `org.apache.cassandra:java-driver-core` 4.19.3 | Jupiter 6 (optional) | 7 (optional) | 17+ |
+| `cassandra-unit` | 5.0.8 | same | Jupiter 6 and/or JUnit 4 (optional) | — | 17 only |
+| `cassandra-unit-spring` | via `cassandra-unit` | same | Jupiter 6 | 7, `provided` | 17 only |
 
-`cassandra-unit-dataset` also has one **optional** dependency, `assertj-core` **3.x**, needed only by
-the fluent `CqlAssertions` API — see [Asserting in code](docs/assertions-fluent.md). Optional dependencies are not
-transitive, so it reaches you only if you declare it yourself.
+**JUnit Jupiter 6 is required from 5.3.0**, and that is a breaking change: the extensions are
+Jupiter extensions, so a project still on Jupiter 5 must stay on 5.2.0. It is not a free choice —
+Spring 7 calls a JUnit 6 API, so Spring 7 and Jupiter 6 move together. The JUnit 4 `@Rule`
+integration is unaffected and still runs through the vintage engine.
+
+`cassandra-unit-dataset` also has a few **optional** dependencies: `assertj-core` **3.x** for the
+fluent `CqlAssertions` API (see [Asserting in code](docs/assertions-fluent.md)), and `spring-test` +
+`spring-context` **7.x** for `SpringSessions`, which loads fixtures through a Spring-managed
+`CqlSession` (see [Spring integration](docs/spring.md)). Optional dependencies are not transitive,
+so they reach you only if you declare them yourself.
 
 And the history, which is all `cassandra-unit`:
 
@@ -393,7 +400,7 @@ CQLDataSetFactory.builder("mykeyspace")                                  // rows
 
 Either can go anywhere a dataset is accepted below. See [Datasets](docs/datasets.md).
 
-### JUnit 5
+### JUnit Jupiter
 
 ```java
 class MyTest {
@@ -439,7 +446,7 @@ class MySpringTest { ... }
 ```
 
 Spring is a `provided` dependency: your application decides the Spring version. The module is
-compiled against Spring 6.2 and also runs on Spring 7.
+compiled against Spring 7, with its Boot coverage on Spring Boot 4. Spring 7 requires JUnit Jupiter 6.
 
 One embedded Cassandra per JVM
 ------------------------------
@@ -491,7 +498,7 @@ the full guide and [CHANGELOG.md](CHANGELOG.md) the release-by-release detail. T
 - `tmpDir` now genuinely relocates Cassandra's data, commitlog, hints, saved caches and cdc
   directories. It previously relocated nothing but a copy of the yaml.
 - **New: a JUnit 5 extension**, `CassandraUnitExtension`. See
-  [the JUnit 5 section](docs/getting-started.md#junit-5).
+  [the Jupiter section](docs/getting-started.md#junit-jupiter).
 
 License
 -------
