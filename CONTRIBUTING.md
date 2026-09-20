@@ -113,8 +113,16 @@ together — the build will not let you forget.
 ## Releasing
 
 Releases are cut by the **release** workflow in GitHub Actions, never from a laptop. It runs
-`maven-release-plugin`, signs the artifacts, and uploads them to the
-[Central Publisher Portal](https://central.sonatype.com). Actions → *release* → *Run workflow*:
+`maven-release-plugin`, signs the artifacts, uploads them to the
+[Central Publisher Portal](https://central.sonatype.com), and drafts the GitHub release.
+
+**First, curate `## Unreleased` in `CHANGELOG.md`.** That section is the release notes, verbatim —
+the workflow reads it, uses it as the body of the GitHub release, and then renames it to
+`## <version> (<date>)` and commits that. So it has to be right *before* you dispatch. The workflow
+refuses to run if it is empty, or if a `## <releaseVersion>` section already exists — both mean
+somebody has been editing by hand. Do not promote the heading yourself.
+
+Then, Actions → *release* → *Run workflow*:
 
 | Input | Example | Notes |
 |---|---|---|
@@ -124,20 +132,31 @@ Releases are cut by the **release** workflow in GitHub Actions, never from a lap
 
 The job declares `environment: central`, so it pauses for an approval before it can do anything.
 
-Every run, dry or not, begins with a **pre-flight** `mvn -Prelease verify`. That is what exercises
-GPG signing, the source jar and the javadoc jar Central requires, and it exists because
-`useReleaseProfile=false` plus `releaseProfiles=release` means the `release` profile is otherwise
-active only during `release:perform` — that is, *after* `main` has been bumped and the tag pushed.
-Without the pre-flight, a bad signing key costs you a burnt version number and some git surgery.
+Every run, dry or not, begins by **checking the changelog** and then by a **pre-flight**
+`mvn -Prelease verify`. The pre-flight is what exercises GPG signing, the source jar and the javadoc
+jar Central requires, and it exists because `useReleaseProfile=false` plus `releaseProfiles=release`
+means the `release` profile is otherwise active only during `release:perform` — that is, *after*
+`main` has been bumped and the tag pushed. Without the pre-flight, a bad signing key costs you a
+burnt version number and some git surgery.
 
 **Dry-run first anyway.** On top of the pre-flight it rehearses the version arithmetic and the
 commit-and-tag steps, writing `pom.xml.tag` / `pom.xml.next` and stopping there — nothing pushed,
-nothing uploaded.
+nothing uploaded. It also prints the extracted release notes to the job summary, so you can read
+exactly what the real run would publish before you run it.
 
-Then run for real. The upload always stops at a **VALIDATED** deployment: `autoPublish` is pinned
-to `false` in the pom, so nothing reaches Central without a human. Check that state in the Portal
-and press Publish there. Dropping a deployment is free; publishing is permanent and the version
-number cannot be reused.
+Then run for real. It ends with two things waiting for you:
+
+1. **A VALIDATED deployment in the Portal.** `autoPublish` is pinned to `false` in the pom, so
+   nothing reaches Central without a human. Check that state and press Publish there. Dropping a
+   deployment is free; publishing is permanent and the version number cannot be reused.
+2. **A draft GitHub release** on `cassandra-unit-parent-<version>`, holding the changelog section.
+   Publish it in the same sitting, once the Portal deployment is published. It is a draft for the
+   same reason `autoPublish` is false: a release that announces a version you then dropped is worse
+   than a release that appears a few minutes late.
+
+The `main` branch ends up with three new commits: `docs: changelog for <version>` and the two
+`[maven-release-plugin]` ones on top of it. If the job fails part-way, its final step prints a
+runbook covering all of them.
 
 ### Secrets
 

@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Changed
+
+- **The `jamm` memory-meter agent is no longer needed.** The surefire setup consumers copy loses
+  three of its lines: `-javaagent:${com.github.jbellis:jamm:jar}`,
+  `-Djdk.attach.allowAttachSelf=true`, and the whole `maven-dependency-plugin` `properties`
+  execution that existed only to resolve that path. What remains is one plugin and the JPMS
+  `--add-exports` / `--add-opens` set.
+
+  Cassandra never required the agent unconditionally: `ObjectSizes` builds its meter as
+  `MemoryMeter.builder().withGuessing(INSTRUMENTATION_AND_SPECIFICATION, UNSAFE)`, a fallback chain,
+  so with no agent loaded it measures through `Unsafe` instead. Object sizes are then derived from
+  field offsets rather than from instrumentation, which shifts memtable accounting slightly in a
+  node holding a test fixture. The full suite passes either way.
+
+  This removes the most error-prone part of the setup. An unresolved `${...}` agent path killed the
+  fork before surefire could report anything, surfacing only as `The forked VM terminated without
+  properly saying goodbye` — the single most common first-run failure.
+
+  **Projects on 5.3.0 and earlier must keep all three.** Their instructions are unchanged.
+
+## 5.3.0 (2026-09-20)
+
 ### Added
 
 - **Spring Boot tests work with no wiring.** Annotate a `@SpringBootTest` class with
@@ -38,24 +60,6 @@
   existed in 5.2.0 but was documented nowhere.
 
 ### Changed
-
-- **The `jamm` memory-meter agent is no longer needed.** The surefire setup consumers copy loses
-  three of its lines: `-javaagent:${com.github.jbellis:jamm:jar}`,
-  `-Djdk.attach.allowAttachSelf=true`, and the whole `maven-dependency-plugin` `properties`
-  execution that existed only to resolve that path. What remains is one plugin and the JPMS
-  `--add-exports` / `--add-opens` set.
-
-  Cassandra never required the agent unconditionally: `ObjectSizes` builds its meter as
-  `MemoryMeter.builder().withGuessing(INSTRUMENTATION_AND_SPECIFICATION, UNSAFE)`, a fallback chain,
-  so with no agent loaded it measures through `Unsafe` instead. Object sizes are then derived from
-  field offsets rather than from instrumentation, which shifts memtable accounting slightly in a
-  node holding a test fixture. The full suite passes either way.
-
-  This removes the most error-prone part of the setup. An unresolved `${...}` agent path killed the
-  fork before surefire could report anything, surfacing only as `The forked VM terminated without
-  properly saying goodbye` — the single most common first-run failure.
-
-  **Projects on 5.3.0 and earlier must keep all three.** Their instructions are unchanged.
 
 - **JUnit 6, Spring 7 and Spring Boot 4.** JUnit Jupiter moves to **6.1.3**, Spring to **7.0.9** and
   the Boot test coverage to **4.1.1**. These are one change, not three: Spring 7's `SpringExtension`

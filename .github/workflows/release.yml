@@ -80,6 +80,38 @@ jobs:
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
+      # The GitHub release notes are the CHANGELOG's `## Unreleased` section, verbatim - the entries
+      # there are written by hand and read better than anything generated from commit subjects.
+      # Pulling and checking them here, in the pre-flight phase, means an empty or already-promoted
+      # changelog costs a failed job and nothing else.
+      #
+      # This has to stay *ahead* of the stamping step below, which empties `## Unreleased`. Moved
+      # down next to the `gh release create` that consumes the file, it would silently produce empty
+      # release notes: the guards below would have already passed, and `gh` takes an empty
+      # --notes-file without complaint.
+      - name: Extract the release notes from the CHANGELOG
+        env:
+          VERSION: ${{ inputs.releaseVersion }}
+        run: |
+          notes="$RUNNER_TEMP/release-notes.md"
+          awk '/^## Unreleased[[:space:]]*$/{f=1;next} /^## /{f=0} f' CHANGELOG.md > "$notes"
+
+          if ! grep -q '[^[:space:]]' "$notes"; then
+            echo "::error::CHANGELOG.md has an empty '## Unreleased' section. Write the notes for $VERSION before releasing."
+            exit 1
+          fi
+          if grep -q "^## ${VERSION} " CHANGELOG.md; then
+            echo "::error::CHANGELOG.md already has a '## ${VERSION}' section - either the version is being reused, or '## Unreleased' was promoted by hand. Revert that and let this workflow stamp it."
+            exit 1
+          fi
+
+          # So a dry run shows exactly what the real run would publish.
+          {
+            echo "## Release notes for ${VERSION}"
+            echo
+            cat "$notes"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # Everything that can fail, failing while nothing has been pushed: gpg signing, the javadoc
       # jar Central requires, the source jar, and the full test suite.
       - name: Pre-flight (release profile, nothing published)
@@ -106,6 +138,31 @@ jobs:
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
+      # Stamp the changelog before `release:prepare` runs, so the tag it creates points at a tree
+      # whose CHANGELOG names the version being released.
+      #
+      # Committing is not a style choice - `release:prepare` aborts on a dirty working tree. Not
+      # pushing is: `prepare` pushes the branch, so this commit rides along with its own two, and
+      # nothing reaches `main` if `prepare` fails first. The push is asserted after the fact below,
+      # because `-DpushChanges=false` means the dry run cannot rehearse it.
+      #
+      # `## Unreleased` is left with no subsections on purpose. That empty block is what makes the
+      # guard in the extract step bite on the next release: no notes, no release. Do not seed it
+      # with `### Added` / `### Changed` placeholders.
+      - name: Stamp the CHANGELOG
+        if: ${{ !inputs.dryRun }}
+        env:
+          VERSION: ${{ inputs.releaseVersion }}
+        run: |
+          heading="## ${VERSION} ($(date -u +%Y-%m-%d))"
+          awk -v h="$heading" '
+            !stamped && /^## Unreleased[[:space:]]*$/ { print; print ""; print h; stamped=1; next }
+            { print }
+          ' CHANGELOG.md > CHANGELOG.md.tmp
+          mv CHANGELOG.md.tmp CHANGELOG.md
+          git add CHANGELOG.md
+          git commit -m "docs: changelog for ${VERSION}"
+
       # The real thing. prepare: set version, run `clean verify`, commit, tag, push, bump to the
       # next snapshot, push. perform: clone the tag, build it with -Prelease, upload to Central.
       #
@@ -127,6 +184,64 @@ jobs:
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
+      # The one branch of this design a dry run cannot exercise: whether `prepare`'s push carried the
+      # changelog commit. Left unchecked it fails quietly - the release still succeeds, only the
+      # stamp is lost, and the next release would republish these notes under the next version.
+      - name: Check the CHANGELOG commit reached main
+        if: ${{ !inputs.dryRun }}
+        env:
+          VERSION: ${{ inputs.releaseVersion }}
+        run: |
+          git fetch --quiet origin main
+          if ! git log --format=%s origin/main | grep -qxF "docs: changelog for ${VERSION}"; then
+            echo "::error::'docs: changelog for ${VERSION}' is not on origin/main - release:prepare's push did not carry it. Push it by hand before the next release."
+            exit 1
+          fi
+
+      - name: Draft the GitHub release
+        if: ${{ !inputs.dryRun }}
+        env:
+          VERSION: ${{ inputs.releaseVersion }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="cassandra-unit-parent-${VERSION}"
+
+          # That name is maven-release-plugin's default, @{project.artifactId}-@{project.version},
+          # because no pom sets <tagNameFormat>. Assert it against the remote rather than trusting
+          # the default to hold: if someone adds a tagNameFormat later, this fails loudly instead of
+          # drafting a release against a tag that does not exist. release.properties would carry the
+          # real name, but release:perform deletes that file.
+          git ls-remote --exit-code --tags origin "refs/tags/${tag}" > /dev/null
+
+          # Re-checked at the point of use, not just where it was written: `gh` accepts an empty
+          # --notes-file silently, so a lost or clobbered file would publish a blank release.
+          notes="$RUNNER_TEMP/release-notes.md"
+          if ! grep -q '[^[:space:]]' "$notes"; then
+            echo "::error::${notes} is missing or empty - the extract step ran but its output did not survive to here."
+            exit 1
+          fi
+
+          {
+            echo
+            echo "---"
+            echo
+            echo "**Maven Central:** <https://central.sonatype.com/artifact/org.cassandraunit/cassandra-unit/${VERSION}>"
+          } >> "$notes"
+          prev=$(git describe --tags --abbrev=0 --match 'cassandra-unit-parent-*' "${tag}^" 2>/dev/null || true)
+          if [ -n "$prev" ]; then
+            echo "**Full commit log:** <https://github.com/jsevellec/cassandra-unit/compare/${prev}...${tag}>" >> "$notes"
+          fi
+
+          # A draft, not a published release. `autoPublish` is false in the pom, so Central sits at
+          # VALIDATED until a human presses Publish, and a deployment can still be dropped for free.
+          # Publishing this now would announce a version that might never ship. Publish it in the
+          # same sitting as the Portal.
+          gh release create "$tag" \
+            --draft \
+            --verify-tag \
+            --title "$VERSION" \
+            --notes-file "$notes"
+
       - name: Upload surefire reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -140,15 +255,30 @@ jobs:
           cat <<'EOF'
           The release failed. Check, in this order:
 
-            git log --oneline origin/main -3     # did prepare push its two commits?
+            git log --oneline origin/main -4     # did prepare push its two commits, and the
+                                                 # 'docs: changelog for <version>' commit under them?
             git ls-remote --tags origin          # did it push cassandra-unit-parent-<version>?
             https://central.sonatype.com         # is there a deployment, and in what state?
+            gh release list                      # was the draft release created?
 
           If prepare pushed but perform failed, the version number is still recoverable only if
           nothing was published. Undo with:
 
             mvn release:rollback                 # reverts the version commits (needs the local clone)
             git push --delete origin cassandra-unit-parent-<version>
+
+          release:rollback does NOT touch the changelog commit. If it was pushed, revert it too, or
+          the next release starts from a CHANGELOG with an empty '## Unreleased' and refuses to run:
+
+            git revert --no-edit <sha of "docs: changelog for <version>">
+
+          If everything up to and including the upload worked and only the release step failed, the
+          tag and the changelog are fine and only the draft is missing. Recreate it with the
+          '## <version>' section of CHANGELOG.md as the body:
+
+            awk '/^## <version> /{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
+            gh release create cassandra-unit-parent-<version> --draft --verify-tag \
+              --title <version> --notes-file notes.md
 
           A deployment left sitting in the Portal can be dropped from the Deployments page at no
           cost. A *published* version cannot be removed or reused.
