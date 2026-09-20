@@ -9,7 +9,7 @@
 	<artifactId>cassandra-unit-spring</artifactId>
 	<packaging>jar</packaging>
 	<name>cassandra-unit-spring</name>
-	<description>Spring Test framework to develop with Cassandra</description>
+	<description>Embedded Apache Cassandra for Spring and Spring Boot tests</description>
 
 	<dependencies>
         <dependency>

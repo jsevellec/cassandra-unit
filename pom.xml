@@ -5,7 +5,7 @@
     <packaging>pom</packaging>
     <name>cassandra-unit-parent</name>
     <version>5.4.0-SNAPSHOT</version>
-    <description>Test framework to develop with Cassandra</description>
+    <description>Test data and assertions for Apache Cassandra, with an embedded server if you want one.</description>
     <url>https://github.com/jsevellec/cassandra-unit</url>
     <licenses>
         <license>

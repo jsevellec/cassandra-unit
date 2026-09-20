@@ -9,7 +9,7 @@
     <artifactId>cassandra-unit</artifactId>
     <packaging>jar</packaging>
     <name>cassandra-unit</name>
-    <description>Test framework to develop with Cassandra</description>
+    <description>An embedded Apache Cassandra you can start from a test, preloaded with your test data</description>
 
     <dependencies>
 

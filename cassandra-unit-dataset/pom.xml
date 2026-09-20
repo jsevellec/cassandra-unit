@@ -8,7 +8,7 @@
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit-dataset</artifactId>
     <name>cassandra-unit-dataset</name>
-    <description>Load CQL and YAML/JSON/XML/CSV test fixtures into any Cassandra, through a CqlSession you supply</description>
+    <description>Load CQL and YAML/JSON/XML/CSV test data into any Cassandra, through a CqlSession you supply</description>
 
     <!--
       The fixture layer, with no embedded server.
