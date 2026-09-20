@@ -106,7 +106,7 @@ A real Apache Cassandra node, in your test JVM, with the schema and rows already
 three seconds of startup, once per JVM, and no Docker.
 
 It is one node per JVM, your test JVM needs the JVM flags a Cassandra server needs, and your JDK is
-the server's JDK — **read [the surefire section](docs/getting-started.md#2-configure-surefire-mandatory)
+the server's JDK — **read [the surefire section](docs/getting-started.md#3-configure-surefire)
 before your first run**, because skipping it fails confusingly.
 
 Against a Cassandra you already have
@@ -177,7 +177,7 @@ Full documentation is published at
 from [docs/](docs/) and so versioned alongside the code:
 
 - [Using your own Cassandra](docs/with-your-own-cassandra.md) — `cassandra-unit-dataset` against a session you supply
-- [Your first test](docs/getting-started.md) — the embedded server in five steps: dependency, the mandatory surefire setup, dataset, test, run
+- [Your first test](docs/getting-started.md) — the embedded server in six steps: pick your Cassandra, dependency, surefire, dataset, test, run
 - [Datasets](docs/datasets.md) — `.cql` scripts, YAML/JSON/XML/CSV row datasets, the Java builder, keyspace create/drop control
 - [Asserting with a dataset file](docs/assertions.md) — `@ExpectedCassandraDataSet`, and the comparison rules Cassandra forces
 - [Asserting in code](docs/assertions-fluent.md) — the fluent `CqlAssertions` API, for a single value or row count
@@ -340,7 +340,7 @@ side.
 
 Without them the fork starts and the test fails on the call that starts the node, with an
 `IllegalAccessException` on `sun.nio.ch.DirectBuffer.cleaner` — spelled out in
-[Your first test](docs/getting-started.md#2-configure-surefire-mandatory).
+[Your first test](docs/getting-started.md#3-configure-surefire).
 
 ```xml
 <plugin>

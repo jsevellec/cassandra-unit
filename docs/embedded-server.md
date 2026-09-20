@@ -5,6 +5,12 @@ Spring listeners all drive it, and you can use it directly when none of those fi
 
 **Dependency:** `cassandra-unit`. The server is the one feature not in `cassandra-unit-dataset`. See [What to declare](README.md#what-to-declare).
 
+**JVM flags:** the daemon runs inside your test JVM, so that JVM needs Cassandra's JPMS
+`--add-exports` / `--add-opens` set — see [Configure
+surefire](getting-started.md#3-configure-surefire). Without them the first
+`startEmbeddedCassandra(...)` call fails with an `IllegalAccessException` against a `sun.*` or
+`jdk.internal.*` member. Nothing on this page works until that is in place.
+
 ## One Cassandra per JVM
 
 **This is a permanent design constraint, not a limitation waiting to be fixed.** Cassandra's

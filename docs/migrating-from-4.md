@@ -30,7 +30,7 @@ because Cassandra calls the terminally-deprecated `System::setSecurityManager`.
 New, and unavoidable. An embedded Cassandra 5.0 needs the JPMS `--add-exports` / `--add-opens`
 flags in the test JVM; skipping them fails the test with an `IllegalAccessException` against a
 `sun.*` or `jdk.internal.*` member. The block to copy is in
-[the surefire section](getting-started.md#2-configure-surefire-mandatory). Releases up to 5.3.0 also
+[the surefire section](getting-started.md#3-configure-surefire). Releases up to 5.3.0 also
 required the `jamm` agent and a `maven-dependency-plugin` execution to resolve its path; 5.4.0
 dropped both.
 
