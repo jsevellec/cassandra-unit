@@ -205,19 +205,11 @@ The two artifacts have different requirements, and the difference is the main re
 | Surefire `argLine` | not needed | **mandatory** when you start the node, see [Setup](#setup) |
 | Maven | 3.9+ | 3.9+ |
 
-`cassandra-unit`'s JDK row is not a recommendation, it is the whole supported set:
-
-- Cassandra 5.0 removed Java 8, and Cassandra 5.0 supports only JDK 11 and 17.
-- Of those two, this project targets 17: it compiles with `--release 17`, and `spring-test` 6.2
-  requires 17 regardless, so supporting 11 would mean different bytecode levels per module for
-  no practical gain.
-- No released Cassandra line supports JDK 18–23.
-- **JDK 24+ will never work.** Cassandra's `ThreadAwareSecurityManager` calls
-  `System::setSecurityManager`, which is terminally deprecated and throws on 24 and later.
-
-The build enforces this, so a wrong JDK fails with a clear message rather than a confusing
-crash. If the message surprises you, check `mvn -v` rather than `java -version` — tools like
-`jenv` install a shim that overrides `JAVA_HOME` for `mvn` only.
+`cassandra-unit`'s JDK row is not a recommendation, it is the whole supported set: no released
+Cassandra line supports JDK 18–23, and 24+ never will — see [Your first test — embedded
+server](docs/getting-started.md#requirements) for why. The build enforces it, so a wrong JDK fails
+with a clear message rather than a confusing crash; if that message surprises you, check `mvn -v`
+rather than `java -version`, because tools like `jenv` shim `mvn` only.
 
 `cassandra-unit-dataset` carries none of that. It starts no daemon, so it needs no JPMS flags, and
 the 24+ ceiling does not apply — it compiles to 17 and runs on anything later.
@@ -328,57 +320,15 @@ See [Your first test — your own Cassandra](docs/with-your-own-cassandra.md) an
 ### You must also configure surefire
 
 This is not optional, and it is the single biggest difference from older versions. CassandraUnit
-starts a **real Cassandra node inside your test JVM**, so your test JVM needs the same flags a
-Cassandra server gets: the JPMS `--add-exports`/`--add-opens` set from Cassandra's own
-`conf/jvm17-server.options`.
+starts a **real Cassandra node inside your test JVM**, so that JVM needs the same flags a Cassandra
+server gets: the JPMS `--add-exports` / `--add-opens` set from Cassandra's own
+`conf/jvm17-server.options`. Skip them and the test fails on the call that starts the node, with an
+`IllegalAccessException` on `sun.nio.ch.DirectBuffer.cleaner`.
 
-What needs it is **any test JVM that starts the embedded node**, not merely having the jar on the
-classpath: JPMS flags are read at JVM launch, so the unit is the surefire execution. Most projects
-taking `cassandra-unit` start the node in most tests and should just set it module-wide;
-[Mixed modules](docs/embedded-server.md#mixed-modules) covers running both kinds of test side by
-side.
-
-Without them the fork starts and the test fails on the call that starts the node, with an
-`IllegalAccessException` on `sun.nio.ch.DirectBuffer.cleaner` — the full trace is in
-[Troubleshooting](docs/troubleshooting.md).
-
-```xml
-<plugin>
-    <artifactId>maven-surefire-plugin</artifactId>
-    <configuration>
-        <argLine>
-            -Dio.netty.tryReflectionSetAccessible=true
-            --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
-            --add-exports java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED
-            --add-exports java.management/com.sun.jmx.remote.security=ALL-UNNAMED
-            --add-exports java.rmi/sun.rmi.registry=ALL-UNNAMED
-            --add-exports java.rmi/sun.rmi.server=ALL-UNNAMED
-            --add-exports java.sql/java.sql=ALL-UNNAMED
-            --add-exports java.base/java.lang.ref=ALL-UNNAMED
-            --add-exports jdk.unsupported/sun.misc=ALL-UNNAMED
-            --add-opens java.base/java.lang.module=ALL-UNNAMED
-            --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
-            --add-opens java.base/jdk.internal.ref=ALL-UNNAMED
-            --add-opens java.base/jdk.internal.reflect=ALL-UNNAMED
-            --add-opens java.base/jdk.internal.math=ALL-UNNAMED
-            --add-opens java.base/jdk.internal.module=ALL-UNNAMED
-            --add-opens java.base/jdk.internal.util.jar=ALL-UNNAMED
-            --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
-            --add-opens java.base/sun.nio.ch=ALL-UNNAMED
-            --add-opens java.base/java.io=ALL-UNNAMED
-            --add-opens java.base/java.lang.reflect=ALL-UNNAMED
-            --add-opens java.base/java.lang=ALL-UNNAMED
-            --add-opens java.base/java.util=ALL-UNNAMED
-            --add-opens java.base/java.nio=ALL-UNNAMED
-        </argLine>
-    </configuration>
-</plugin>
-```
-
-**5.3.0 and earlier need more than this**: the `jamm` memory-meter agent as
-`-javaagent:${com.github.jbellis:jamm:jar}`, plus `-Djdk.attach.allowAttachSelf=true`, plus a
-`maven-dependency-plugin` `properties` execution to resolve that path. 5.4.0 drops all three —
-Cassandra's memory meter falls back to `Unsafe` when no agent is loaded.
+The block to copy is in [Your first test — embedded
+server](docs/getting-started.md#2-configure-surefire); it is kept there so there is one copy of it.
+What needs it is any test JVM that starts the node, not merely having the jar on the classpath —
+[Mixed modules](docs/embedded-server.md#mixed-modules) covers a module that runs both kinds of test.
 
 Usage
 -----
@@ -451,31 +401,15 @@ compiled against Spring 7, with its Boot coverage on Spring Boot 4. Spring 7 req
 One embedded Cassandra per JVM
 ------------------------------
 
-**This is a permanent design constraint, not a bug.** Cassandra's `DatabaseDescriptor`,
-`Schema` and `StorageService` hold static state that cannot be reset in-process, so:
+**A permanent design constraint, not a bug.** Cassandra's `DatabaseDescriptor`, `Schema` and
+`StorageService` hold static state that cannot be reset in-process, so the first
+`startEmbeddedCassandra` call in a JVM wins and a second configuration in that JVM is refused. Test
+classes that need different configurations need different JVMs, at roughly three seconds each.
 
-- The first call to `startEmbeddedCassandra` in a JVM wins. Later calls return immediately.
-- Asking for a *different* configuration file in the same JVM throws
-  `UnsupportedOperationException`.
-- `stopEmbeddedCassandra()` does not let you restart with a different configuration.
-
-If different test classes need different configurations, give each one its own JVM:
-
-```xml
-<configuration>
-    <reuseForks>false</reuseForks>
-</configuration>
-```
-
-That costs one Cassandra startup (~3s) per test class, which is the honest price of an
-in-process server. If you would rather not pay it, consider
+[Embedded server](docs/embedded-server.md#one-cassandra-per-jvm) has the surefire recipe and what
+cleanup between tests actually depends on. If the constraint is the wrong trade for you,
 [Testcontainers' Cassandra module](https://java.testcontainers.org/modules/databases/cassandra/)
-instead — it runs a real node in Docker, with no JVM or JDK coupling to your test process.
-
-Cleanup between tests is **driven by the dataset**, not by the rule or extension: a
-`CQLDataSet` declares whether its keyspace is dropped and recreated on load, and that is what
-isolates one test from the next. For a full wipe, call
-`EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()` yourself.
+runs a real node in Docker with no JVM or JDK coupling to your test process.
 
 Migrating from 4.3.1.0
 ----------------------

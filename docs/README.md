@@ -47,25 +47,21 @@ Pick the one that matches what you already have:
 | | |
 |---|---|
 | **I already have a Cassandra** — Testcontainers, a local node, ScyllaDB, Astra | [Your first test — your own Cassandra](with-your-own-cassandra.md) — the `cassandra-unit-dataset` artifact. No embedded server, no JVM flags, no JDK ceiling. |
-| **I want one started for me, in-process** | [Your first test — embedded server](getting-started.md) — the `cassandra-unit` artifact. **Read the surefire section first**: an embedded Cassandra 5.0 cannot start without extra JVM flags, and skipping them produces a confusing failure. |
+| **I want one started for me, in-process** | [Your first test — embedded server](getting-started.md) — the `cassandra-unit` artifact. Step 2 is not optional: an embedded Cassandra 5.0 needs JPMS flags on the test JVM, and without them the node fails to start. |
 
-Either way, two pages matter most. [Datasets](datasets.md) is one: the two dataset kinds — `.cql`
-scripts, and row datasets written as YAML/JSON/XML/CSV or built in Java — how values are converted,
-how to load several files together, and how keyspaces are created and dropped between tests. It
-applies to both artifacts.
-
-Asserting is the other, and nothing else in the Java/Cassandra ecosystem does it: stating what a
-table should hold *after* a test, not only what it held before. It comes two ways, sharing one
-comparison — [Asserting in code](assertions-fluent.md) for a single value or row count, and
-[Asserting with a dataset file](assertions.md) for every row a table should hold.
+Either way, [Datasets](datasets.md) is the page you will come back to — it applies to both
+artifacts. And asserting is the part nothing else in the Java/Cassandra ecosystem does: stating what
+a table should hold *after* a test, not only what it held before, either
+[in code](assertions-fluent.md) for a single value or row count or
+[with a dataset file](assertions.md) for every row.
 
 ## Reference
 
 | | |
 |---|---|
+| [Datasets](datasets.md) | The two dataset kinds: `.cql` scripts and row datasets in YAML/JSON/XML/CSV or built in Java, how values are converted from the live schema, and keyspace creation and deletion between tests. |
 | [Asserting in code](assertions-fluent.md) | The fluent `CqlAssertions` API: navigating session to keyspace to table to row, the method reference, and the optional AssertJ dependency. |
 | [Asserting with a dataset file](assertions.md) | `@ExpectedCassandraDataSet`: comparing a table against an expected dataset, the Cassandra-specific comparison rules, and the failure report. |
-| [Your first test — your own Cassandra](with-your-own-cassandra.md) | `cassandra-unit-dataset`: the four-step walkthrough, then loading fixtures through a `CqlSession` you supply, the `CqlDataSetExtension`, Testcontainers, and what the artifact deliberately leaves out. |
 | [Embedded server](embedded-server.md) | The `EmbeddedCassandraServerHelper` API: starting, configuring ports and directories, cleaning between tests, and the one-instance-per-JVM constraint. |
 | [Spring integration](spring.md) | `cassandra-unit-spring`: the `@EmbeddedCassandra`, `@CassandraDataSet` and `@CassandraUnit` annotations with Spring's TestContext framework. |
 | [Troubleshooting](troubleshooting.md) | The failure modes that are hard to diagnose from their error messages. Check here first if a test JVM dies without explanation. |
