@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 5.4.0 (2026-09-20)
+
 ### Changed
 
 - **The `jamm` memory-meter agent is no longer needed.** The surefire setup consumers copy loses
