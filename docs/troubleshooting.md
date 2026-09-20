@@ -39,10 +39,16 @@ different; see below.
 
 ```
 java.lang.ExceptionInInitializerError
+    at org.apache.cassandra.config.DatabaseDescriptor.resolveCommitLogWriteDiskAccessMode(DatabaseDescriptor.java:1501)
+    at org.apache.cassandra.config.DatabaseDescriptor.initializeCommitLogDiskAccessMode(DatabaseDescriptor.java:2909)
+    at org.apache.cassandra.config.DatabaseDescriptor.applySimpleConfig(DatabaseDescriptor.java:640)
+    at org.apache.cassandra.config.DatabaseDescriptor.applyAll(DatabaseDescriptor.java:455)
     at org.apache.cassandra.config.DatabaseDescriptor.daemonInitialization(DatabaseDescriptor.java:263)
-    at org.cassandraunit.utils.EmbeddedCassandraServerHelper.startEmbeddedCassandra(...)
-Caused by: java.lang.IllegalAccessException: access to public member failed:
-    sun.nio.ch.DirectBuffer.cleaner ... from class org.apache.cassandra.io.util.FileUtils (unnamed module @10742304)
+    at org.cassandraunit.utils.EmbeddedCassandraServerHelper.startEmbeddedCassandra(EmbeddedCassandraServerHelper.java:153)
+    … extension and JUnit frames …
+Caused by: java.lang.RuntimeException: java.lang.IllegalAccessException: access to public member failed:
+    sun.nio.ch.DirectBuffer.cleaner … from class org.apache.cassandra.io.util.FileUtils (unnamed module @10742304)
+    at org.apache.cassandra.io.util.FileUtils.<clinit>(FileUtils.java:106)
 ```
 
 The JPMS flags are missing. Unlike the case above, the fork starts fine and the failure lands in
@@ -61,7 +67,7 @@ the forked JVM — the surefire *execution*, not the module and not the dependen
 
 Mirror image of the `reuseForks` note further down: the simple thing is to set it module-wide and
 forget it, since flags on a JVM that never starts a node cost nothing. Split it per execution only
-when you want one execution kept clean — [Mixed modules](getting-started.md#mixed-modules).
+when you want one execution kept clean — [Mixed modules](embedded-server.md#mixed-modules).
 
 ## `mvn -v` disagrees with `java -version`
 

@@ -35,6 +35,39 @@ That costs one startup (~3s) per test class. It is the price of an in-process se
 high, [Testcontainers](https://java.testcontainers.org/modules/databases/cassandra/) is the
 alternative.
 
+## Mixed modules
+
+The JVM flags are read at launch, so the unit they apply to is the forked JVM — the surefire
+*execution*, not the module and not the dependency. One module with embedded tests *and* tests that
+use a Cassandra of your own can therefore put the `argLine` on the execution that needs it, rather
+than on the plugin, so the other execution launches a plain JVM.
+
+```xml
+<plugin>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>default-test</id>
+            <configuration>
+                <argLine>-Dio.netty.tryReflectionSetAccessible=true … the rest of the flags …</argLine>
+                <includes><include>**/*EmbeddedTest.java</include></includes>
+            </configuration>
+        </execution>
+        <execution>
+            <id>no-embedded-server</id>
+            <goals><goal>test</goal></goals>
+            <configuration>
+                <excludes><exclude>**/*EmbeddedTest.java</exclude></excludes>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+Plugin-level `<configuration>` is inherited by every execution, so the flags have to sit inside the
+one execution rather than above both. There is no penalty for the simpler thing — flags on a JVM
+that never starts a node do nothing — so only split when you want the second execution kept clean.
+
 ## Starting
 
 ```java

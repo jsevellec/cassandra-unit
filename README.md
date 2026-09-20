@@ -335,12 +335,12 @@ Cassandra server gets: the JPMS `--add-exports`/`--add-opens` set from Cassandra
 What needs it is **any test JVM that starts the embedded node**, not merely having the jar on the
 classpath: JPMS flags are read at JVM launch, so the unit is the surefire execution. Most projects
 taking `cassandra-unit` start the node in most tests and should just set it module-wide;
-[Mixed modules](docs/getting-started.md#mixed-modules) covers running both kinds of test side by
+[Mixed modules](docs/embedded-server.md#mixed-modules) covers running both kinds of test side by
 side.
 
 Without them the fork starts and the test fails on the call that starts the node, with an
-`IllegalAccessException` on `sun.nio.ch.DirectBuffer.cleaner` — spelled out in
-[Your first test](docs/getting-started.md#2-configure-surefire).
+`IllegalAccessException` on `sun.nio.ch.DirectBuffer.cleaner` — the full trace is in
+[Troubleshooting](docs/troubleshooting.md).
 
 ```xml
 <plugin>

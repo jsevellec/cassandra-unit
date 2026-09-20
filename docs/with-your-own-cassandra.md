@@ -18,19 +18,11 @@ A Testcontainers container, a node on localhost, ScyllaDB, Astra — anything sp
 </dependency>
 ```
 
-**No surefire configuration.** No `--add-opens`, no `--add-exports`, no JVM flags at all. Those exist
-because the embedded server runs a real Cassandra daemon inside your test JVM, and they are needed
-by [any JVM that starts one](getting-started.md#which-jvms-need-it); there is no daemon here.
-**No JDK ceiling** either: `cassandra-unit` is pinned to JDK 17 and can never run on 24+, because
-Cassandra's `ThreadAwareSecurityManager` calls `System::setSecurityManager`. This artifact needs 17
-or later and has no upper bound.
+JDK 17 or later, no upper bound. Maven 3.9+.
 
 Its whole dependency tree is `java-driver-core`, `jackson-databind`, `snakeyaml` and `slf4j-api`,
 plus optional extras you only resolve by asking for them: `jackson-dataformat-csv` for CSV datasets,
-and `spring-test` / `spring-context` for `SpringSessions`. The build enforces that: a
-`bannedDependencies` rule fails if `cassandra-all` ever appears.
-
-There is no JDK row to satisfy either: 17 or later, no upper bound, and Maven 3.9+.
+and `spring-test` / `spring-context` for `SpringSessions`.
 
 ## 2. Write the dataset
 
@@ -76,10 +68,6 @@ class WidgetTest {
 session depend on something else the test sets up, a container most of all. `closingSession()` says
 this extension created the session and may close it; leave it off for a session you own elsewhere.
 `load(...)` is the simple case: one dataset, loaded before every test.
-
-No JVM flags, no `argLine`, nothing else to configure — see [Which JVMs need
-it](getting-started.md#which-jvms-need-it) for why that is a property of the embedded daemon and not
-of this library.
 
 ## 4. Run it
 
