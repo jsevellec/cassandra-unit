@@ -7,6 +7,12 @@
 | `logo-mark.svg` | Mark only, square — avatars, favicons, social preview |
 | `logo-mark-dark.svg` | Mark only, dark backgrounds |
 
+The SVGs are the source. `png/` holds rasterized versions of them plus two
+composed cards — a 1280×640 GitHub social preview and a 1200×627 card for
+social posts. Those are derived artifacts: edit an SVG, then re-run
+`./generate-png.sh [version]` (needs `rsvg-convert` and `magick`), never hand-edit
+a PNG.
+
 The mark is an open **C** with a check breaking out of its opening: a Cassandra
 table, and the assertion that says it holds what it should.
 
